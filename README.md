@@ -2,13 +2,15 @@
 
 **Devize** is a powerful and flexible data visualization library designed to make the process of creating intricate and interactive visualizations a breeze. With a focus on declarative representation of constraints, Devize empowers you to effortlessly generate stunning data-driven visualizations in both 2D and 3D environments.
 
+(Note: this is entirely imaginary so far...)
+
 ## Key Features
 
-- **Declarative Constraints:** Devize's core strength lies in its declarative representation of constraints. Define scaling, translation, and arbitrary relationships between data streams effortlessly, providing granular control over visualization elements.
+- **Declarative Constraints:** Devize's core strength lies in its declarative representation of constraints. Define scaling, translation, and arbitrary relationships between data values, providing granular control over visualization elements.
 
 - **Flexible Layouts:** Create intricate layouts by specifying arbitrary relationships between data, allowing you to design compelling visual narratives.
 
-- **Streamlined Data Processing:** Seamlessly input, analyze, and transform data streams to seamlessly integrate them into your visualizations.
+- **Streamlined Data Processing:** Seamlessly input, analyze, and transform data streams to integrate them into your visualizations.
 
 - **Interactive User Experience:** Devize empowers you to engage your audience with interactive visualizations. Enable user interaction, explore data, and gain insights through dynamic experiences.
 
