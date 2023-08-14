@@ -1,0 +1,28 @@
+{
+  "name": "data-transformations",
+  "version": "1.0.0",
+  "description": "A TypeScript library for declaring compositions of data transformations with JS objects",
+  "main": "src/server/nodeServer.ts",
+  "scripts": {
+    "test": "mocha --require ts-node/register test/**/*.test.ts",
+    "start": "ts-node src/server/nodeServer.ts"
+  },
+  "keywords": ["data", "transformations", "typescript"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "typescript": "^4.5.2",
+    "node": "^16.13.0"
+  },
+  "devDependencies": {
+    "@types/node": "^16.11.6",
+    "ts-node": "^10.4.0",
+    "mocha": "^9.1.3",
+    "sinon": "^12.0.1",
+    "playwright": "^1.17.1",
+    "@types/mocha": "^9.0.0",
+    "@types/sinon": "^12.0.1",
+    "@types/playwright": "^1.17.0"
+  },
+  "types": "src/index.d.ts"
+}
