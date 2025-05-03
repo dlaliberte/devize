@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Devize - Data Binding</title>
+  <link rel="stylesheet" href="/css/examples.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Advanced Data Binding</h1>
+    <p>This example demonstrates Devize's declarative data binding capabilities, including field specifications and data transformations.</p>
+
+    <div id="visualization-container" class="viz-container"></div>
+    <div id="tooltip" class="tooltip"></div>
+
+    <div class="controls">
+      <h3>Data Transformations</h3>
+      <button id="filter-btn">Filter (Revenue > 400)</button>
+      <button id="sort-btn">Sort by Revenue</button>
+      <button id="reset-btn">Reset Data</button>
+    </div>
+
+    <h2>Code</h2>
+    <pre><code>// Sample data
+const salesData = [
+  { product: "Product A", revenue: 420, profit: 210, category: "Electronics" },
+  { product: "Product B", revenue: 650, profit: 300, category: "Clothing" },
+  { product: "Product C", revenue: 340, profit: -50, category: "Electronics" },
+  { product: "Product D", revenue: 570, profit: 140, category: "Food" },
+  { product: "Product E", revenue: 320, profit: 90, category: "Clothing" }
+];
+
+// Create a bar chart with field specifications
+const barChart = createViz({
+  type: "barChart",
+  data: salesData,
+  x: { field: "product", type: "ordinal" },
+  y: { field: "revenue", type: "quantitative" },
+  color: { field: "category", type: "categorical" },
+  tooltip: { fields: ["product", "revenue", "profit", "category"] }
+}, document.getElementById("visualization-container"));</code></pre>
+
+    <h2>Filtering Data</h2>
+    <pre><code>// Filter data to show only high-revenue products
+const filteredViz = createViz({
+  type: "barChart",
+  data: salesData,
+  transforms: [
+    { type: "filter", test: "d => d.revenue > 400" }
+  ],
+  x: { field: "product", type: "ordinal" },
+  y: { field: "revenue", type: "quantitative" },
+  color: { field: "category", type: "categorical" }
+}, document.getElementById("visualization-container"));</code></pre>
+
+    <h2>Sorting Data</h2>
+    <pre><code>// Sort data by revenue
+const sortedViz = createViz({
+  type: "barChart",
+  data: salesData,
+  transforms: [
+    { type: "sort", field: "revenue", order: "descending" }
+  ],
+  x: { field: "product", type: "ordinal" },
+  y: { field: "revenue", type: "quantitative" },
+  color: { field: "category", type: "categorical" }
+}, document.getElementById("visualization-container"));</code></pre>
+
+    <a href="/examples/" class="back-link">← Back to Examples</a>
+  </div>
+
+  <script src="/js/utils.js"></script>
+  <script src="/js/devize.js"></script>
+  <script>
+    // Sample data
+    const salesData = [
+      { product: "Product A", revenue: 420, profit: 210, category: "Electronics" },
+      { product: "Product B", revenue: 650, profit: 300, category: "Clothing" },
+      { product: "Product C", revenue: 340, profit: -50, category: "Electronics" },
+      { product: "Product D", revenue: 570, profit: 140, category: "Food" },
+      { product: "Product E", revenue: 320, profit: 90, category: "Clothing" }
+    ];
+
+    // Create initial visualization
+    let currentViz = createViz({
+      type: "barChart",
+      data: salesData,
+      x: { field: "product", type: "ordinal" },
+      y: { field: "revenue", type: "quantitative" },
+      color: { field: "category", type: "categorical" },
+      tooltip: { fields: ["product", "revenue", "profit", "category"] }
+    }, document.getElementById("visualization-container"));
+
+    // Add event listeners to buttons
+    document.getElementById('filter-btn').addEventListener('click', function() {
+      currentViz = createViz({
+        type: "barChart",
+        data: salesData,
+        transforms: [
+          { type: "filter", test: "d => d.revenue > 400" }
+        ],
+        x: { field: "product", type: "ordinal" },
+        y: { field: "revenue", type: "quantitative" },
+        color: { field: "category", type: "categorical" },
+        tooltip: { fields: ["product", "revenue", "profit", "category"] }
+      }, document.getElementById("visualization-container"));
+    });
+
+    document.getElementById('sort-btn').addEventListener('click', function() {
+      currentViz = createViz({
+        type: "barChart",
+        data: salesData,
+        transforms: [
+          { type: "sort", field: "revenue", order: "descending" }
+        ],
+        x: { field: "product", type: "ordinal" },
+        y: { field: "revenue", type: "quantitative" },
+        color: { field: "category", type: "categorical" },
+        tooltip: { fields: ["product", "revenue", "profit", "category"] }
+      }, document.getElementById("visualization-container"));
+    });
+
+    document.getElementById('reset-btn').addEventListener('click', function() {
+      currentViz = createViz({
+        type: "barChart",
+        data: salesData,
+        x: { field: "product", type: "ordinal" },
+        y: { field: "revenue", type: "quantitative" },
+        color: { field: "category", type: "categorical" },
+        tooltip: { fields: ["product", "revenue", "profit", "category"] }
+      }, document.getElementById("visualization-container"));
+    });
+
+    // Tooltip functions
+    function showTooltip(event) {
+      const tooltip = document.getElementById('tooltip');
+      const data = event.target._data;
+
+      if (data) {
+        let html = '';
+        for (const key in data) {
+          html += `<strong>${key}:</strong> ${data[key]}<br>`;
+        }
+
+        tooltip.innerHTML = html;
+        tooltip.style.opacity = 1;
+        moveTooltip(event);
+      }
+    }
+
+    function moveTooltip(event) {
+      const tooltip = document.getElementById('tooltip');
+      tooltip.style.left = (event.pageX + 10) + 'px';
+      tooltip.style.top = (event.pageY + 10) + 'px';
+    }
+
+    function hideTooltip() {
+      const tooltip = document.getElementById('tooltip');
+      tooltip.style.opacity = 0;
+    }
+  </script>
+</body>
+</html>
