@@ -118,18 +118,18 @@ const barChart = createViz({
   <script src="/js/primitives/tooltips.js"></script>
 
   <!-- Load chart components -->
-  <script src="/js/axis.js"></script>
-  <script src="/js/legend.js"></script>
-  <script src="/js/bar-chart.js"></script>
+  <script src="/js/axis-declarative.js"></script>
+  <script src="/js/legend-declarative.js"></script>
+  <script src="/js/bar-chart-declarative.js"></script>
 
   <script>
     // Sample data
     const data = [
-      { product: "Product A", revenue: 420 },
-      { product: "Product B", revenue: 650 },
-      { product: "Product C", revenue: 340 },
-      { product: "Product D", revenue: 570 },
-      { product: "Product E", revenue: 230 }
+      { product: "Product A", revenue: 420, category: "Electronics" },
+      { product: "Product B", revenue: 650, category: "Clothing" },
+      { product: "Product C", revenue: 340, category: "Electronics" },
+      { product: "Product D", revenue: 570, category: "Food" },
+      { product: "Product E", revenue: 230, category: "Clothing" }
     ];
 
     // Create a bar chart with data binding
@@ -139,7 +139,7 @@ const barChart = createViz({
       data: currentData,
       x: { field: "product" },
       y: { field: "revenue" },
-      color: { field: "product" },
+      color: { field: "category" },
       tooltip: true
     };
 

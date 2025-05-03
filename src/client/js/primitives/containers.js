@@ -11,28 +11,77 @@ createViz({
     visible: { default: true },
     children: { default: [] }
   },
-  implementation: function(props) {
-    // Create SVG group element
+  implementation: function(props, container) {
+    const svg = ensureSvg(container);
+
+    // Create group element
     const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 
-    // Set attributes from props
-    if (props.transform) group.setAttribute('transform', props.transform);
+    // Set transform if provided
+    if (props.transform) {
+      // Check if transform is a function by actually trying to call it
+      try {
+        if (typeof props.transform === 'function') {
+          const transformValue = props.transform(props);
+          group.setAttribute('transform', transformValue);
+        } else {
+          group.setAttribute('transform', props.transform);
+        }
+      } catch (e) {
+        // If calling as a function fails, just use it as a string
+        console.error("Error applying transform:", e);
+        group.setAttribute('transform', String(props.transform));
+      }
+    }
+
+    // Set other attributes
     if (props.opacity !== 1) group.setAttribute('opacity', props.opacity);
     if (!props.visible) group.setAttribute('display', 'none');
 
-    // Create and append children
-    if (props.children && Array.isArray(props.children)) {
-      for (const childSpec of props.children) {
-        if (childSpec) {
-          const child = createViz(childSpec, { appendChild: (el) => group.appendChild(el) });
-          if (child && child.element) {
-            // Child already appended in createViz
+    // Add to SVG
+    svg.appendChild(group);
+
+    // Create child visualizations
+    const children = [];
+    if (props.children) {
+      let childSpecs;
+
+      try {
+        if (typeof props.children === 'function') {
+          // Execute the function to get the child specs
+          childSpecs = props.children(props);
+        } else {
+          childSpecs = props.children;
+        }
+      } catch (e) {
+        console.error("Error getting children:", e);
+        childSpecs = [];
+      }
+
+      if (Array.isArray(childSpecs)) {
+        for (const childSpec of childSpecs) {
+          // Create a temporary container for the child
+          const tempContainer = {
+            querySelector: () => group,
+            appendChild: () => {} // No-op since we're using the existing group
+          };
+
+          // Create the child visualization
+          const child = createViz(childSpec, tempContainer);
+
+          // If it's a valid child, add it to our children array
+          if (child) {
+            children.push(child);
           }
         }
       }
     }
 
-    return group;
+    return {
+      element: group,
+      spec: props,
+      children: children
+    };
   }
 });
 

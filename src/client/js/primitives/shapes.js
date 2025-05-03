@@ -17,8 +17,10 @@ createViz({
     ry: { default: 0 },
     opacity: { default: 1 }
   },
-  implementation: function(props) {
-    // Create SVG rect element
+  implementation: function(props, container) {
+    const svg = ensureSvg(container);
+
+    // Create rectangle element
     const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
 
     // Set attributes from props
@@ -35,7 +37,25 @@ createViz({
     if (props.ry) rect.setAttribute('ry', props.ry);
     if (props.opacity !== 1) rect.setAttribute('opacity', props.opacity);
 
-    return rect;
+    // Store data for tooltip
+    if (props.data) {
+      rect._data = props.data;
+
+      // Add event listeners for tooltip
+      if (props.tooltip) {
+        rect.addEventListener('mouseover', showTooltip);
+        rect.addEventListener('mousemove', moveTooltip);
+        rect.addEventListener('mouseout', hideTooltip);
+      }
+    }
+
+    // Add to SVG
+    svg.appendChild(rect);
+
+    return {
+      element: rect,
+      spec: props
+    };
   }
 });
 
@@ -52,8 +72,10 @@ createViz({
     strokeWidth: { default: 1 },
     opacity: { default: 1 }
   },
-  implementation: function(props) {
-    // Create SVG circle element
+  implementation: function(props, container) {
+    const svg = ensureSvg(container);
+
+    // Create circle element
     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
 
     // Set attributes from props
@@ -67,145 +89,116 @@ createViz({
     if (props.strokeWidth) circle.setAttribute('stroke-width', props.strokeWidth);
     if (props.opacity !== 1) circle.setAttribute('opacity', props.opacity);
 
-    return circle;
+    // Store data for tooltip
+    if (props.data) {
+      circle._data = props.data;
+
+      // Add event listeners for tooltip
+      if (props.tooltip) {
+        circle.addEventListener('mouseover', showTooltip);
+        circle.addEventListener('mousemove', moveTooltip);
+        circle.addEventListener('mouseout', hideTooltip);
+      }
+    }
+
+    // Add to SVG
+    svg.appendChild(circle);
+
+    return {
+      element: circle,
+      spec: props
+    };
   }
 });
 
-// Define the ellipse primitive
+// Define the line primitive
 createViz({
   type: "define",
-  name: "ellipse",
+  name: "line",
   properties: {
-    cx: { required: true },
-    cy: { required: true },
-    rx: { required: true },
-    ry: { required: true },
-    fill: { default: "steelblue" },
-    stroke: { default: null },
+    x1: { required: true },
+    y1: { required: true },
+    x2: { required: true },
+    y2: { required: true },
+    stroke: { default: "black" },
     strokeWidth: { default: 1 },
+    strokeDasharray: { default: null },
     opacity: { default: 1 }
   },
-  implementation: function(props) {
-    // Create SVG ellipse element
-    const ellipse = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+  implementation: function(props, container) {
+    const svg = ensureSvg(container);
+
+    // Create line element
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
 
     // Set attributes from props
-    ellipse.setAttribute('cx', props.cx);
-    ellipse.setAttribute('cy', props.cy);
-    ellipse.setAttribute('rx', props.rx);
-    ellipse.setAttribute('ry', props.ry);
+    line.setAttribute('x1', props.x1);
+    line.setAttribute('y1', props.y1);
+    line.setAttribute('x2', props.x2);
+    line.setAttribute('y2', props.y2);
 
     // Set style attributes
-    if (props.fill) ellipse.setAttribute('fill', props.fill);
-    if (props.stroke) ellipse.setAttribute('stroke', props.stroke);
-    if (props.strokeWidth) ellipse.setAttribute('stroke-width', props.strokeWidth);
-    if (props.opacity !== 1) ellipse.setAttribute('opacity', props.opacity);
+    if (props.stroke) line.setAttribute('stroke', props.stroke);
+    if (props.strokeWidth) line.setAttribute('stroke-width', props.strokeWidth);
+    if (props.strokeDasharray) line.setAttribute('stroke-dasharray', props.strokeDasharray);
+    if (props.opacity !== 1) line.setAttribute('opacity', props.opacity);
 
-    return ellipse;
+    // Add to SVG
+    svg.appendChild(line);
+
+    return {
+      element: line,
+      spec: props
+    };
   }
 });
 
-// Define the polygon primitive
+// Define the text primitive
 createViz({
   type: "define",
-  name: "polygon",
+  name: "text",
   properties: {
-    points: { required: true }, // Array of {x, y} points or string like "0,0 100,0 50,100"
-    fill: { default: "steelblue" },
-    stroke: { default: null },
-    strokeWidth: { default: 1 },
-    opacity: { default: 1 }
+    x: { default: 0 },
+    y: { default: 0 },
+    text: { required: true },
+    fontSize: { default: "12px" },
+    fontFamily: { default: "Arial" },
+    fontWeight: { default: "normal" },
+    fill: { default: "black" },
+    textAnchor: { default: "start" },
+    dominantBaseline: { default: "auto" },
+    opacity: { default: 1 },
+    transform: { default: null }
   },
-  implementation: function(props) {
-    // Create SVG polygon element
-    const polygon = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+  implementation: function(props, container) {
+    const svg = ensureSvg(container);
 
-    // Set points attribute
-    let pointsStr = props.points;
-    if (Array.isArray(props.points)) {
-      pointsStr = props.points.map(p => `${p.x},${p.y}`).join(' ');
-    }
-    polygon.setAttribute('points', pointsStr);
+    // Create text element
+    const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+
+    // Set attributes from props
+    text.setAttribute('x', props.x);
+    text.setAttribute('y', props.y);
 
     // Set style attributes
-    if (props.fill) polygon.setAttribute('fill', props.fill);
-    if (props.stroke) polygon.setAttribute('stroke', props.stroke);
-    if (props.strokeWidth) polygon.setAttribute('stroke-width', props.strokeWidth);
-    if (props.opacity !== 1) polygon.setAttribute('opacity', props.opacity);
+    if (props.fill) text.setAttribute('fill', props.fill);
+    if (props.fontSize) text.setAttribute('font-size', props.fontSize);
+    if (props.fontFamily) text.setAttribute('font-family', props.fontFamily);
+    if (props.fontWeight !== "normal") text.setAttribute('font-weight', props.fontWeight);
+    if (props.textAnchor !== "start") text.setAttribute('text-anchor', props.textAnchor);
+    if (props.dominantBaseline !== "auto") text.setAttribute('dominant-baseline', props.dominantBaseline);
+    if (props.opacity !== 1) text.setAttribute('opacity', props.opacity);
+    if (props.transform) text.setAttribute('transform', props.transform);
 
-    return polygon;
-  }
-});
+    // Set the text content
+    text.textContent = props.text;
 
-// Define the arc primitive
-createViz({
-  type: "define",
-  name: "arc",
-  properties: {
-    cx: { required: true },
-    cy: { required: true },
-    innerRadius: { default: 0 },
-    outerRadius: { required: true },
-    startAngle: { default: 0 },
-    endAngle: { required: true },
-    fill: { default: "steelblue" },
-    stroke: { default: null },
-    strokeWidth: { default: 1 },
-    opacity: { default: 1 }
-  },
-  implementation: function(props) {
-    // Create SVG path element for the arc
-    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    // Add to SVG
+    svg.appendChild(text);
 
-    // Convert angles from degrees to radians
-    const startAngleRad = (props.startAngle * Math.PI) / 180;
-    const endAngleRad = (props.endAngle * Math.PI) / 180;
-
-    // Calculate points
-    const startOuterX = props.cx + props.outerRadius * Math.cos(startAngleRad);
-    const startOuterY = props.cy + props.outerRadius * Math.sin(startAngleRad);
-    const endOuterX = props.cx + props.outerRadius * Math.cos(endAngleRad);
-    const endOuterY = props.cy + props.outerRadius * Math.sin(endAngleRad);
-
-    // Create path data
-    let pathData;
-
-    if (props.innerRadius === 0) {
-      // Simple pie slice
-      const largeArcFlag = endAngleRad - startAngleRad > Math.PI ? 1 : 0;
-      pathData = [
-        `M ${props.cx},${props.cy}`,
-        `L ${startOuterX},${startOuterY}`,
-        `A ${props.outerRadius},${props.outerRadius} 0 ${largeArcFlag} 1 ${endOuterX},${endOuterY}`,
-        'Z'
-      ].join(' ');
-    } else {
-      // Donut slice
-      const startInnerX = props.cx + props.innerRadius * Math.cos(endAngleRad);
-      const startInnerY = props.cy + props.innerRadius * Math.sin(endAngleRad);
-      const endInnerX = props.cx + props.innerRadius * Math.cos(startAngleRad);
-      const endInnerY = props.cy + props.innerRadius * Math.sin(startAngleRad);
-
-      const largeArcFlag1 = endAngleRad - startAngleRad > Math.PI ? 1 : 0;
-      const largeArcFlag2 = endAngleRad - startAngleRad > Math.PI ? 1 : 0;
-
-      pathData = [
-        `M ${startOuterX},${startOuterY}`,
-        `A ${props.outerRadius},${props.outerRadius} 0 ${largeArcFlag1} 1 ${endOuterX},${endOuterY}`,
-        `L ${startInnerX},${startInnerY}`,
-        `A ${props.innerRadius},${props.innerRadius} 0 ${largeArcFlag2} 0 ${endInnerX},${endInnerY}`,
-        'Z'
-      ].join(' ');
-    }
-
-    path.setAttribute('d', pathData);
-
-    // Set style attributes
-    if (props.fill) path.setAttribute('fill', props.fill);
-    if (props.stroke) path.setAttribute('stroke', props.stroke);
-    if (props.strokeWidth) path.setAttribute('stroke-width', props.strokeWidth);
-    if (props.opacity !== 1) path.setAttribute('opacity', props.opacity);
-
-    return path;
+    return {
+      element: text,
+      spec: props
+    };
   }
 });
