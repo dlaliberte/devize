@@ -259,6 +259,81 @@ extendType("barChart", {
 });
 ```
 
+5.6 Visualization Definition with define
+Devize provides a powerful mechanism for defining new visualization types declaratively using the define type. This allows users to create custom visualizations by composing existing ones, without writing explicit code.
+
+5.6.1 Basic Definition
+
+```json
+// Define a new visualization type
+createViz({
+  type: "define",
+  name: "labeledCircle",
+  properties: {
+    cx: { required: true },
+    cy: { required: true },
+    r: { required: true, default: 10 },
+    fill: { default: "steelblue" },
+    stroke: { default: "navy" },
+    strokeWidth: { default: 1 },
+    label: { required: true },
+    fontSize: { default: 12 }
+  },
+  implementation: {
+    type: "group",
+    children: [
+      {
+        type: "circle",
+        cx: "{{cx}}",
+        cy: "{{cy}}",
+        r: "{{r}}",
+        fill: "{{fill}}",
+        stroke: "{{stroke}}",
+        strokeWidth: "{{strokeWidth}}"
+      },
+      {
+        type: "text",
+        x: "{{cx}}",
+        y: "{{cy}}",
+        text: "{{label}}",
+        fontSize: "{{fontSize}}",
+        textAnchor: "middle",
+        dominantBaseline: "middle",
+        fill: "black"
+      }
+    ]
+  }
+});
+```
+
+The extend property allows inheriting from an existing visualization type:
+
+```json
+createViz({
+  type: "define",
+  name: "horizontalBarChart",
+  extend: "barChart",
+  implementation: {
+    // Override specific aspects of the barChart implementation
+    orientation: "horizontal",
+    // Other properties are inherited from barChart
+  }
+});
+```
+
+5.6.3 Internal Use
+The define type is used internally by Devize to implement many of its standard visualizations. For example, axes, legends, and various chart types are all defined using this mechanism, making the library highly extensible and consistent.
+
+This approach provides several benefits:
+
+- Declarative definition of new visualization types
+- Reuse of existing components
+- Consistent property handling
+- Clear separation between interface and implementation
+- Easy customization through property overrides
+
+
+
 ## 6. Data Handling
 
 ### 6.1 Data Binding

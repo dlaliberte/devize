@@ -485,3 +485,102 @@ const radialBarChart = createViz({
 ```
 
 This defines and uses a custom radial bar chart visualization type.
+
+
+12. Defining Custom Visualizations Declaratively
+One of the most powerful features of Devize is the ability to define new visualization types declaratively using the define type. This allows you to create reusable visualization components without writing explicit code.
+
+12.1 Basic Definition
+Let's create a simple labeled circle visualization:
+
+```javascript
+// Define a new visualization type
+createViz({
+  type: "define",
+  name: "labeledCircle",
+  properties: {
+    cx: { required: true },
+    cy: { required: true },
+    r: { required: true, default: 10 },
+    fill: { default: "steelblue" },
+    stroke: { default: "navy" },
+    strokeWidth: { default: 1 },
+    label: { required: true },
+    fontSize: { default: 12 }
+  },
+  implementation: {
+    type: "group",
+    children: [
+      {
+        type: "circle",
+        cx: "{{cx}}",
+        cy: "{{cy}}",
+        r: "{{r}}",
+        fill: "{{fill}}",
+        stroke: "{{stroke}}",
+        strokeWidth: "{{strokeWidth}}"
+      },
+      {
+        type: "text",
+        x: "{{cx}}",
+        y: "{{cy}}",
+        text: "{{label}}",
+        fontSize: "{{fontSize}}",
+        textAnchor: "middle",
+        dominantBaseline: "middle",
+        fill: "black"
+      }
+    ]
+  }
+}, document.getElementById("definitions-container"));
+
+// Now use the new visualization type
+const labeledCircleViz = createViz({
+  type: "labeledCircle",
+  cx: 100,
+  cy: 100,
+  r: 30,
+  fill: "coral",
+  label: "Hello!",
+  fontSize: 14
+}, document.getElementById("viz-container"));
+```
+
+12.2 Extending Existing Types
+You can also extend existing visualization types:
+
+```javascript
+// Define a horizontal bar chart by extending the standard bar chart
+createViz({
+  type: "define",
+  name: "horizontalBarChart",
+  extend: "barChart",
+  properties: {
+    barHeight: { default: 20 }
+  },
+  implementation: {
+    orientation: "horizontal"
+  }
+}, document.getElementById("definitions-container"));
+
+// Use the new horizontal bar chart
+const horizontalBarChart = createViz({
+  type: "horizontalBarChart",
+  data: salesData,
+  x: { field: "revenue" },
+  y: { field: "product" },
+  barHeight: 25,
+  color: "#3366CC"
+}, document.getElementById("viz-container"));
+```
+
+12.3 Benefits of Declarative Definition
+This declarative approach to defining visualizations offers several advantages:
+
+1. Reusability: Define once, use anywhere
+2. Composability: Build complex visualizations from simpler ones
+3. Consistency: Ensure consistent property handling
+4. Separation of concerns: Clearly separate interface from implementation
+5. Extensibility: Easily extend and customize existing visualizations
+
+Many of Devize's built-in visualizations like axes, legends, and chart types are defined using this same mechanism, making the library highly extensible and consistent.

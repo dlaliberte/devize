@@ -3,161 +3,184 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Devize - Data Binding</title>
-  <link rel="stylesheet" href="/css/examples.css">
+  <title>Devize - Data Binding Example</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    h1, h2 {
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .viz-container {
+      width: 100%;
+      height: 400px;
+      border: 1px solid #ddd;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+
+    pre {
+      background-color: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .controls {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #f5f5f5;
+      border-radius: 4px;
+    }
+
+    button {
+      padding: 8px 12px;
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
+    button:hover {
+      background-color: #0055aa;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
-    <h1>Advanced Data Binding</h1>
-    <p>This example demonstrates Devize's declarative data binding capabilities, including field specifications and data transformations.</p>
+    <h1>Data Binding Example</h1>
+    <p>This example demonstrates how to bind data to visual elements in Devize.</p>
 
     <div id="visualization-container" class="viz-container"></div>
-    <div id="tooltip" class="tooltip"></div>
 
     <div class="controls">
-      <h3>Data Transformations</h3>
-      <button id="filter-btn">Filter (Revenue > 400)</button>
-      <button id="sort-btn">Sort by Revenue</button>
-      <button id="reset-btn">Reset Data</button>
+      <h2>Controls</h2>
+      <button id="sort-asc">Sort Ascending</button>
+      <button id="sort-desc">Sort Descending</button>
+      <button id="filter-high">Show High Values</button>
+      <button id="filter-low">Show Low Values</button>
+      <button id="reset">Reset</button>
     </div>
 
     <h2>Code</h2>
     <pre><code>// Sample data
-const salesData = [
-  { product: "Product A", revenue: 420, profit: 210, category: "Electronics" },
-  { product: "Product B", revenue: 650, profit: 300, category: "Clothing" },
-  { product: "Product C", revenue: 340, profit: -50, category: "Electronics" },
-  { product: "Product D", revenue: 570, profit: 140, category: "Food" },
-  { product: "Product E", revenue: 320, profit: 90, category: "Clothing" }
+const data = [
+  { product: "Product A", revenue: 420 },
+  { product: "Product B", revenue: 650 },
+  { product: "Product C", revenue: 340 },
+  { product: "Product D", revenue: 570 },
+  { product: "Product E", revenue: 230 }
 ];
 
-// Create a bar chart with field specifications
+// Create a bar chart with data binding
 const barChart = createViz({
   type: "barChart",
-  data: salesData,
-  x: { field: "product", type: "ordinal" },
-  y: { field: "revenue", type: "quantitative" },
-  color: { field: "category", type: "categorical" },
-  tooltip: { fields: ["product", "revenue", "profit", "category"] }
-}, document.getElementById("visualization-container"));</code></pre>
-
-    <h2>Filtering Data</h2>
-    <pre><code>// Filter data to show only high-revenue products
-const filteredViz = createViz({
-  type: "barChart",
-  data: salesData,
-  transforms: [
-    { type: "filter", test: "d => d.revenue > 400" }
-  ],
-  x: { field: "product", type: "ordinal" },
-  y: { field: "revenue", type: "quantitative" },
-  color: { field: "category", type: "categorical" }
-}, document.getElementById("visualization-container"));</code></pre>
-
-    <h2>Sorting Data</h2>
-    <pre><code>// Sort data by revenue
-const sortedViz = createViz({
-  type: "barChart",
-  data: salesData,
-  transforms: [
-    { type: "sort", field: "revenue", order: "descending" }
-  ],
-  x: { field: "product", type: "ordinal" },
-  y: { field: "revenue", type: "quantitative" },
-  color: { field: "category", type: "categorical" }
+  data: data,
+  x: { field: "product" },
+  y: { field: "revenue" },
+  color: { field: "product" },
+  tooltip: true
 }, document.getElementById("visualization-container"));</code></pre>
 
     <a href="/examples/" class="back-link">← Back to Examples</a>
   </div>
 
-  <script src="/js/utils.js"></script>
+  <!-- Load the core library first -->
   <script src="/js/devize.js"></script>
+
+  <!-- Load primitive definitions -->
+  <script src="/js/primitives/shapes.js"></script>
+  <script src="/js/primitives/containers.js"></script>
+  <script src="/js/primitives/data.js"></script>
+  <script src="/js/primitives/tooltips.js"></script>
+
+  <!-- Load chart components -->
+  <script src="/js/axis.js"></script>
+  <script src="/js/legend.js"></script>
+  <script src="/js/bar-chart.js"></script>
+
   <script>
     // Sample data
-    const salesData = [
-      { product: "Product A", revenue: 420, profit: 210, category: "Electronics" },
-      { product: "Product B", revenue: 650, profit: 300, category: "Clothing" },
-      { product: "Product C", revenue: 340, profit: -50, category: "Electronics" },
-      { product: "Product D", revenue: 570, profit: 140, category: "Food" },
-      { product: "Product E", revenue: 320, profit: 90, category: "Clothing" }
+    const data = [
+      { product: "Product A", revenue: 420 },
+      { product: "Product B", revenue: 650 },
+      { product: "Product C", revenue: 340 },
+      { product: "Product D", revenue: 570 },
+      { product: "Product E", revenue: 230 }
     ];
 
-    // Create initial visualization
-    let currentViz = createViz({
+    // Create a bar chart with data binding
+    let currentData = [...data];
+    let currentSpec = {
       type: "barChart",
-      data: salesData,
-      x: { field: "product", type: "ordinal" },
-      y: { field: "revenue", type: "quantitative" },
-      color: { field: "category", type: "categorical" },
-      tooltip: { fields: ["product", "revenue", "profit", "category"] }
-    }, document.getElementById("visualization-container"));
+      data: currentData,
+      x: { field: "product" },
+      y: { field: "revenue" },
+      color: { field: "product" },
+      tooltip: true
+    };
 
-    // Add event listeners to buttons
-    document.getElementById('filter-btn').addEventListener('click', function() {
-      currentViz = createViz({
-        type: "barChart",
-        data: salesData,
-        transforms: [
-          { type: "filter", test: "d => d.revenue > 400" }
-        ],
-        x: { field: "product", type: "ordinal" },
-        y: { field: "revenue", type: "quantitative" },
-        color: { field: "category", type: "categorical" },
-        tooltip: { fields: ["product", "revenue", "profit", "category"] }
-      }, document.getElementById("visualization-container"));
+    let barChart = createViz(currentSpec, document.getElementById("visualization-container"));
+
+    // Add event listeners for controls
+    document.getElementById("sort-asc").addEventListener("click", function() {
+      currentData = [...data].sort((a, b) => a.revenue - b.revenue);
+      updateChart();
     });
 
-    document.getElementById('sort-btn').addEventListener('click', function() {
-      currentViz = createViz({
-        type: "barChart",
-        data: salesData,
-        transforms: [
-          { type: "sort", field: "revenue", order: "descending" }
-        ],
-        x: { field: "product", type: "ordinal" },
-        y: { field: "revenue", type: "quantitative" },
-        color: { field: "category", type: "categorical" },
-        tooltip: { fields: ["product", "revenue", "profit", "category"] }
-      }, document.getElementById("visualization-container"));
+    document.getElementById("sort-desc").addEventListener("click", function() {
+      currentData = [...data].sort((a, b) => b.revenue - a.revenue);
+      updateChart();
     });
 
-    document.getElementById('reset-btn').addEventListener('click', function() {
-      currentViz = createViz({
-        type: "barChart",
-        data: salesData,
-        x: { field: "product", type: "ordinal" },
-        y: { field: "revenue", type: "quantitative" },
-        color: { field: "category", type: "categorical" },
-        tooltip: { fields: ["product", "revenue", "profit", "category"] }
-      }, document.getElementById("visualization-container"));
+    document.getElementById("filter-high").addEventListener("click", function() {
+      currentData = data.filter(d => d.revenue > 400);
+      updateChart();
     });
 
-    // Tooltip functions
-    function showTooltip(event) {
-      const tooltip = document.getElementById('tooltip');
-      const data = event.target._data;
+    document.getElementById("filter-low").addEventListener("click", function() {
+      currentData = data.filter(d => d.revenue <= 400);
+      updateChart();
+    });
 
-      if (data) {
-        let html = '';
-        for (const key in data) {
-          html += `<strong>${key}:</strong> ${data[key]}<br>`;
-        }
+    document.getElementById("reset").addEventListener("click", function() {
+      currentData = [...data];
+      updateChart();
+    });
 
-        tooltip.innerHTML = html;
-        tooltip.style.opacity = 1;
-        moveTooltip(event);
+    function updateChart() {
+      // Remove the old chart
+      const container = document.getElementById("visualization-container");
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
       }
-    }
 
-    function moveTooltip(event) {
-      const tooltip = document.getElementById('tooltip');
-      tooltip.style.left = (event.pageX + 10) + 'px';
-      tooltip.style.top = (event.pageY + 10) + 'px';
-    }
-
-    function hideTooltip() {
-      const tooltip = document.getElementById('tooltip');
-      tooltip.style.opacity = 0;
+      // Create a new chart with the updated data
+      currentSpec.data = currentData;
+      barChart = createViz(currentSpec, container);
     }
   </script>
 </body>

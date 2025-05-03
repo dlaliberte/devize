@@ -428,6 +428,59 @@ const pieChart = createViz({
 }, container);
 ```
 
+### Primitive Types Overview
+
+1. Basic Shapes
+
+  Rectangle
+  Circle
+  Ellipse
+  Polygon
+  Arc
+
+2. Lines and Paths
+
+Line
+Polyline
+Path
+Curve (Bezier, etc.)
+
+3. Text and Labels
+
+Text
+TextPath
+Label (text with background)
+Title (styled text for headings)
+
+4. Containers and Grouping
+
+Group
+Layer
+ClipPath
+Mask
+
+5. Data Visualization Elements
+
+Axis
+Legend
+Grid
+Tooltip
+
+6. Data Mapping and Collections
+
+DataMap
+Repeat
+Stack
+Flow
+
+7. Interaction Elements
+
+Button
+Slider
+Checkbox
+Dropdown
+
+
 ## Next Steps
 
 In this tutorial, we've explored visualization templates and type extensions in Devize. We've learned how to create reusable templates, extend existing types, and create custom chart types.
