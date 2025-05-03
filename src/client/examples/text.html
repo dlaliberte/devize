@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Devize - Text Example</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .viz-container {
+      width: 100%;
+      height: 300px;
+      border: 1px solid #ddd;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+
+    pre {
+      background-color: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Text Visualization</h1>
+    <p>This example demonstrates creating text with Devize.</p>
+
+    <div id="visualization-container" class="viz-container"></div>
+
+    <h2>Code</h2>
+    <pre><code>const text = createViz({
+  type: "text",
+  x: 150,
+  y: 100,
+  text: "Hello, Devize!",
+  fontSize: 24,
+  fontFamily: "Arial",
+  fill: "navy",
+  textAnchor: "middle"  // Center-align text
+}, document.getElementById("visualization-container"));</code></pre>
+
+    <a href="/examples/" class="back-link">← Back to Examples</a>
+  </div>
+
+  <script>
+    // Helper function to ensure SVG exists
+    function ensureSvg(container) {
+      let svg = container.querySelector('svg');
+      if (!svg) {
+        svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '100%');
+        container.appendChild(svg);
+      }
+      return svg;
+    }
+
+    // Create a visualization from a spec
+    function createViz(spec, container) {
+      // For this example, we'll just implement text creation
+      const svg = ensureSvg(container);
+
+      // Create text element
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+
+      // Set attributes from spec
+      text.setAttribute('x', spec.x || 0);
+      text.setAttribute('y', spec.y || 0);
+
+      // Set style attributes
+      if (spec.fill) text.setAttribute('fill', spec.fill);
+      if (spec.fontSize) text.setAttribute('font-size', spec.fontSize);
+      if (spec.fontFamily) text.setAttribute('font-family', spec.fontFamily);
+      if (spec.fontWeight) text.setAttribute('font-weight', spec.fontWeight);
+      if (spec.textAnchor) text.setAttribute('text-anchor', spec.textAnchor);
+      if (spec.dominantBaseline) text.setAttribute('dominant-baseline', spec.dominantBaseline);
+      if (spec.opacity) text.setAttribute('opacity', spec.opacity);
+
+      // Set the text content
+      text.textContent = spec.text || '';
+
+      // Add to SVG
+      svg.appendChild(text);
+
+      // Return the visualization instance
+      return {
+        element: text,
+        spec: spec
+      };
+    }
+
+    const text = createViz({
+      type: "text",
+      x: 150,
+      y: 100,
+      text: "Hello, Devize!",
+      fontSize: 24,
+      fontFamily: "Arial",
+      fill: "navy",
+      textAnchor: "middle"  // Center-align text
+    }, document.getElementById("visualization-container"));
+  </script>
+</body>
+</html>

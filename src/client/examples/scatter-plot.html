@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Devize - Scatter Plot</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .viz-container {
+      width: 100%;
+      height: 400px;
+      border: 1px solid #ddd;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+
+    pre {
+      background-color: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .tooltip {
+      position: absolute;
+      padding: 8px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      border-radius: 4px;
+      font-size: 12px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Scatter Plot Visualization</h1>
+    <p>This example demonstrates creating a scatter plot with data binding using Devize.</p>
+
+    <div id="visualization-container" class="viz-container"></div>
+    <div id="tooltip" class="tooltip"></div>
+
+    <h2>Code</h2>
+    <pre><code>// Sample data
+const scatterData = [
+  { country: "USA", gdp: 65000, population: 331, continent: "North America" },
+  { country: "China", gdp: 17000, population: 1444, continent: "Asia" },
+  { country: "Japan", gdp: 42000, population: 126, continent: "Asia" },
+  { country: "Germany", gdp: 51000, population: 83, continent: "Europe" },
+  { country: "UK", gdp: 46000, population: 68, continent: "Europe" },
+  { country: "India", gdp: 7000, population: 1393, continent: "Asia" },
+  { country: "Brazil", gdp: 14000, population: 214, continent: "South America" }
+];
+
+// Color scale for continents
+const colorScale = {
+  "North America": "#3366CC",
+  "Asia": "#DC3912",
+  "Europe": "#FF9900",
+  "South America": "#109618"
+};
+
+// Create a scatter plot
+const scatterPlot = createViz({
+  type: "group",
+  children: [
+    // X-axis
+    {
+      type: "line",
+      x1: 50,
+      y1: 300,
+      x2: 700,
+      y2: 300,
+      stroke: "#333",
+      strokeWidth: 1
+    },
+    // X-axis label
+    {
+      type: "text",
+      x: 375,
+      y: 340,
+      text: "GDP per Capita ($)",
+      fontSize: 14,
+      fontFamily: "Arial",
+      fill: "#333",
+      textAnchor: "middle"
+    },
+    // Y-axis
+    {
+      type: "line",
+      x1: 50,
+      y1: 50,
+      x2: 50,
+      y2: 300,
+      stroke: "#333",
+      strokeWidth: 1
+    },
+    // Y-axis label
+    {
+      type: "text",
+      x: 20,
+      y: 175,
+      text: "Population (millions)",
+      fontSize: 14,
+      fontFamily: "Arial",
+      fill: "#333",
+      textAnchor: "middle",
+      transform: "rotate(-90, 20, 175)"
+    },
+    // Data points
+    ...scatterData.map(point => ({
+      type: "circle",
+      cx: 50 + (point.gdp / 100),
+      cy: 300 - (point.population / 8),
+      r: Math.sqrt(point.population) / 4,
+      fill: colorScale[point.continent],
+      stroke: "#fff",
+      strokeWidth: 1,
+      opacity: 0.7,
+      data: point
+    }))
+  ]
+}, document.getElementById("visualization-container"));</code></pre>
+
+    <h2>Legend</h2>
+    <div style="margin: 20px 0;">
+      <div style="display: inline-block; margin-right: 20px;">
+        <span style="display: inline-block; width: 12px; height: 12px; background-color: #3366CC; border-radius: 50%; margin-right: 5px;"></span>
+        <span>North America</span>
+      </div>
+      <div style="display: inline-block; margin-right: 20px;">
+        <span style="display: inline-block; width: 12px; height: 12px; background-color: #DC3912; border-radius: 50%; margin-right: 5px;"></span>
+        <span>Asia</span>
+      </div>
+      <div style="display: inline-block; margin-right: 20px;">
+        <span style="display: inline-block; width: 12px; height: 12px; background-color: #FF9900; border-radius: 50%; margin-right: 5px;"></span>
+        <span>Europe</span>
+      </div>
+      <div style="display: inline-block;">
+        <span style="display: inline-block; width: 12px; height: 12px; background-color: #109618; border-radius: 50%; margin-right: 5px;"></span>
+        <span>South America</span>
+      </div>
+    </div>
+
+    <a href="/examples/" class="back-link">← Back to Examples</a>
+  </div>
+
+  <script>
+    // Helper function to ensure SVG exists
+    function ensureSvg(container) {
+      let svg = container.querySelector('svg');
+      if (!svg) {
+        svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '100%');
+        container.appendChild(svg);
+      }
+      return svg;
+    }
+
+    // Create a visualization from a spec
+    function createViz(spec, container) {
+      if (spec.type === "group") {
+        return createGroup(spec, container);
+      } else if (spec.type === "circle") {
+        return createCircle(spec, container);
+      } else if (spec.type === "line") {
+        return createLine(spec, container);
+      } else if (spec.type === "text") {
+        return createText(spec, container);
+      }
+
+      // Default fallback
+      console.error("Unknown visualization type:", spec.type);
+      return null;
+    }
+
+    // Create a circle
+    function createCircle(spec, container) {
+      const svg = ensureSvg(container);
+
+      // Create circle element
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+
+      // Set attributes from spec
+      circle.setAttribute('cx', spec.cx || 0);
+      circle.setAttribute('cy', spec.cy || 0);
+      circle.setAttribute('r', spec.r || 0);
+
+      // Set style attributes
+      if (spec.fill) circle.setAttribute('fill', spec.fill);
+      if (spec.stroke) circle.setAttribute('stroke', spec.stroke);
+      if (spec.strokeWidth) circle.setAttribute('stroke-width', spec.strokeWidth);
+      if (spec.opacity) circle.setAttribute('opacity', spec.opacity);
+
+      // Store data for interactivity
+      if (spec.data) {
+        circle._data = spec.data;
+
+        // Add event listeners for tooltip
+        circle.addEventListener('mouseover', showTooltip);
+        circle.addEventListener('mousemove', moveTooltip);
+        circle.addEventListener('mouseout', hideTooltip);
+      }
+
+      // Add to SVG
+      svg.appendChild(circle);
+
+      // Return the visualization instance
+      return {
+        element: circle,
+        spec: spec
+      };
+    }
+
+    // Create a line
+    function createLine(spec, container) {
+      const svg = ensureSvg(container);
+
+      // Create line element
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+
+      // Set attributes from spec
+      line.setAttribute('x1', spec.x1 || 0);
+      line.setAttribute('y1', spec.y1 || 0);
+      line.setAttribute('x2', spec.x2 || 0);
+      line.setAttribute('y2', spec.y2 || 0);
+
+      // Set style attributes
+      if (spec.stroke) line.setAttribute('stroke', spec.stroke);
+      if (spec.strokeWidth) line.setAttribute('stroke-width', spec.strokeWidth);
+      if (spec.strokeDasharray) line.setAttribute('stroke-dasharray', spec.strokeDasharray);
+      if (spec.opacity) line.setAttribute('opacity', spec.opacity);
+
+      // Add to SVG
+      svg.appendChild(line);
+
+      // Return the visualization instance
+      return {
+        element: line,
+        spec: spec
+      };
+    }
+
+    // Create text
+    function createText(spec, container) {
+      const svg = ensureSvg(container);
+
+      // Create text element
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+
+      // Set attributes from spec
+      text.setAttribute('x', spec.x || 0);
+      text.setAttribute('y', spec.y || 0);
+
+      // Set style attributes
+      if (spec.fill) text.setAttribute('fill', spec.fill);
+      if (spec.fontSize) text.setAttribute('font-size', spec.fontSize);
+      if (spec.fontFamily) text.setAttribute('font-family', spec.fontFamily);
+      if (spec.fontWeight) text.setAttribute('font-weight', spec.fontWeight);
+      if (spec.textAnchor) text.setAttribute('text-anchor', spec.textAnchor);
+      if (spec.dominantBaseline) text.setAttribute('dominant-baseline', spec.dominantBaseline);
+      if (spec.opacity) text.setAttribute('opacity', spec.opacity);
+      if (spec.transform) text.setAttribute('transform', spec.transform);
+
+      // Set the text content
+      text.textContent = spec.text || '';
+
+      // Add to SVG
+      svg.appendChild(text);
+
+      // Return the visualization instance
+      return {
+        element: text,
+        spec: spec
+      };
+    }
+
+    // Create a group
+    function createGroup(spec, container) {
+      const svg = ensureSvg(container);
+
+      // Create group element
+      const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+      // Set transform if provided
+      if (spec.transform) {
+        group.setAttribute('transform', spec.transform);
+      }
+
+      // Add to SVG
+      svg.appendChild(group);
+
+      // Create child visualizations
+      const children = [];
+      if (spec.children && Array.isArray(spec.children)) {
+        for (const childSpec of spec.children) {
+          // Create a temporary container for the child
+          const tempContainer = {
+            querySelector: () => svg,
+            appendChild: () => {} // No-op since we're using the existing SVG
+          };
+
+          // Create the child visualization
+          const child = createViz(childSpec, tempContainer);
+
+          // If it's a valid child, add it to our children array
+          if (child) {
+            children.push(child);
+          }
+        }
+      }
+
+      // Return the visualization instance
+      return {
+        element: group,
+        spec: spec,
+        children: children
+      };
+    }
+
+    // Tooltip functions
+    function showTooltip(event) {
+      const tooltip = document.getElementById('tooltip');
+      const data = event.target._data;
+
+      if (data) {
+        tooltip.innerHTML = `
+          <strong>${data.country}</strong><br>
+          GDP: $${data.gdp.toLocaleString()}<br>
+          Population: ${data.population} million<br>
+          Continent: ${data.continent}
+        `;
+        tooltip.style.opacity = 1;
+        moveTooltip(event);
+      }
+    }
+
+    function moveTooltip(event) {
+      const tooltip = document.getElementById('tooltip');
+      tooltip.style.left = (event.pageX + 10) + 'px';
+      tooltip.style.top = (event.pageY + 10) + 'px';
+    }
+
+    function hideTooltip() {
+      const tooltip = document.getElementById('tooltip');
+      tooltip.style.opacity = 0;
+    }
+
+    // Sample data
+    const scatterData = [
+      { country: "USA", gdp: 65000, population: 331, continent: "North America" },
+      { country: "China", gdp: 17000, population: 1444, continent: "Asia" },
+      { country: "Japan", gdp: 42000, population: 126, continent: "Asia" },
+      { country: "Germany", gdp: 51000, population: 83, continent: "Europe" },
+      { country: "UK", gdp: 46000, population: 68, continent: "Europe" },
+      { country: "India", gdp: 7000, population: 1393, continent: "Asia" },
+      { country: "Brazil", gdp: 14000, population: 214, continent: "South America" }
+    ];
+
+    // Color scale for continents
+    const colorScale = {
+      "North America": "#3366CC",
+      "Asia": "#DC3912",
+      "Europe": "#FF9900",
+      "South America": "#109618"
+    };
+
+    // Create a scatter plot
+    const scatterPlot = createViz({
+      type: "group",
+      children: [
+        // X-axis
+        {
+          type: "line",
+          x1: 50,
+          y1: 300,
+          x2: 700,
+          y2: 300,
+          stroke: "#333",
+          strokeWidth: 1
+        },
+        // X-axis label
+        {
+          type: "text",
+          x: 375,
+          y: 340,
+          text: "GDP per Capita ($)",
+          fontSize: 14,
+          fontFamily: "Arial",
+          fill: "#333",
+          textAnchor: "middle"
+        },
+        // Y-axis
+        {
+          type: "line",
+          x1: 50,
+          y1: 50,
+          x2: 50,
+          y2: 300,
+          stroke: "#333",
+          strokeWidth: 1
+        },
+        // Y-axis label
+        {
+          type: "text",
+          x: 20,
+          y: 175,
+          text: "Population (millions)",
+          fontSize: 14,
+          fontFamily: "Arial",
+          fill: "#333",
+          textAnchor: "middle",
+          transform: "rotate(-90, 20, 175)"
+        },
+        // Data points
+        ...scatterData.map(point => ({
+          type: "circle",
+          cx: 50 + (point.gdp / 100),
+          cy: 300 - (point.population / 8),
+          r: Math.sqrt(point.population) / 4,
+          fill: colorScale[point.continent],
+          stroke: "#fff",
+          strokeWidth: 1,
+          opacity: 0.7,
+          data: point
+        }))
+      ]
+    }, document.getElementById("visualization-container"));
+  </script>
+</body>
+</html>

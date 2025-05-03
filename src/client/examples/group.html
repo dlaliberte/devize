@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Devize - Group Example</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .viz-container {
+      width: 100%;
+      height: 300px;
+      border: 1px solid #ddd;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+
+    pre {
+      background-color: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Group Visualization</h1>
+    <p>This example demonstrates creating a group of shapes with Devize.</p>
+
+    <div id="visualization-container" class="viz-container"></div>
+
+    <h2>Code</h2>
+    <pre><code>const shapesViz = createViz({
+  type: "group",
+  children: [
+    {
+      type: "rectangle",
+      x: 50,
+      y: 50,
+      width: 100,
+      height: 80,
+      fill: "#6699CC",
+      stroke: "#336699",
+      strokeWidth: 2,
+      rx: 5,
+      ry: 5
+    },
+    {
+      type: "circle",
+      cx: 250,
+      cy: 80,
+      r: 40,
+      fill: "#CC6666",
+      stroke: "#994444",
+      strokeWidth: 2
+    },
+    {
+      type: "line",
+      x1: 50,
+      y1: 200,
+      x2: 350,
+      y2: 200,
+      stroke: "#666666",
+      strokeWidth: 3,
+      strokeDasharray: "5,5"
+    }
+  ]
+}, document.getElementById("visualization-container"));</code></pre>
+
+    <a href="/examples/" class="back-link">← Back to Examples</a>
+  </div>
+
+  <script type="module">
+    import { createViz } from '/core/devize.js';
+
+    const shapesViz = createViz({
+      type: "group",
+      children: [
+        {
+          type: "rectangle",
+          x: 50,
+          y: 50,
+          width: 100,
+          height: 80,
+          fill: "#6699CC",
+          stroke: "#336699",
+          strokeWidth: 2,
+          rx: 5,
+          ry: 5
+        },
+        {
+          type: "circle",
+          cx: 250,
+          cy: 80,
+          r: 40,
+          fill: "#CC6666",
+          stroke: "#994444",
+          strokeWidth: 2
+        },
+        {
+          type: "line",
+          x1: 50,
+          y1: 200,
+          x2: 350,
+          y2: 200,
+          stroke: "#666666",
+          strokeWidth: 3,
+          strokeDasharray: "5,5"
+        }
+      ]
+    }, document.getElementById("visualization-container"));
+  </script>
+</body>
+</html>
