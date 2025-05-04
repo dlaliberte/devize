@@ -8,14 +8,16 @@ import { createGroup } from '../primitives/containers';
 /**
  * Create a visualization from a spec
  * @param spec The visualization specification
- * @param container The container element
  * @returns The visualization instance
  */
-export function createViz(spec: VizSpec, container: HTMLElement): VizInstance {
+export function createViz(spec: VizSpec): VizInstance {
   // Validate spec
   if (!spec.type) {
     throw new Error('Visualization spec must have a type');
   }
+
+  // Extract container from spec if provided
+  const container = spec.container as HTMLElement;
 
   // Handle primitive types directly
   switch (spec.type) {
@@ -55,6 +57,16 @@ export function createViz(spec: VizSpec, container: HTMLElement): VizInstance {
     }
   }
 
+  // For non-rendering visualizations, just process the data and return
+  if (vizType.isDataTransformation) {
+    return vizType.process(spec);
+  }
+
+  // For rendering visualizations, ensure we have a container
+  if (!container && vizType.requiresContainer) {
+    throw new Error(`Visualization type ${spec.type} requires a container element`);
+  }
+
   // Generate constraints
   const constraints = vizType.generateConstraints(spec, { container });
 
@@ -64,8 +76,16 @@ export function createViz(spec: VizSpec, container: HTMLElement): VizInstance {
   // Decompose the visualization
   const decomposed = vizType.decompose(spec, solvedConstraints);
 
-  // Render the decomposed visualization
-  return renderViz(decomposed, container);
+  // Render the decomposed visualization if it requires rendering
+  if (container && vizType.requiresContainer) {
+    return renderViz(decomposed, container);
+  }
+
+  // Otherwise just return the processed result
+  return {
+    spec: decomposed,
+    data: decomposed.data
+  };
 }
 
 /**
@@ -75,21 +95,28 @@ export function createViz(spec: VizSpec, container: HTMLElement): VizInstance {
  * @returns The updated visualization instance
  */
 export function updateViz(vizInstance: VizInstance, newSpec: VizSpec): VizInstance {
-  if (!vizInstance || !vizInstance.element || !vizInstance.spec) {
+  if (!vizInstance || !vizInstance.spec) {
     throw new Error('Invalid visualization instance');
+  }
+
+  // For non-rendering visualizations, just create a new instance
+  if (!vizInstance.element) {
+    return createViz({ ...vizInstance.spec, ...newSpec });
+  }
+
+  // For rendering visualizations, handle DOM updates
+  if (!vizInstance.element.parentElement) {
+    throw new Error('Visualization element has no parent');
   }
 
   // Get the container
   const container = vizInstance.element.parentElement as HTMLElement;
-  if (!container) {
-    throw new Error('Visualization element has no parent');
-  }
 
   // Remove the old element
   container.removeChild(vizInstance.element);
 
   // Create a new visualization with the updated spec
-  return createViz({ ...vizInstance.spec, ...newSpec }, container);
+  return createViz({ ...vizInstance.spec, ...newSpec, container });
 }
 
 /**
