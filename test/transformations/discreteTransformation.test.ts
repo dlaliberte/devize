@@ -1,24 +1,34 @@
-import { test, expect } from '@playwright/test';
 import { DiscreteTransformation } from '../../src/transformations/discreteTransformation';
-import sinon from 'sinon';
+import { expect } from 'chai';
+import { spy } from 'sinon';
 
-test.describe('Discrete Transformation', () => {
+describe('Discrete Transformation', () => {
   let discreteTransformation: DiscreteTransformation;
   let transformSpy: sinon.SinonSpy;
 
-  test.beforeEach(() => {
-    discreteTransformation = new DiscreteTransformation();
-    transformSpy = sinon.spy(discreteTransformation, 'transform');
+  beforeEach(() => {
+    const transformationMap = new Map([
+      ['a', 1],
+      ['b', 2],
+      ['c', 3]
+    ]);
+    discreteTransformation = new DiscreteTransformation(transformationMap);
+    transformSpy = spy(discreteTransformation, 'transform');
   });
 
-  test.afterEach(() => {
+  afterEach(() => {
     transformSpy.restore();
   });
 
-  test('should perform discrete transformation', async () => {
-    const input = { value: 5 };
+  it('should perform discrete transformation', () => {
+    const input = 'b';
     const output = discreteTransformation.transform(input);
-    expect(transformSpy.calledOnceWith(input)).toBe(true);
-    expect(output).toEqual({ value: 5 });
+    expect(transformSpy.calledOnceWith(input)).to.be.true;
+    expect(output).to.equal(2);
+  });
+
+  it('should throw error for undefined transformation', () => {
+    const input = 'd';
+    expect(() => discreteTransformation.transform(input)).to.throw(Error);
   });
 });

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Devize - Group Example</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .viz-container {
+      width: 100%;
+      height: 300px;
+      border: 1px solid #ddd;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+
+    pre {
+      background-color: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Group Visualization</h1>
+    <p>This example demonstrates grouping multiple shapes together with Devize.</p>
+
+    <div id="visualization-container" class="viz-container"></div>
+
+    <h2>Code</h2>
+    <pre><code>const group = createViz({
+  type: "group",
+  transform: "translate(50, 50)",
+  children: [
+    {
+      type: "rectangle",
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 60,
+      fill: "#6699CC",
+      stroke: "#336699",
+      strokeWidth: 2,
+      rx: 5,
+      ry: 5
+    },
+    {
+      type: "circle",
+      cx: 150,
+      cy: 30,
+      r: 25,
+      fill: "#CC6666",
+      stroke: "#994444",
+      strokeWidth: 2
+    },
+    {
+      type: "line",
+      x1: 0,
+      y1: 100,
+      x2: 200,
+      y2: 100,
+      stroke: "#666666",
+      strokeWidth: 2
+    }
+  ]
+}, document.getElementById("visualization-container"));</code></pre>
+
+    <a href="/examples/" class="back-link">← Back to Examples</a>
+  </div>
+
+  <script type="module">
+    // Helper function to ensure SVG exists
+    function ensureSvg(container) {
+      let svg = container.querySelector('svg');
+      if (!svg) {
+        svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '100%');
+        container.appendChild(svg);
+      }
+      return svg;
+    }
+
+    // Create a visualization from a spec
+    const svg = ensureSvg(document.getElementById("visualization-container"));
+
+    // Create group element
+    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    group.setAttribute('transform', 'translate(50, 50)');
+
+    // Create rectangle
+    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    rect.setAttribute('x', '0');
+    rect.setAttribute('y', '0');
+    rect.setAttribute('width', '100');
+    rect.setAttribute('height', '60');
+    rect.setAttribute('fill', '#6699CC');
+    rect.setAttribute('stroke', '#336699');
+    rect.setAttribute('stroke-width', '2');
+    rect.setAttribute('rx', '5');
+    rect.setAttribute('ry', '5');
+
+    // Create circle
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', '150');
+    circle.setAttribute('cy', '30');
+    circle.setAttribute('r', '25');
+    circle.setAttribute('fill', '#CC6666');
+    circle.setAttribute('stroke', '#994444');
+    circle.setAttribute('stroke-width', '2');
+
+    // Create line
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', '0');
+    line.setAttribute('y1', '100');
+    line.setAttribute('x2', '200');
+    line.setAttribute('y2', '100');
+    line.setAttribute('stroke', '#666666');
+    line.setAttribute('stroke-width', '2');
+
+    // Add elements to group
+    group.appendChild(rect);
+    group.appendChild(circle);
+    group.appendChild(line);
+
+    // Add group to SVG
+    svg.appendChild(group);
+  </script>
+</body>
+</html>

@@ -1,161 +1,141 @@
+import { VizSpec, VizInstance, ConstraintSpec } from './types';
+import { getType, hasType, registerType } from './registry';
+import { applyTransforms } from '../data/transforms';
+import { extractData } from '../data/sources';
 import * as THREE from 'three';
 
-// Type definitions
-interface VizSpec {
-  type: string;
-  [key: string]: any;
-}
-
-interface ConstraintSpec {
-  type: string;
-  priority?: 'low' | 'medium' | 'high';
-  [key: string]: any;
-}
-
-interface VisualizationType {
-  name: string;
-  requiredProps: string[];
-  optionalProps?: Record<string, any>;
-  generateConstraints: (spec: VizSpec, context: any) => ConstraintSpec[];
-  decompose: (spec: VizSpec, solvedConstraints: any) => VizSpec;
-}
-
-// Registry for visualization types
-const typeRegistry: Record<string, VisualizationType> = {};
-
-// Register a visualization type
-export function registerType(type: VisualizationType): void {
-  typeRegistry[type.name] = type;
-}
-
-// Create a visualization from a spec
-export function createViz(spec: VizSpec, container: HTMLElement): any {
+/**
+ * Create a visualization from a spec
+ * @param spec The visualization specification
+ * @param container The container element
+ * @returns The visualization instance
+ */
+export async function createViz(spec: VizSpec, container: HTMLElement): Promise<VizInstance> {
   // Validate spec
   if (!spec.type) {
     throw new Error('Visualization spec must have a type');
   }
 
-  // Handle different visualization types
-  switch (spec.type) {
-    case 'rectangle':
-      return createRectangle(spec, container);
-    case 'circle':
-      return createCircle(spec, container);
-    case 'line':
-      return createLine(spec, container);
-    case 'text':
-      return createText(spec, container);
-    case 'group':
-      return createGroup(spec, container);
-    default:
-      throw new Error(`Unknown visualization type: ${spec.type}`);
+  // Check if the type is registered
+  if (hasType(spec.type)) {
+    // Get the visualization type
+    const vizType = getType(spec.type)!;
+
+    // Check required properties
+    for (const prop of vizType.requiredProps) {
+      if (!(prop in spec)) {
+        throw new Error(`Missing required property: ${prop} for type ${spec.type}`);
+      }
+    }
+
+    // Apply default values for optional properties
+    if (vizType.optionalProps) {
+      for (const [key, defaultValue] of Object.entries(vizType.optionalProps)) {
+        if (!(key in spec)) {
+          spec[key] = defaultValue;
+        }
+      }
+    }
+
+    // Extract data if needed
+    if (spec.data && !Array.isArray(spec.data)) {
+      spec.data = await extractData(spec);
+    }
+
+    // Apply transforms if specified
+    if (spec.data && Array.isArray(spec.data) && spec.transforms && Array.isArray(spec.transforms)) {
+      spec.data = applyTransforms(spec.data, spec.transforms);
+    }
+
+    // Generate constraints
+    const constraints = vizType.generateConstraints(spec, { container });
+
+    // Solve constraints (simplified for now)
+    const solvedConstraints = solveConstraints(constraints, spec);
+
+    // Decompose the visualization
+    const decomposed = vizType.decompose(spec, solvedConstraints);
+
+    // Render the decomposed visualization
+    return renderViz(decomposed, container);
+  } else {
+    // Handle primitive types directly
+    return renderPrimitive(spec, container);
   }
 }
 
-// Update a visualization
-export function updateViz(vizInstance: any, newSpec: VizSpec): void {
-  if (!vizInstance || !vizInstance.element || !vizInstance.spec) {
+/**
+ * Update a visualization
+ * @param vizInstance The visualization instance to update
+ * @param newSpec The new specification
+ * @returns The updated visualization instance
+ */
+export async function updateViz(vizInstance: VizInstance, newSpec: VizSpec): Promise<VizInstance> {
+  if (!vizInstance || !vizInstance.element) {
     throw new Error('Invalid visualization instance');
   }
 
+  // Get the container
+  const container = vizInstance.element.parentElement as HTMLElement;
+  if (!container) {
+    throw new Error('Visualization element has no parent');
+  }
+
   // Remove the old element
-  const container = vizInstance.element.parentNode;
   container.removeChild(vizInstance.element);
 
   // Create a new visualization with the updated spec
-  return createViz({...vizInstance.spec, ...newSpec}, container);
+  return createViz({ ...vizInstance.spec, ...newSpec }, container);
 }
 
-// Create a rectangle
-function createRectangle(spec: VizSpec, container: HTMLElement): any {
-  // Create SVG if it doesn't exist
-  let svg = container.querySelector('svg');
-  if (!svg) {
-    svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('width', '100%');
-    svg.setAttribute('height', '100%');
-    container.appendChild(svg);
+/**
+ * Simplified constraint solver
+ * @param constraints The constraints to solve
+ * @param spec The visualization specification
+ * @returns The solved constraints
+ */
+function solveConstraints(constraints: ConstraintSpec[], _spec: VizSpec): any {
+  // For now, just handle fitToContainer constraint directly
+  const fitConstraint = constraints.find(c => c.type === 'fitToContainer');
+  if (fitConstraint && fitConstraint.container) {
+    const container = fitConstraint.container as HTMLElement;
+    return {
+      width: container.clientWidth,
+      height: container.clientHeight
+    };
   }
 
-  // Create rectangle element
-  const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-
-  // Set attributes from spec
-  rect.setAttribute('x', spec.x?.toString() || '0');
-  rect.setAttribute('y', spec.y?.toString() || '0');
-  rect.setAttribute('width', spec.width?.toString() || '0');
-  rect.setAttribute('height', spec.height?.toString() || '0');
-
-  // Set style attributes
-  if (spec.fill) rect.setAttribute('fill', spec.fill);
-  if (spec.stroke) rect.setAttribute('stroke', spec.stroke);
-  if (spec.strokeWidth) rect.setAttribute('stroke-width', spec.strokeWidth.toString());
-  if (spec.rx) rect.setAttribute('rx', spec.rx.toString());
-  if (spec.ry) rect.setAttribute('ry', spec.ry.toString());
-  if (spec.opacity) rect.setAttribute('opacity', spec.opacity.toString());
-
-  // Add to SVG
-  svg.appendChild(rect);
-
-  // Return the visualization instance
-  return {
-    element: rect,
-    spec: spec
-  };
+  // Default dimensions
+  return { width: 800, height: 400 };
 }
 
-// Placeholder functions for other visualization types
-function createCircle(spec: VizSpec, container: HTMLElement): any {
-  // Implementation will be added later
-  console.log('Circle creation not yet implemented');
-  return { element: null, spec };
+/**
+ * Render a visualization
+ * @param spec The visualization specification
+ * @param container The container element
+ * @returns The visualization instance
+ */
+function renderViz(spec: VizSpec, container: HTMLElement): VizInstance {
+  // For now, we'll just handle 2D SVG visualizations
+  return render2DViz(spec, container);
 }
 
-function createLine(spec: VizSpec, container: HTMLElement): any {
-  // Implementation will be added later
-  console.log('Line creation not yet implemented');
-  return { element: null, spec };
-}
-
-function createText(spec: VizSpec, container: HTMLElement): any {
-  // Implementation will be added later
-  console.log('Text creation not yet implemented');
-  return { element: null, spec };
-}
-
-function createGroup(spec: VizSpec, container: HTMLElement): any {
-  // Implementation will be added later
-  console.log('Group creation not yet implemented');
-  return { element: null, spec };
-}
-
-// Simplified constraint solver
-function solveConstraints(constraints: ConstraintSpec[], spec: VizSpec): any {
-  // Sort constraints by priority
-  const sortedConstraints = [...constraints].sort((a, b) => {
-    const priorityMap = { low: 0, medium: 1, high: 2 };
-    return (priorityMap[b.priority || 'medium'] - priorityMap[a.priority || 'medium']);
-  });
-
-  // TODO: Implement actual constraint solving
-  // This is a placeholder for now
-  return { width: 500, height: 300 };
-}
-
-// Render a visualization
-function renderViz(spec: VizSpec, container: HTMLElement): any {
-  // Check if we need 3D rendering
-  const is3D = spec.type.includes('3d') || spec.dimensions === 3;
-
-  if (is3D) {
-    return render3DViz(spec, container);
-  } else {
-    return render2DViz(spec, container);
-  }
+/**
+ * Render a primitive visualization
+ * @param spec The visualization specification
+ * @param container The container element
+ * @returns The visualization instance
+ */
+function renderPrimitive(spec: VizSpec, container: HTMLElement): VizInstance {
+  // Placeholder for primitive rendering
+  const div = document.createElement('div');
+  div.textContent = `Primitive: ${spec.type}`;
+  container.appendChild(div);
+  return { element: div, spec };
 }
 
 // Render a 2D visualization
-function render2DViz(spec: VizSpec, container: HTMLElement): any {
+function render2DViz(spec: VizSpec, container: HTMLElement): VizInstance {
   // Create SVG element
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('width', '100%');
@@ -168,7 +148,7 @@ function render2DViz(spec: VizSpec, container: HTMLElement): any {
 }
 
 // Render a 3D visualization
-function render3DViz(spec: VizSpec, container: HTMLElement): any {
+export function render3DViz(spec: VizSpec, container: HTMLElement): VizInstance {
   // Set up Three.js scene
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
@@ -197,7 +177,7 @@ function render3DViz(spec: VizSpec, container: HTMLElement): any {
     renderer.setSize(container.clientWidth, container.clientHeight);
   });
 
-  return { scene, camera, renderer, spec };
+  return { element: renderer.domElement, spec, scene, camera, renderer };
 }
 
 // Register basic visualization types
@@ -211,14 +191,14 @@ registerType({
     color: '#3366CC',
     size: 5
   },
-  generateConstraints(spec, context) {
+  generateConstraints(_spec, context) {
     return [{ type: 'fitToContainer', container: context.container }];
   },
-  decompose(spec, solvedConstraints) {
+  decompose(spec, _solvedConstraints) {
     // Simplified implementation
     return {
       type: 'group',
-      children: spec.data.map(d => ({
+      children: spec.data.map((d: any) => ({
         type: 'circle',
         cx: d[spec.x.field],
         cy: d[spec.y.field],

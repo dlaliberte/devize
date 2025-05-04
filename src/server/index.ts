@@ -24,7 +24,7 @@ const start = async () => {
     });
 
     // API endpoint to get examples metadata
-    fastify.get('/api/examples', async (request, reply) => {
+    fastify.get('/api/examples', async (_request, _reply) => {
       const examples = await getExampleMetadata();
       return examples;
     });
@@ -40,8 +40,8 @@ const start = async () => {
           }
         }
       }
-    }, async (request, reply) => {
-      const { spec } = request.body as { spec: any };
+    }, async (request, _reply) => {
+      const { /* spec */ } = request.body as { spec: any };
       // TODO: Generate visualization code from spec
       return { success: true, code: '// Generated code will go here' };
     });
@@ -56,8 +56,8 @@ const start = async () => {
           }
         }
       }
-    }, async (request, reply) => {
-      const { spec } = request.body as { spec: any };
+    }, async (request, _reply) => {
+      const { /* spec */ } = request.body as { spec: any };
       // TODO: Server-side rendering logic
       return { success: true, imageData: 'base64-encoded-image' };
     });

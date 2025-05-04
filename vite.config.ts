@@ -1,17 +1,42 @@
 import { defineConfig } from 'vite';
+import dts from 'vite-plugin-dts';
 import { resolve } from 'path';
 
 export default defineConfig({
-  root: resolve(__dirname, 'src/client'),
   build: {
-    outDir: resolve(__dirname, 'dist/client'),
-    rollupOptions: {
-      input: {
-        main: resolve(__dirname, 'src/client/index.html'),
-      },
+    lib: {
+      entry: resolve(__dirname, 'src/index.ts'),
+      name: 'Devize',
+      fileName: (format) => `devize.${format === 'es' ? 'mjs' : 'js'}`
     },
+    rollupOptions: {
+      external: ['three'],
+      output: {
+        globals: {
+          three: 'THREE'
+        }
+      }
+    }
+  },
+  plugins: [
+    dts({
+      insertTypesEntry: true,
+    })
+  ],
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src')
+    }
   },
   server: {
-    port: 3000,
+    open: '/examples/'  // Open the examples index page
   },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    coverage: {
+      reporter: ['text', 'json', 'html']
+    },
+    include: ['test/**/*.test.ts']
+  }
 });

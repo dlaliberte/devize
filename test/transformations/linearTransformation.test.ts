@@ -1,29 +1,36 @@
-import { test, expect } from '@playwright/test';
-import sinon from 'sinon';
 import { LinearTransformation } from '../../src/transformations/linearTransformation';
+import { expect } from 'chai';
+import { spy } from 'sinon';
 
-test.describe('Linear Transformation', () => {
+describe('Linear Transformation', () => {
   let linearTransformation: LinearTransformation;
-  let transformStub: sinon.SinonStub;
+  let transformSpy: sinon.SinonSpy;
 
-  test.beforeEach(() => {
-    linearTransformation = new LinearTransformation();
-    transformStub = sinon.stub(linearTransformation, 'transform');
+  beforeEach(() => {
+    linearTransformation = new LinearTransformation(2, 3); // slope = 2, intercept = 3
+    transformSpy = spy(linearTransformation, 'transform');
   });
 
-  test.afterEach(() => {
-    transformStub.restore();
+  afterEach(() => {
+    transformSpy.restore();
   });
 
-  test('should correctly transform data', async () => {
-    const inputData = { x: 2 };
-    const expectedOutput = { x: 4 };
+  it('should perform linear transformation', () => {
+    const input = 5;
+    const output = linearTransformation.transform(input);
+    expect(transformSpy.calledOnceWith(input)).to.be.true;
+    expect(output).to.equal(13); // 2 * 5 + 3 = 13
+  });
 
-    transformStub.withArgs(inputData).returns(expectedOutput);
+  it('should handle zero input', () => {
+    const input = 0;
+    const output = linearTransformation.transform(input);
+    expect(output).to.equal(3); // 2 * 0 + 3 = 3
+  });
 
-    const result = linearTransformation.transform(inputData);
-
-    expect(result).toEqual(expectedOutput);
-    sinon.assert.calledOnceWithExactly(transformStub, inputData);
+  it('should handle negative input', () => {
+    const input = -5;
+    const output = linearTransformation.transform(input);
+    expect(output).to.equal(-7); // 2 * (-5) + 3 = -7
   });
 });

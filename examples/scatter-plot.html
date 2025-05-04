@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scatter Plot Example - Devize</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+    }
+    #chart-container {
+      width: 100%;
+      height: 500px;
+      border: 1px solid #ddd;
+      margin-top: 20px;
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #0066cc;
+      text-decoration: none;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+    pre {
+      background-color: #f5f5f5;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>Scatter Plot Example</h1>
+
+  <div id="chart-container"></div>
+
+  <h2>Code</h2>
+  <pre><code>
+const data = [
+  { country: 'USA', gdp: 21400, population: 331 },
+  { country: 'China', gdp: 14300, population: 1400 },
+  { country: 'Japan', gdp: 5100, population: 126 },
+  { country: 'Germany', gdp: 3800, population: 83 },
+  { country: 'UK', gdp: 2800, population: 67 },
+  { country: 'India', gdp: 2700, population: 1380 },
+  { country: 'France', gdp: 2600, population: 65 },
+  { country: 'Italy', gdp: 1900, population: 60 },
+  { country: 'Brazil', gdp: 1800, population: 212 },
+  { country: 'Canada', gdp: 1700, population: 38 }
+];
+
+const spec = {
+  type: 'scatterPlot',
+  data: data,
+  x: { field: 'gdp' },
+  y: { field: 'population' },
+  size: { field: 'gdp', range: [5, 20] },
+  color: { field: 'country' },
+  title: 'GDP vs Population',
+  tooltip: true,
+  grid: true
+};
+
+Devize.createScatterPlot(spec, document.getElementById('chart-container'));
+  </code></pre>
+
+  <a href="/examples/" class="back-link">← Back to Examples</a>
+
+  <script type="module">
+    import * as Devize from '/src/index.ts';
+
+    const data = [
+      { country: 'USA', gdp: 21400, population: 331 },
+      { country: 'China', gdp: 14300, population: 1400 },
+      { country: 'Japan', gdp: 5100, population: 126 },
+      { country: 'Germany', gdp: 3800, population: 83 },
+      { country: 'UK', gdp: 2800, population: 67 },
+      { country: 'India', gdp: 2700, population: 1380 },
+      { country: 'France', gdp: 2600, population: 65 },
+      { country: 'Italy', gdp: 1900, population: 60 },
+      { country: 'Brazil', gdp: 1800, population: 212 },
+      { country: 'Canada', gdp: 1700, population: 38 }
+    ];
+
+    const spec = {
+      type: 'scatterPlot',
+      data: data,
+      x: { field: 'gdp' },
+      y: { field: 'population' },
+      size: { field: 'gdp', range: [5, 20] },
+      color: { field: 'country' },
+      title: 'GDP vs Population',
+      tooltip: true,
+      grid: true
+    };
+
+    Devize.createScatterPlot(spec, document.getElementById('chart-container'));
+  </script>
+</body>
+</html>

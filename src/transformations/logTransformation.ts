@@ -1,4 +1,3 @@
-```typescript
 export class LogTransformation {
     private base: number;
 
@@ -7,6 +6,9 @@ export class LogTransformation {
     }
 
     transform(value: number): number {
+        if (value <= 0) {
+            throw new Error('Log transformation is not defined for negative values');
+        }
         return Math.log(value) / Math.log(this.base);
     }
 
@@ -14,4 +16,3 @@ export class LogTransformation {
         return Math.pow(this.base, value);
     }
 }
-```
