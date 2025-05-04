@@ -1,228 +1,186 @@
 // Bar chart implementation using a declarative approach
 import { VizSpec, VizInstance, DataField } from '../core/types';
 import { createViz } from '../core/devize';
-import { registerType } from '../core/registry';
 import { applyTransforms } from '../data/transforms';
 
-/**
- * Register the barChart visualization type
- */
-export function registerBarChartType(): void {
-  registerType({
-    name: 'barChart',
-    requiredProps: ['data', 'x', 'y'],
-    optionalProps: {
-      color: '#3366CC',
-      margin: { top: 40, right: 30, bottom: 60, left: 60 },
-      tooltip: false,
-      title: ''
-    },
-    generateConstraints(_spec, context) {
-      return [{ type: 'fitToContainer', container: context.container }];
-    },
-    decompose(spec, solvedConstraints) {
-      // Ensure margin exists with defaults
-      const margin = spec.margin || { top: 40, right: 30, bottom: 60, left: 60 };
+// Import direct dependencies only
+import '../primitives/shapes'; // For rectangle, text, etc.
+import '../primitives/containers'; // For group
+import '../core/define'; // For the define component
+import '../components/axis'; // For axis component
+import '../components/legend'; // For legend component
+import '../components/scales/linearScale'; // For y-axis scaling
+import '../components/scales/bandScale'; // For x-axis scaling
+import '../components/data/dataMap'; // For data mapping
+import '../components/data/dataExtract'; // For extracting data
+import '../components/data/dataStats'; // For calculating statistics
+import '../components/utils/compute'; // For computing derived values
 
-      // Create the chart group
-      const chartSpec: VizSpec = {
-        type: 'group',
-        transform: `translate(${margin.left}, ${margin.top})`,
-        children: []
-      };
+// Define the barChart visualization type using the define type
+createViz({
+  type: "define",
+  name: "barChart",
+  properties: {
+    data: { required: true },
+    x: { required: true },
+    y: { required: true },
+    color: { default: '#3366CC' },
+    margin: { default: { top: 40, right: 30, bottom: 60, left: 60 } },
+    tooltip: { default: false },
+    title: { default: '' },
+    grid: { default: false },
+    width: { default: 800 },
+    height: { default: 400 }
+  },
+  implementation: {
+    type: 'group',
+    transform: props => `translate(${props.margin.left}, ${props.margin.top})`,
+    children: [
+      // Data preparation components
+      {
+        type: 'dataExtract',
+        data: props => props.data,
+        field: props => props.x.field,
+        as: 'xValues'
+      },
+      {
+        type: 'dataStats',
+        data: props => props.data,
+        field: props => props.y.field,
+        stats: ['min', 'max'],
+        as: 'yStats'
+      },
+      {
+        type: 'compute',
+        input: props => props.yStats.max,
+        fn: yMax => [0, yMax * 0.25, yMax * 0.5, yMax * 0.75, yMax],
+        as: 'yAxisValues'
+      },
+      {
+        type: 'compute',
+        input: props => ({
+          width: props.width,
+          height: props.height,
+          margin: props.margin
+        }),
+        fn: ({ width, height, margin }) => ({
+          chartWidth: width - margin.left - margin.right,
+          chartHeight: height - margin.top - margin.bottom
+        }),
+        as: 'dimensions'
+      },
 
-      // Get data and apply transformations
-      let data = Array.isArray(spec.data) ? [...spec.data] : [];
-
-      // Apply transforms if specified
-      if (spec.transforms && Array.isArray(spec.transforms)) {
-        data = applyTransforms(data, spec.transforms);
-      }
-
-      const xField = (spec.x as DataField).field;
-      const yField = (spec.y as DataField).field;
-
-      // Calculate dimensions
-      const width = solvedConstraints.width || 800;
-      const height = solvedConstraints.height || 400;
-      const chartWidth = width - margin.left - margin.right;
-      const chartHeight = height - margin.top - margin.bottom;
-
-      // Create scales
-      const xScale = (index: number) => index * (chartWidth / data.length) + (chartWidth / data.length) * 0.5;
-      const yValues = data.map(d => d[yField]);
-      const yMax = Math.max(...yValues, 0);
-      const yScale = (value: number) => chartHeight - (value / yMax * chartHeight);
-
-      // Create color scale
-      let colorScale: (d: any, i: number) => string;
-      let colorField: string | undefined;
-      let categories: any[] = [];
-      const colors = ["#3366CC", "#DC3912", "#FF9900", "#109618", "#990099"];
-
-      if (typeof spec.color === 'string') {
-        // Single color for all bars
-        colorScale = () => spec.color as string;
-      } else if (spec.color && (spec.color as DataField).field) {
-        // Color based on a field
-        colorField = (spec.color as DataField).field;
-        categories = [...new Set(data.map(d => d[colorField!]))];
-        const colorMap: Record<string, string> = {};
-        categories.forEach((category, i) => {
-          colorMap[category] = colors[i % colors.length];
-        });
-        colorScale = (d) => colorMap[d[colorField!]];
-      } else {
-        // Default color
-        colorScale = () => '#3366CC';
-      }
-
-      // Draw axes
       // X-axis
-      chartSpec.children!.push({
-        type: 'line',
-        x1: 0,
-        y1: chartHeight,
-        x2: chartWidth,
-        y2: chartHeight,
-        stroke: '#333',
-        strokeWidth: 1
-      });
-
-      // X-axis label
-      chartSpec.children!.push({
-        type: 'text',
-        x: chartWidth / 2,
-        y: chartHeight + 40,
-        text: xField,
-        fontSize: '14px',
-        fontFamily: 'Arial',
-        fill: '#333',
-        textAnchor: 'middle'
-      });
+      {
+        type: 'axis',
+        orientation: 'bottom',
+        length: props => props.dimensions.chartWidth,
+        values: props => props.xValues,
+        transform: props => `translate(0, ${props.dimensions.chartHeight})`,
+        title: props => props.x.field
+      },
 
       // Y-axis
-      chartSpec.children!.push({
-        type: 'line',
-        x1: 0,
-        y1: 0,
-        x2: 0,
-        y2: chartHeight,
-        stroke: '#333',
-        strokeWidth: 1
-      });
+      {
+        type: 'axis',
+        orientation: 'left',
+        length: props => props.dimensions.chartHeight,
+        values: props => props.yAxisValues,
+        transform: 'translate(0, 0)',
+        title: props => props.y.field,
+        format: value => value.toLocaleString()
+      },
 
-      // Y-axis label
-      chartSpec.children!.push({
+      // Bars
+      {
+        type: 'dataMap',
+        data: props => props.data,
+        map: (d, i, array, props) => {
+          const xField = props.x.field;
+          const yField = props.y.field;
+          const chartWidth = props.dimensions.chartWidth;
+          const chartHeight = props.dimensions.chartHeight;
+          const yMax = props.yStats.max;
+
+          // Calculate scales
+          const barWidth = (chartWidth / array.length) * 0.8;
+          const xScale = (index) => index * (chartWidth / array.length) + (chartWidth / array.length) * 0.5;
+          const yScale = (value) => chartHeight - (value / yMax * chartHeight);
+
+          // Calculate bar position and dimensions
+          const barHeight = chartHeight - yScale(d[yField]);
+          const barX = xScale(i) - barWidth / 2;
+          const barY = yScale(d[yField]);
+
+          // Determine bar color
+          let barColor;
+          if (typeof props.color === 'string') {
+            barColor = props.color;
+          } else if (props.color && props.color.field) {
+            const colorField = props.color.field;
+            const categories = [...new Set(array.map(item => item[colorField]))];
+            const colors = ["#3366CC", "#DC3912", "#FF9900", "#109618", "#990099"];
+            const categoryIndex = categories.indexOf(d[colorField]);
+            barColor = colors[categoryIndex % colors.length];
+          } else {
+            barColor = '#3366CC';
+          }
+
+          return {
+            type: 'rectangle',
+            x: barX,
+            y: barY,
+            width: barWidth,
+            height: barHeight,
+            fill: barColor,
+            stroke: '#fff',
+            strokeWidth: 1,
+            data: d,
+            tooltip: props.tooltip
+          };
+        }
+      },
+
+      // Title (conditionally included)
+      {
         type: 'text',
-        x: -chartHeight / 2,
-        y: -40,
-        text: yField,
-        fontSize: '14px',
+        x: props => props.dimensions.chartWidth / 2,
+        y: -10,
+        text: props => props.title,
+        fontSize: '16px',
         fontFamily: 'Arial',
+        fontWeight: 'bold',
         fill: '#333',
         textAnchor: 'middle',
-        transform: 'rotate(-90)'
-      });
+        visible: props => props.title !== ''
+      },
 
-      // Draw bars
-      data.forEach((d, i) => {
-        const barWidth = (chartWidth / data.length) * 0.8;
-        const barHeight = chartHeight - yScale(d[yField]);
-        const barX = xScale(i) - barWidth / 2;
-        const barY = yScale(d[yField]);
+      // Legend (conditionally included)
+      {
+        type: 'legend',
+        orientation: 'vertical',
+        transform: props => `translate(${props.dimensions.chartWidth - 120}, 0)`,
+        items: props => {
+          if (typeof props.color === 'string' || !props.color || !props.color.field) {
+            return [];
+          }
 
-        // Add bar
-        chartSpec.children!.push({
-          type: 'rectangle',
-          x: barX,
-          y: barY,
-          width: barWidth,
-          height: barHeight,
-          fill: colorScale(d, i),
-          stroke: '#fff',
-          strokeWidth: 1,
-          data: d,
-          tooltip: spec.tooltip ? true : false
-        });
+          const colorField = props.color.field;
+          const categories = [...new Set(props.data.map(d => d[colorField]))];
+          const colors = ["#3366CC", "#DC3912", "#FF9900", "#109618", "#990099"];
 
-        // Add x-axis tick
-        chartSpec.children!.push({
-          type: 'line',
-          x1: xScale(i),
-          y1: chartHeight,
-          x2: xScale(i),
-          y2: chartHeight + 5,
-          stroke: '#333',
-          strokeWidth: 1
-        });
-
-        // Add x-axis label
-        chartSpec.children!.push({
-          type: 'text',
-          x: xScale(i),
-          y: chartHeight + 20,
-          text: d[xField],
-          fontSize: '12px',
-          fontFamily: 'Arial',
-          fill: '#333',
-          textAnchor: 'middle'
-        });
-      });
-
-      // Add title
-      if (spec.title) {
-        chartSpec.children!.push({
-          type: 'text',
-          x: chartWidth / 2,
-          y: -10,
-          text: spec.title,
-          fontSize: '16px',
-          fontFamily: 'Arial',
-          fontWeight: 'bold',
-          fill: '#333',
-          textAnchor: 'middle'
-        });
+          return categories.map((category, i) => ({
+            label: category,
+            color: colors[i % colors.length]
+          }));
+        },
+        visible: props => {
+          return typeof props.color !== 'string' && props.color && props.color.field;
+        }
       }
-
-      // Add legend if using categorical colors
-      if (colorField && categories.length > 0) {
-        const legendGroup: VizSpec = {
-          type: 'group',
-          transform: `translate(${chartWidth - 120}, 0)`,
-          children: []
-        };
-
-        categories.forEach((category, i) => {
-          // Add legend color rectangle
-          legendGroup.children!.push({
-            type: 'rectangle',
-            x: 0,
-            y: i * 20,
-            width: 12,
-            height: 12,
-            fill: colors[i % colors.length]
-          });
-
-          // Add legend text
-          legendGroup.children!.push({
-            type: 'text',
-            x: 20,
-            y: i * 20 + 10,
-            text: category,
-            fontSize: '12px',
-            fontFamily: 'Arial',
-            fill: '#333'
-          });
-        });
-
-        chartSpec.children!.push(legendGroup);
-      }
-
-      return chartSpec;
-    }
-  });
-}
+    ]
+  }
+}, document.createElement('div')); // We need a container, but it won't be used for rendering
 
 /**
  * Create a bar chart
@@ -231,9 +189,9 @@ export function registerBarChartType(): void {
  * @returns The bar chart instance
  */
 export function createBarChart(spec: VizSpec, container: HTMLElement): VizInstance {
-  // Make sure the bar chart type is registered
-  registerBarChartType();
-
   // Create the visualization using the registered type
-  return createViz(spec, container);
+  return createViz({
+    ...spec,
+    type: 'barChart'
+  }, container);
 }

@@ -1,301 +1,195 @@
 // Scatter plot implementation using a declarative approach
 import { VizSpec, VizInstance, DataField } from '../core/types';
 import { createViz } from '../core/devize';
-import { registerType } from '../core/registry';
 import { applyTransforms } from '../data/transforms';
 
-/**
- * Register the scatterPlot visualization type
- */
-export function registerScatterPlotType(): void {
-  registerType({
-    name: 'scatterPlot',
-    requiredProps: ['data', 'x', 'y'],
-    optionalProps: {
-      color: '#3366CC',
-      size: 5,
-      margin: { top: 40, right: 30, bottom: 60, left: 60 },
-      tooltip: false,
-      title: '',
-      grid: false
-    },
-    generateConstraints(_spec, context) {
-      return [{ type: 'fitToContainer', container: context.container }];
-    },
-    decompose(spec, solvedConstraints) {
-      // Ensure margin exists with defaults
-      const margin = spec.margin || { top: 40, right: 30, bottom: 60, left: 60 };
+// Import direct dependencies only
+import '../primitives/shapes'; // For circle, text, etc.
+import '../primitives/containers'; // For group
+import '../core/define'; // For the define component
+import '../components/axis'; // For axis component
+import '../components/legend'; // For legend component
 
-      // Create the chart group
-      const chartSpec: VizSpec = {
-        type: 'group',
-        transform: `translate(${margin.left}, ${margin.top})`,
-        children: []
-      };
+// Define the scatterPlot visualization type using the define type
+createViz({
+  type: "define",
+  name: "scatterPlot",
+  properties: {
+    data: { required: true },
+    x: { required: true },
+    y: { required: true },
+    color: { default: '#3366CC' },
+    size: { default: 5 },
+    margin: { default: { top: 40, right: 30, bottom: 60, left: 60 } },
+    tooltip: { default: false },
+    title: { default: '' },
+    grid: { default: false }
+  },
+  implementation: (props) => {
+    // Get data and apply transformations
+    let data = Array.isArray(props.data) ? [...props.data] : [];
 
-      // Get data and apply transformations
-      let data = Array.isArray(spec.data) ? [...spec.data] : [];
+    // Apply transforms if specified
+    if (props.transforms && Array.isArray(props.transforms)) {
+      data = applyTransforms(data, props.transforms);
+    }
 
-      // Apply transforms if specified
-      if (spec.transforms && Array.isArray(spec.transforms)) {
-        data = applyTransforms(data, spec.transforms);
-      }
+    const xField = (props.x as DataField).field;
+    const yField = (props.y as DataField).field;
+    const margin = props.margin;
 
-      const xField = (spec.x as DataField).field;
-      const yField = (spec.y as DataField).field;
+    // Calculate dimensions - these will be filled in by constraints
+    const width = props.width || 800;
+    const height = props.height || 400;
+    const chartWidth = width - margin.left - margin.right;
+    const chartHeight = height - margin.top - margin.bottom;
 
-      // Calculate dimensions
-      const width = solvedConstraints.width || 800;
-      const height = solvedConstraints.height || 400;
-      const chartWidth = width - margin.left - margin.right;
-      const chartHeight = height - margin.top - margin.bottom;
+    // Calculate scales
+    const xValues = data.map(d => d[xField]);
+    const yValues = data.map(d => d[yField]);
+    const xMin = Math.min(...xValues);
+    const xMax = Math.max(...xValues);
+    const yMin = Math.min(...yValues);
+    const yMax = Math.max(...yValues);
 
-      // Calculate scales
-      const xValues = data.map(d => d[xField]);
-      const yValues = data.map(d => d[yField]);
-      const xMin = Math.min(...xValues);
-      const xMax = Math.max(...xValues);
-      const yMin = Math.min(...yValues);
-      const yMax = Math.max(...yValues);
+    // Add padding to the domain for better visualization
+    const xMin_padded = xMin - (xMax - xMin) * 0.05;
+    const xMax_padded = xMax + (xMax - xMin) * 0.05;
+    const yMin_padded = yMin - (yMax - yMin) * 0.05;
+    const yMax_padded = yMax + (yMax - yMin) * 0.05;
 
-      // Add padding to the domain for better visualization
-      const xMin_padded = xMin - (xMax - xMin) * 0.05;
-      const xMax_padded = xMax + (xMax - xMin) * 0.05;
-      const yMin_padded = yMin - (yMax - yMin) * 0.05;
-      const yMax_padded = yMax + (yMax - yMin) * 0.05;
+    // Create color scale
+    let colorField: string | undefined;
+    let categories: any[] = [];
+    const colors = ["#3366CC", "#DC3912", "#FF9900", "#109618", "#990099"];
 
-      const xScale = (value: number) => (value - xMin_padded) / (xMax_padded - xMin_padded) * chartWidth;
-      const yScale = (value: number) => chartHeight - (value - yMin_padded) / (yMax_padded - yMin_padded) * chartHeight;
+    if (typeof props.color === 'string') {
+      // Single color for all points
+      colorField = undefined;
+    } else if (props.color && (props.color as DataField).field) {
+      // Color based on a field
+      colorField = (props.color as DataField).field;
+      categories = [...new Set(data.map(d => d[colorField!]))];
+    }
 
-      // Create color scale
-      let colorScale: (d: any, i: number) => string;
-      let colorField: string | undefined;
-      let categories: any[] = [];
-      const colors = ["#3366CC", "#DC3912", "#FF9900", "#109618", "#990099"];
+    // Create size scale
+    let sizeField: string | undefined;
+    let sizeMin: number = 0;
+    let sizeMax: number = 0;
+    let sizeRange: number[] = [5, 20];
 
-      if (typeof spec.color === 'string') {
-        // Single color for all points
-        colorScale = () => spec.color as string;
-      } else if (spec.color && (spec.color as DataField).field) {
-        // Color based on a field
-        colorField = (spec.color as DataField).field;
-        categories = [...new Set(data.map(d => d[colorField!]))];
-        const colorMap: Record<string, string> = {};
-        categories.forEach((category, i) => {
-          colorMap[category] = colors[i % colors.length];
-        });
-        colorScale = (d) => colorMap[d[colorField!]];
-      } else {
-        // Default color
-        colorScale = () => '#3366CC';
-      }
+    if (typeof props.size === 'number') {
+      // Fixed size for all points
+      sizeField = undefined;
+    } else if (props.size && (props.size as DataField).field) {
+      // Size based on a field
+      sizeField = (props.size as DataField).field;
+      const sizeValues = data.map(d => d[sizeField!]);
+      sizeMin = Math.min(...sizeValues);
+      sizeMax = Math.max(...sizeValues);
+      sizeRange = (props.size as DataField).range || [5, 20];
+    }
 
-      // Create size scale
-      let sizeScale: (d: any, i: number) => number;
-      let sizeField: string | undefined;
+    // Create the chart group
+    return {
+      type: 'group',
+      transform: `translate(${margin.left}, ${margin.top})`,
+      children: [
+        // X-axis
+        {
+          type: 'axis',
+          orientation: 'bottom',
+          length: chartWidth,
+          values: [xMin, xMin + (xMax - xMin) * 0.25, xMin + (xMax - xMin) * 0.5, xMin + (xMax - xMin) * 0.75, xMax],
+          transform: `translate(0, ${chartHeight})`,
+          title: xField,
+          format: (value: number) => value.toLocaleString()
+        },
 
-      if (typeof spec.size === 'number') {
-        // Fixed size for all points
-        sizeScale = () => spec.size as number;
-      } else if (spec.size && (spec.size as DataField).field) {
-        // Size based on a field
-        sizeField = (spec.size as DataField).field;
-        const sizeValues = data.map(d => d[sizeField!]);
-        const sizeMin = Math.min(...sizeValues);
-        const sizeMax = Math.max(...sizeValues);
-        const sizeRange = (spec.size as DataField).range || [5, 20];
+        // Y-axis
+        {
+          type: 'axis',
+          orientation: 'left',
+          length: chartHeight,
+          values: [yMin, yMin + (yMax - yMin) * 0.25, yMin + (yMax - yMin) * 0.5, yMin + (yMax - yMin) * 0.75, yMax],
+          transform: 'translate(0, 0)',
+          title: yField,
+          format: (value: number) => value.toLocaleString()
+        },
 
-        sizeScale = (d) => {
-          const normalized = (d[sizeField!] - sizeMin) / (sizeMax - sizeMin);
-          return sizeRange[0] + normalized * (sizeRange[1] - sizeRange[0]);
-        };
-      } else {
-        // Default size
-        sizeScale = () => 5;
-      }
+        // Points
+        {
+          type: 'dataMap',
+          data: data,
+          map: (d, i, array) => {
+            const xScale = (value: number) => (value - xMin_padded) / (xMax_padded - xMin_padded) * chartWidth;
+            const yScale = (value: number) => chartHeight - (value - yMin_padded) / (yMax_padded - yMin_padded) * chartHeight;
 
-      // Add grid if requested
-      if (spec.grid) {
-        // Horizontal grid lines
-        for (let i = 0; i <= 5; i++) {
-          const y = i * chartHeight / 5;
-          chartSpec.children!.push({
-            type: 'line',
-            x1: 0,
-            y1: y,
-            x2: chartWidth,
-            y2: y,
-            stroke: '#ddd',
-            strokeWidth: 1,
-            strokeDasharray: '3,3'
-          });
+            const cx = xScale(d[xField]);
+            const cy = yScale(d[yField]);
 
-          // Y-axis tick label
-          const tickValue = yMin + (5 - i) * (yMax - yMin) / 5;
-          chartSpec.children!.push({
-            type: 'text',
-            x: -10,
-            y: y,
-            text: tickValue.toLocaleString(),
-            fontSize: '10px',
-            fontFamily: 'Arial',
-            fill: '#666',
-            textAnchor: 'end',
-            dominantBaseline: 'middle'
-          });
-        }
+            let pointColor;
+            if (typeof props.color === 'string') {
+              pointColor = props.color;
+            } else if (colorField) {
+              const categoryIndex = categories.indexOf(d[colorField]);
+              pointColor = colors[categoryIndex % colors.length];
+            } else {
+              pointColor = '#3366CC';
+            }
 
-        // Vertical grid lines
-        for (let i = 0; i <= 5; i++) {
-          const x = i * chartWidth / 5;
-          chartSpec.children!.push({
-            type: 'line',
-            x1: x,
-            y1: 0,
-            x2: x,
-            y2: chartHeight,
-            stroke: '#ddd',
-            strokeWidth: 1,
-            strokeDasharray: '3,3'
-          });
+            let pointSize;
+            if (typeof props.size === 'number') {
+              pointSize = props.size;
+            } else if (sizeField) {
+              const normalized = (d[sizeField] - sizeMin) / (sizeMax - sizeMin);
+              pointSize = sizeRange[0] + normalized * (sizeRange[1] - sizeRange[0]);
+            } else {
+              pointSize = 5;
+            }
 
-          // X-axis tick label
-          const tickValue = xMin + i * (xMax - xMin) / 5;
-          chartSpec.children!.push({
-            type: 'text',
-            x: x,
-            y: chartHeight + 15,
-            text: tickValue.toLocaleString(),
-            fontSize: '10px',
-            fontFamily: 'Arial',
-            fill: '#666',
-            textAnchor: 'middle'
-          });
-        }
-      }
+            return {
+              type: 'circle',
+              cx,
+              cy,
+              r: pointSize,
+              fill: pointColor,
+              stroke: '#fff',
+              strokeWidth: 1,
+              opacity: 0.7,
+              data: d,
+              tooltip: props.tooltip
+            };
+          }
+        },
 
-      // Draw axes
-      // X-axis
-      chartSpec.children!.push({
-        type: 'line',
-        x1: 0,
-        y1: chartHeight,
-        x2: chartWidth,
-        y2: chartHeight,
-        stroke: '#333',
-        strokeWidth: 1
-      });
-
-      // X-axis label
-      chartSpec.children!.push({
-        type: 'text',
-        x: chartWidth / 2,
-        y: chartHeight + 40,
-        text: xField,
-        fontSize: '14px',
-        fontFamily: 'Arial',
-        fill: '#333',
-        textAnchor: 'middle'
-      });
-
-      // Y-axis
-      chartSpec.children!.push({
-        type: 'line',
-        x1: 0,
-        y1: 0,
-        x2: 0,
-        y2: chartHeight,
-        stroke: '#333',
-        strokeWidth: 1
-      });
-
-      // Y-axis label
-      chartSpec.children!.push({
-        type: 'text',
-        x: -chartHeight / 2,
-        y: -40,
-        text: yField,
-        fontSize: '14px',
-        fontFamily: 'Arial',
-        fill: '#333',
-        textAnchor: 'middle',
-        transform: 'rotate(-90)'
-      });
-
-      // Draw points
-      data.forEach((d, i) => {
-        const cx = xScale(d[xField]);
-        const cy = yScale(d[yField]);
-        const r = sizeScale(d, i);
-
-        // Add point
-        chartSpec.children!.push({
-          type: 'circle',
-          cx,
-          cy,
-          r,
-          fill: colorScale(d, i),
-          stroke: '#fff',
-          strokeWidth: 1,
-          opacity: 0.7,
-          data: d,
-          tooltip: spec.tooltip ? true : false
-        });
-      });
-
-      // Add title
-      if (spec.title) {
-        chartSpec.children!.push({
+        // Title (conditionally included)
+        props.title ? {
           type: 'text',
           x: chartWidth / 2,
           y: -10,
-          text: spec.title,
+          text: props.title,
           fontSize: '16px',
           fontFamily: 'Arial',
           fontWeight: 'bold',
           fill: '#333',
           textAnchor: 'middle'
-        });
-      }
+        } : null,
 
-      // Add legend if using categorical colors
-      if (colorField && categories.length > 0) {
-        const legendGroup: VizSpec = {
-          type: 'group',
+        // Legend (conditionally included)
+        colorField && categories.length > 0 ? {
+          type: 'legend',
+          orientation: 'vertical',
           transform: `translate(${chartWidth - 120}, 0)`,
-          children: []
-        };
-
-        categories.forEach((category, i) => {
-          // Add legend color circle
-          legendGroup.children!.push({
-            type: 'circle',
-            cx: 6,
-            cy: i * 20 + 6,
-            r: 6,
-            fill: colors[i % colors.length],
-            opacity: 0.7
-          });
-
-          // Add legend text
-          legendGroup.children!.push({
-            type: 'text',
-            x: 20,
-            y: i * 20 + 10,
-            text: category,
-            fontSize: '12px',
-            fontFamily: 'Arial',
-            fill: '#333'
-          });
-        });
-
-        chartSpec.children!.push(legendGroup);
-      }
-
-      return chartSpec;
-    }
-  });
-}
+          items: categories.map((category, i) => ({
+            label: category,
+            color: colors[i % colors.length]
+          }))
+        } : null
+      ].filter(Boolean) // Remove null items
+    };
+  }
+}, document.createElement('div')); // We need a container, but it won't be used for rendering
 
 /**
  * Create a scatter plot

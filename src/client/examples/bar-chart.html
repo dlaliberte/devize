@@ -121,26 +121,9 @@ const barChart = createBarChart({
   </div>
 
   <!-- Import the compiled JavaScript -->
-  <script src="/js/core/types.js"></script>
-  <script src="/js/core/registry.js"></script>
-  <script src="/js/core/devize.js"></script>
-  <script src="/js/data/transforms.js"></script>
-  <script src="/js/data/sources.js"></script>
-  <script src="/js/charts/barChart.js"></script>
+  <script src="/js/devize.js"></script>
 
   <script>
-    // Helper function to ensure SVG exists
-    function ensureSvg(container) {
-      let svg = container.querySelector('svg');
-      if (!svg) {
-        svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-        svg.setAttribute('width', '100%');
-        svg.setAttribute('height', '100%');
-        container.appendChild(svg);
-      }
-      return svg;
-    }
-
     // Sample data
     const salesData = [
       { product: "Product A", revenue: 420, profit: 210, category: "Electronics" },
@@ -151,8 +134,9 @@ const barChart = createBarChart({
     ];
 
     // Create a bar chart
-    const barChart = createBarChart({
-      type: "barChart",
+    const barChart = Devize.createBarChart({
+      width: 800,
+      height: 400,
       data: salesData,
       x: { field: "product", type: "ordinal" },
       y: { field: "revenue", type: "quantitative" },
@@ -163,11 +147,12 @@ const barChart = createBarChart({
 
     // Add event listeners for the buttons
     document.getElementById('filter-btn').addEventListener('click', () => {
-      const filteredViz = createBarChart({
-        type: "barChart",
+      const filteredViz = Devize.createBarChart({
+        width: 800,
+        height: 400,
         data: salesData,
         transforms: [
-          { type: "filter", test: "d => d.revenue > 400" }
+          { type: "filter", test: d => d.revenue > 400 }
         ],
         x: { field: "product", type: "ordinal" },
         y: { field: "revenue", type: "quantitative" },
@@ -178,8 +163,9 @@ const barChart = createBarChart({
     });
 
     document.getElementById('sort-btn').addEventListener('click', () => {
-      const sortedViz = createBarChart({
-        type: "barChart",
+      const sortedViz = Devize.createBarChart({
+        width: 800,
+        height: 400,
         data: salesData,
         transforms: [
           { type: "sort", field: "revenue", order: "descending" }
@@ -193,8 +179,9 @@ const barChart = createBarChart({
     });
 
     document.getElementById('reset-btn').addEventListener('click', () => {
-      const resetViz = createBarChart({
-        type: "barChart",
+      const resetViz = Devize.createBarChart({
+        width: 800,
+        height: 400,
         data: salesData,
         x: { field: "product", type: "ordinal" },
         y: { field: "revenue", type: "quantitative" },

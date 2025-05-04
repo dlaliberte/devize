@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Devize - Data Binding Example</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    h1, h2 {
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .viz-container {
+      width: 100%;
+      height: 400px;
+      border: 1px solid #ddd;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+
+    pre {
+      background-color: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .controls {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #f5f5f5;
+      border-radius: 4px;
+    }
+
+    button {
+      padding: 8px 12px;
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
+    button:hover {
+      background-color: #0055aa;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Data Binding Example</h1>
+    <p>This example demonstrates how to bind data to visual elements in Devize.</p>
+
+    <div id="visualization-container" class="viz-container"></div>
+
+    <div class="controls">
+      <h2>Controls</h2>
+      <button id="sort-asc">Sort Ascending</button>
+      <button id="sort-desc">Sort Descending</button>
+      <button id="filter-high">Show High Values</button>
+      <button id="filter-low">Show Low Values</button>
+      <button id="reset">Reset</button>
+    </div>
+
+    <h2>Code</h2>
+    <pre><code>// Sample data
+const data = [
+  { product: "Product A", revenue: 420, category: "Electronics" },
+  { product: "Product B", revenue: 650, category: "Clothing" },
+  { product: "Product C", revenue: 340, category: "Electronics" },
+  { product: "Product D", revenue: 570, category: "Food" },
+  { product: "Product E", revenue: 230, category: "Clothing" }
+];
+
+// Create a bar chart with data binding
+let currentData = [...data];
+let currentSpec = {
+  type: "barChart",
+  data: currentData,
+  x: { field: "product" },
+  y: { field: "revenue" },
+  color: { field: "category" },
+  tooltip: true
+};
+
+let barChart = createViz(currentSpec, document.getElementById("visualization-container"));
+
+// Add event listeners for controls
+document.getElementById("sort-asc").addEventListener("click", function() {
+  currentData = [...data].sort((a, b) => a.revenue - b.revenue);
+  updateChart();
+});
+
+document.getElementById("sort-desc").addEventListener("click", function() {
+  currentData = [...data].sort((a, b) => b.revenue - a.revenue);
+  updateChart();
+});
+
+document.getElementById("filter-high").addEventListener("click", function() {
+  currentData = data.filter(d => d.revenue > 400);
+  updateChart();
+});
+
+document.getElementById("filter-low").addEventListener("click", function() {
+  currentData = data.filter(d => d.revenue &lt;= 400);
+  updateChart();
+});
+
+document.getElementById("reset").addEventListener("click", function() {
+  currentData = [...data];
+  updateChart();
+});
+
+function updateChart() {
+  // Remove the old chart
+  const container = document.getElementById("visualization-container");
+  while (container.firstChild) {
+    container.removeChild(container.firstChild);
+  }
+
+  // Create a new chart with the updated data
+  currentSpec.data = currentData;
+  barChart = createViz(currentSpec, container);
+}</code></pre>
+
+    <a href="/examples/" class="back-link">← Back to Examples</a>
+  </div>
+
+  <script type="module">
+    import * as Devize from '/src/index.ts';
+
+    // Sample data
+    const data = [
+      { product: "Product A", revenue: 420, category: "Electronics" },
+      { product: "Product B", revenue: 650, category: "Clothing" },
+      { product: "Product C", revenue: 340, category: "Electronics" },
+      { product: "Product D", revenue: 570, category: "Food" },
+      { product: "Product E", revenue: 230, category: "Clothing" }
+    ];
+
+    // Create a bar chart with data binding
+    let currentData = [...data];
+    let currentSpec = {
+      type: "barChart",
+      data: currentData,
+      x: { field: "product" },
+      y: { field: "revenue" },
+      color: { field: "category" },
+      tooltip: true
+    };
+
+    let barChart = Devize.createBarChart(currentSpec, document.getElementById("visualization-container"));
+
+    // Add event listeners for controls
+    document.getElementById("sort-asc").addEventListener("click", function() {
+      currentData = [...data].sort((a, b) => a.revenue - b.revenue);
+      updateChart();
+    });
+
+    document.getElementById("sort-desc").addEventListener("click", function() {
+      currentData = [...data].sort((a, b) => b.revenue - a.revenue);
+      updateChart();
+    });
+
+    document.getElementById("filter-high").addEventListener("click", function() {
+      currentData = data.filter(d => d.revenue > 400);
+      updateChart();
+    });
+
+    document.getElementById("filter-low").addEventListener("click", function() {
+      currentData = data.filter(d => d.revenue <= 400);
+      updateChart();
+    });
+
+    document.getElementById("reset").addEventListener("click", function() {
+      currentData = [...data];
+      updateChart();
+    });
+
+    function updateChart() {
+      // Remove the old chart
+      const container = document.getElementById("visualization-container");
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+
+      // Create a new chart with the updated data
+      currentSpec.data = currentData;
+      barChart = Devize.createBarChart(currentSpec, container);
+    }
+  </script>
+</body>
+</html>

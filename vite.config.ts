@@ -36,7 +36,6 @@ export default defineConfig({
     environment: 'jsdom',
     coverage: {
       reporter: ['text', 'json', 'html']
-    },
-    include: ['test/**/*.test.ts']
+    }
   }
 });
