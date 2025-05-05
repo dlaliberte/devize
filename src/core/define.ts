@@ -10,8 +10,9 @@ function evaluateProps(props: any, context: any): any {
 
   for (const [key, value] of Object.entries(props)) {
     if (typeof value === 'function') {
-      // If it's a function property like 'format', preserve it
-      if (key === 'format' || key === 'map' || key === 'filter' || key === 'sort') {
+      // If it's a function property like 'format', 'formatter', etc., preserve it
+      if (key === 'format' || key === 'formatter' || key === 'map' ||
+          key === 'filter' || key === 'sort' || key.endsWith('Fn')) {
         result[key] = value;
       } else {
         // Otherwise, evaluate the function with the current context
