@@ -16,8 +16,6 @@ describe('dataExtract Component', () => {
       as: 'extractedValues'
     });
 
-    console.log('dataExtract result:', JSON.stringify(result, null, 2));
-
     expect(result).toBeDefined();
     expect(result.spec).toBeDefined();
 

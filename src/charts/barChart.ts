@@ -1,6 +1,7 @@
-// Bar chart implementation using a structured functional approach
+// Bar chart implementation using scales
 import { createViz } from '../core/devize';
 import { VizSpec, VizInstance, DataField } from '../core/types';
+import { createScale } from '../components/scales/scale';
 
 // Import direct dependencies only
 import '../primitives/shapes'; // For rectangle, text, etc.
@@ -8,9 +9,7 @@ import '../primitives/containers'; // For group
 import '../core/define'; // For the define component
 import '../components/axis'; // For axis component
 import '../components/legend'; // For legend component
-import '../components/scales/linearScale'; // For y-axis scaling
-import '../components/scales/bandScale'; // For x-axis scaling
-import '../components/data/dataMap'; // For data mapping
+import '../components/scales/scale'; // For scaling
 
 // Define the barChart visualization type using the define type
 createViz({
@@ -28,7 +27,7 @@ createViz({
     width: { default: 800 },
     height: { default: 400 }
   },
-  requiresContainer: true, // Explicitly set this to true
+  requiresContainer: true,
   implementation: function(props) {
     console.log('Bar chart implementation called with props:', props);
 
@@ -53,48 +52,52 @@ createViz({
     const yMax = Math.max(...yValues);
     const yAxisValues = [0, yMax * 0.25, yMax * 0.5, yMax * 0.75, yMax];
 
-    // Calculate bar positioning parameters
-    const barSpacing = 0.2; // 20% of available space for spacing
-    const barWidth = (dimensions.chartWidth / data.length) * (1 - barSpacing);
+    // Create scales
+    const xScale = createScale('band', {
+      domain: xValues,
+      range: [0, dimensions.chartWidth],
+      padding: 0.2
+    });
 
-    // Calculate x positions for each bar center - these will be used for axis ticks too
-    const xPositions = data.map((_, i) =>
-      i * (dimensions.chartWidth / data.length) + (dimensions.chartWidth / data.length) * 0.5
-    );
+    const yScale = createScale('linear', {
+      domain: [0, yMax],
+      range: [dimensions.chartHeight, 0]
+    });
 
-    // Build the visualization with these pre-calculated values
+    // Build the visualization with these scales
     const result = {
       type: 'group',
       transform: `translate(${margin.left}, ${margin.top})`,
       children: [
-        // X-axis with corrected tick positions
+        // X-axis using the scale
         {
           type: 'axis',
           orientation: 'bottom',
           length: dimensions.chartWidth,
           values: xValues,
-          positions: xPositions, // Pass the calculated positions for ticks
+          scale: xScale,
           transform: `translate(0, ${dimensions.chartHeight})`,
           title: x.field
         },
 
-        // Y-axis
+        // Y-axis using the scale
         {
           type: 'axis',
           orientation: 'left',
           length: dimensions.chartHeight,
           values: yAxisValues,
+          scale: yScale,
           transform: 'translate(0, 0)',
           title: y.field,
           format: value => value.toLocaleString()
         },
 
-        // Bars
+        // Bars using the scales
         ...data.map((d, i, array) => {
-          // Use the pre-calculated positions
-          const barX = xPositions[i] - barWidth / 2;
-          const yScale = (value) => dimensions.chartHeight - (value / yMax * dimensions.chartHeight);
-          const barY = yScale(d[y.field]);
+          // Get the bar position using the scale
+          const barX = xScale.scale(d[x.field]);
+          const barWidth = xScale.bandwidth();
+          const barY = yScale.scale(d[y.field]);
           const barHeight = dimensions.chartHeight - barY;
 
           // Determine bar color
