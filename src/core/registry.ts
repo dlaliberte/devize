@@ -1,6 +1,7 @@
 // Registry for visualization types
 import { VisualizationType } from './types';
 
+console.log('Registry module initializing');
 const typeRegistry: Record<string, VisualizationType> = {};
 
 /**
@@ -8,10 +9,12 @@ const typeRegistry: Record<string, VisualizationType> = {};
  * @param type The visualization type to register
  */
 export function registerType(type: VisualizationType): void {
+  console.log(`Registering visualization type: ${type.name}`);
   if (typeRegistry[type.name]) {
     console.warn(`Visualization type '${type.name}' is already registered. It will be overwritten.`);
   }
   typeRegistry[type.name] = type;
+  console.log(`Current registry contains: ${Object.keys(typeRegistry).join(', ')}`);
 }
 
 /**

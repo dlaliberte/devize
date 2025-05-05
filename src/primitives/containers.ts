@@ -6,11 +6,20 @@ import { createViz } from '../core/devize';
 /**
  * Create a group
  * @param spec The group specification
- * @param container The container element
+ * @param container The container element or object
  * @returns The group instance
  */
-export function createGroup(spec: VizSpec, container: HTMLElement): VizInstance {
-  const svg = ensureSvg(container);
+export function createGroup(spec: VizSpec, container: HTMLElement | any): VizInstance {
+  // Get the SVG element or parent element
+  let parent: Element;
+
+  if (container.element) {
+    // If container is an object with an element property
+    parent = container.element;
+  } else {
+    // If container is a direct DOM element, ensure it has an SVG
+    parent = ensureSvg(container as HTMLElement);
+  }
 
   // Create group element
   const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
@@ -20,40 +29,26 @@ export function createGroup(spec: VizSpec, container: HTMLElement): VizInstance 
     group.setAttribute('transform', spec.transform);
   }
 
-  // Set other attributes
-  if (spec.opacity) group.setAttribute('opacity', spec.opacity.toString());
-  if (spec.id) group.setAttribute('id', spec.id);
-  if (spec.className) group.setAttribute('class', spec.className);
-
   // Add to SVG
-  svg.appendChild(group);
+  parent.appendChild(group);
 
-  // Create child visualizations
-  const children: VizInstance[] = [];
-  if (spec.children && Array.isArray(spec.children)) {
-    for (const childSpec of spec.children) {
-      // Create a temporary container for the child
-      const tempContainer = {
-        querySelector: () => svg,
-        appendChild: () => {} // No-op since we're using the existing SVG
-      } as unknown as HTMLElement;
-
-      // Create the child visualization
-      const child = createViz(childSpec, tempContainer);
-
-      // If it's a valid child, add it to our children array and to the group
-      if (child && child.element) {
-        children.push(child);
-        group.appendChild(child.element);
+  // Add children if provided
+  if (spec.children) {
+    const children = Array.isArray(spec.children) ? spec.children : [spec.children];
+    children.forEach(child => {
+      if (child) {
+        createViz({
+          ...child,
+          container: { element: group }
+        });
       }
-    }
+    });
   }
 
   // Return the visualization instance
   return {
     element: group,
-    spec: spec,
-    children: children
+    spec: spec
   };
 }
 

@@ -1,9 +1,11 @@
 // Core functionality for the library
 import * as THREE from 'three';
 import { VizSpec, ConstraintSpec, VizInstance } from './types';
-import { getType, hasType } from './registry';
+import { getType, hasType, registerType } from './registry';
 import { createRectangle, createCircle, createLine, createText } from '../primitives/shapes';
 import { createGroup } from '../primitives/containers';
+
+console.log('Devize module initializing');
 
 /**
  * Create a visualization from a spec
@@ -11,6 +13,8 @@ import { createGroup } from '../primitives/containers';
  * @returns The visualization instance
  */
 export function createViz(spec: VizSpec): VizInstance {
+  console.log(`Creating visualization of type: ${spec.type}`);
+
   // Validate spec
   if (!spec.type) {
     throw new Error('Visualization spec must have a type');
@@ -18,6 +22,49 @@ export function createViz(spec: VizSpec): VizInstance {
 
   // Extract container from spec if provided
   const container = spec.container as HTMLElement;
+
+  // Special handling for the "define" type when it's being bootstrapped
+  if (spec.type === "define" && !hasType("define")) {
+    console.log('Special handling for define type');
+    // This is the initial definition of the "define" type
+    // Handle it directly without requiring it to be registered first
+    const name = spec.name;
+    const properties = spec.properties;
+    const implementation = spec.implementation;
+
+    // Register the new type
+    registerType({
+      name: name,
+      requiredProps: Object.entries(properties)
+        .filter(([_, config]) => (config as any).required)
+        .map(([name]) => name),
+      optionalProps: Object.fromEntries(
+        Object.entries(properties)
+          .filter(([_, config]) => !(config as any).required && (config as any).default !== undefined)
+          .map(([name, config]) => [name, (config as any).default])
+      ),
+      generateConstraints: (innerSpec, innerContext) => {
+        // Default constraint to fit container
+        return [{ type: 'fitToContainer', container: innerContext.container }];
+      },
+      decompose: (innerSpec, innerSolvedConstraints) => {
+        // Process implementation based on its type
+        if (typeof implementation === 'function') {
+          return implementation(innerSpec);
+        } else {
+          return implementation;
+        }
+      }
+    });
+
+    console.log(`Registered ${spec.name} type`);
+
+    // Return a minimal instance since define doesn't render anything
+    return {
+      spec: spec,
+      data: {}
+    };
+  }
 
   // Handle primitive types directly
   switch (spec.type) {
@@ -49,17 +96,18 @@ export function createViz(spec: VizSpec): VizInstance {
   }
 
   // Apply default values for optional properties
+  const fullSpec = { ...spec };
   if (vizType.optionalProps) {
     for (const [key, defaultValue] of Object.entries(vizType.optionalProps)) {
-      if (!(key in spec)) {
-        spec[key] = defaultValue;
+      if (!(key in fullSpec)) {
+        fullSpec[key] = defaultValue;
       }
     }
   }
 
   // For non-rendering visualizations, just process the data and return
   if (vizType.isDataTransformation) {
-    return vizType.process(spec);
+    return vizType.process(fullSpec);
   }
 
   // For rendering visualizations, ensure we have a container
@@ -68,13 +116,13 @@ export function createViz(spec: VizSpec): VizInstance {
   }
 
   // Generate constraints
-  const constraints = vizType.generateConstraints(spec, { container });
+  const constraints = vizType.generateConstraints(fullSpec, { container });
 
   // Solve constraints (simplified for now)
-  const solvedConstraints = solveConstraints(constraints, spec);
+  const solvedConstraints = solveConstraints(constraints, fullSpec);
 
   // Decompose the visualization
-  const decomposed = vizType.decompose(spec, solvedConstraints);
+  const decomposed = vizType.decompose(fullSpec, solvedConstraints);
 
   // Render the decomposed visualization if it requires rendering
   if (container && vizType.requiresContainer) {
@@ -87,7 +135,6 @@ export function createViz(spec: VizSpec): VizInstance {
     data: decomposed.data
   };
 }
-
 /**
  * Update a visualization
  * @param vizInstance The visualization instance to update
@@ -147,6 +194,8 @@ function solveConstraints(constraints: ConstraintSpec[], _spec: VizSpec): any {
  * @returns The visualization instance
  */
 function renderViz(spec: VizSpec, container: HTMLElement): VizInstance {
+  console.log('Rendering visualization:', spec.type, 'to container:', container);
+
   // Check if we need 3D rendering
   const is3D = spec.type.includes('3d') || spec.dimensions === 3;
 
@@ -163,28 +212,72 @@ function renderViz(spec: VizSpec, container: HTMLElement): VizInstance {
  * @param container The container element
  * @returns The visualization instance
  */
-function render2DViz(spec: VizSpec, container: HTMLElement): VizInstance {
-  // Create SVG element if it doesn't exist
-  let svg = container.querySelector('svg');
-  if (!svg) {
-    svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('width', '100%');
-    svg.setAttribute('height', '100%');
-    container.appendChild(svg);
+function render2DViz(spec: VizSpec, container: HTMLElement | any): VizInstance {
+  console.log('Rendering 2D visualization:', spec.type);
+
+  // Handle different container types
+  let containerElement: HTMLElement;
+  let svgParent: Element;
+
+  if (container.element) {
+    // If container is an object with an element property (like { element: group })
+    containerElement = container.element;
+    svgParent = containerElement;
+  } else {
+    // If container is a direct DOM element
+    containerElement = container as HTMLElement;
+
+    // Create SVG element if it doesn't exist
+    let svg = containerElement.querySelector('svg');
+    if (!svg) {
+      console.log('Creating new SVG element');
+      svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('width', '100%');
+      svg.setAttribute('height', '100%');
+      containerElement.appendChild(svg);
+    } else {
+      console.log('Using existing SVG element');
+    }
+
+    svgParent = svg;
   }
 
-  // Handle different visualization types
+  // For group types, handle nested components
+  if (spec.type === 'group' && spec.children) {
+    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    if (spec.transform) {
+      group.setAttribute('transform', spec.transform);
+    }
+    svgParent.appendChild(group);
+
+    // Render children
+    const children = Array.isArray(spec.children) ? spec.children : [spec.children];
+    children.forEach(child => {
+      if (child) {
+        // Pass the group as the container for nested components
+        createViz({
+          ...child,
+          container: { element: group } // Pass the group element as a container-like object
+        });
+      }
+    });
+
+    return {
+      element: group,
+      spec: spec
+    };
+  }
+
+  // Handle other primitive types
   switch (spec.type) {
     case 'rectangle':
-      return createRectangle(spec, container);
+      return createRectangle(spec, containerElement);
     case 'circle':
-      return createCircle(spec, container);
+      return createCircle(spec, containerElement);
     case 'line':
-      return createLine(spec, container);
+      return createLine(spec, containerElement);
     case 'text':
-      return createText(spec, container);
-    case 'group':
-      return createGroup(spec, container);
+      return createText(spec, containerElement);
     default:
       throw new Error(`Unknown visualization type: ${spec.type}`);
   }
@@ -237,16 +330,25 @@ function render3DViz(spec: VizSpec, container: HTMLElement): VizInstance {
 
 /**
  * Helper function to ensure an SVG element exists
- * @param container The container element
- * @returns The SVG element
+ * @param container The container element or object
+ * @returns The SVG element or parent element
  */
-export function ensureSvg(container: HTMLElement): SVGElement {
-  let svg = container.querySelector('svg');
-  if (!svg) {
-    svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('width', '100%');
-    svg.setAttribute('height', '100%');
-    container.appendChild(svg);
+export function ensureSvg(container: HTMLElement | any): SVGElement | Element {
+  // Handle different container types
+  if (container.element) {
+    // If container is an object with an element property
+    return container.element;
+  } else {
+    // If container is a direct DOM element
+    const containerElement = container as HTMLElement;
+
+    let svg = containerElement.querySelector('svg');
+    if (!svg) {
+      svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.setAttribute('width', '100%');
+      svg.setAttribute('height', '100%');
+      containerElement.appendChild(svg);
+    }
+    return svg as SVGElement;
   }
-  return svg as SVGElement;
 }

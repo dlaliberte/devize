@@ -5,11 +5,20 @@ import { ensureSvg } from '../core/devize';
 /**
  * Create a rectangle
  * @param spec The rectangle specification
- * @param container The container element
+ * @param container The container element or object
  * @returns The rectangle instance
  */
-export function createRectangle(spec: VizSpec, container: HTMLElement): VizInstance {
-  const svg = ensureSvg(container);
+export function createRectangle(spec: VizSpec, container: HTMLElement | any): VizInstance {
+  // Get the SVG element or parent element
+  let parent: Element;
+
+  if (container.element) {
+    // If container is an object with an element property
+    parent = container.element;
+  } else {
+    // If container is a direct DOM element, ensure it has an SVG
+    parent = ensureSvg(container as HTMLElement);
+  }
 
   // Create rectangle element
   const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
@@ -29,7 +38,7 @@ export function createRectangle(spec: VizSpec, container: HTMLElement): VizInsta
   if (spec.opacity) rect.setAttribute('opacity', spec.opacity.toString());
 
   // Add to SVG
-  svg.appendChild(rect);
+  parent.appendChild(rect);
 
   // Return the visualization instance
   return {
@@ -41,11 +50,20 @@ export function createRectangle(spec: VizSpec, container: HTMLElement): VizInsta
 /**
  * Create a circle
  * @param spec The circle specification
- * @param container The container element
+ * @param container The container element or object
  * @returns The circle instance
  */
-export function createCircle(spec: VizSpec, container: HTMLElement): VizInstance {
-  const svg = ensureSvg(container);
+export function createCircle(spec: VizSpec, container: HTMLElement | any): VizInstance {
+  // Get the SVG element or parent element
+  let parent: Element;
+
+  if (container.element) {
+    // If container is an object with an element property
+    parent = container.element;
+  } else {
+    // If container is a direct DOM element, ensure it has an SVG
+    parent = ensureSvg(container as HTMLElement);
+  }
 
   // Create circle element
   const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
@@ -62,7 +80,7 @@ export function createCircle(spec: VizSpec, container: HTMLElement): VizInstance
   if (spec.opacity) circle.setAttribute('opacity', spec.opacity.toString());
 
   // Add to SVG
-  svg.appendChild(circle);
+  parent.appendChild(circle);
 
   // Return the visualization instance
   return {
@@ -74,11 +92,20 @@ export function createCircle(spec: VizSpec, container: HTMLElement): VizInstance
 /**
  * Create a line
  * @param spec The line specification
- * @param container The container element
+ * @param container The container element or object
  * @returns The line instance
  */
-export function createLine(spec: VizSpec, container: HTMLElement): VizInstance {
-  const svg = ensureSvg(container);
+export function createLine(spec: VizSpec, container: HTMLElement | any): VizInstance {
+  // Get the SVG element or parent element
+  let parent: Element;
+
+  if (container.element) {
+    // If container is an object with an element property
+    parent = container.element;
+  } else {
+    // If container is a direct DOM element, ensure it has an SVG
+    parent = ensureSvg(container as HTMLElement);
+  }
 
   // Create line element
   const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -96,7 +123,7 @@ export function createLine(spec: VizSpec, container: HTMLElement): VizInstance {
   if (spec.opacity) line.setAttribute('opacity', spec.opacity.toString());
 
   // Add to SVG
-  svg.appendChild(line);
+  parent.appendChild(line);
 
   // Return the visualization instance
   return {
@@ -108,11 +135,20 @@ export function createLine(spec: VizSpec, container: HTMLElement): VizInstance {
 /**
  * Create a text element
  * @param spec The text specification
- * @param container The container element
+ * @param container The container element or object
  * @returns The text instance
  */
-export function createText(spec: VizSpec, container: HTMLElement): VizInstance {
-  const svg = ensureSvg(container);
+export function createText(spec: VizSpec, container: HTMLElement | any): VizInstance {
+  // Get the SVG element or parent element
+  let parent: Element;
+
+  if (container.element) {
+    // If container is an object with an element property
+    parent = container.element;
+  } else {
+    // If container is a direct DOM element, ensure it has an SVG
+    parent = ensureSvg(container as HTMLElement);
+  }
 
   // Create text element
   const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
@@ -135,7 +171,7 @@ export function createText(spec: VizSpec, container: HTMLElement): VizInstance {
   text.textContent = spec.text || '';
 
   // Add to SVG
-  svg.appendChild(text);
+  parent.appendChild(text);
 
   // Return the visualization instance
   return {

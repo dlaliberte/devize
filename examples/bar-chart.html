@@ -74,7 +74,8 @@
     <h1>Bar Chart Example</h1>
     <p>This example demonstrates a bar chart with declarative axes and legend.</p>
 
-    <div id="visualization-container" class="viz-container"></div>
+    <div id="visualization-container" class="viz-container"
+      style="width: 800px; height: 500px; border: 1px solid #ccc;"></div>
 
     <div class="controls">
       <h3>Data Transformations</h3>
@@ -126,13 +127,14 @@ const barChart = Devize.createBarChart({
       container.innerHTML = '';
 
       // Create a bar chart
-      return Devize.createBarChart({
+      return Devize.createViz({
         type: "barChart",
         data: data,
         x: { field: "product" },
         y: { field: "revenue" },
         color: { field: "category" },
-        title: "Product Revenue by Category"
+        title: "Product Revenue by Category",
+        container: container
       }, container);
     }
 

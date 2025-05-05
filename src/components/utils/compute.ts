@@ -1,6 +1,6 @@
+// Compute component for derived values
 import { createViz } from '../../core/devize';
 
-// Define a compute component that calculates derived values
 createViz({
   type: "define",
   name: "compute",
@@ -10,12 +10,20 @@ createViz({
     as: { required: true }
   },
   implementation: props => {
-    // Calculate the derived value
-    const result = props.fn(props.input);
+    try {
+      // Apply the function to the input
+      const result = props.fn(props.input);
 
-    // Return an object with the computed value
-    return {
-      [props.as]: result
-    };
+      // Return the result with the specified key
+      return {
+        [props.as]: result
+      };
+    } catch (error) {
+      console.error('Error in compute component:', error);
+      // Return a default value to prevent errors
+      return {
+        [props.as]: null
+      };
+    }
   }
-}, document.createElement('div'));
+});

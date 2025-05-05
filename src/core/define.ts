@@ -1,5 +1,8 @@
-import { createViz } from './devize';
+// Import only what's needed
 import { registerType } from './registry';
+import { createViz } from './devize';
+
+console.log('Define module initializing');
 
 // Helper function to evaluate property functions
 function evaluateProps(props: any, context: any): any {
@@ -7,12 +10,17 @@ function evaluateProps(props: any, context: any): any {
 
   for (const [key, value] of Object.entries(props)) {
     if (typeof value === 'function') {
-      // Evaluate the function with the current context
-      try {
-        result[key] = value(context);
-      } catch (error) {
-        console.error(`Error evaluating property function for ${key}:`, error);
-        result[key] = undefined;
+      // If it's a function property like 'format', preserve it
+      if (key === 'format' || key === 'map' || key === 'filter' || key === 'sort') {
+        result[key] = value;
+      } else {
+        // Otherwise, evaluate the function with the current context
+        try {
+          result[key] = value(context);
+        } catch (error) {
+          console.error(`Error evaluating property function for ${key}:`, error);
+          result[key] = undefined;
+        }
       }
     } else {
       result[key] = value;
@@ -23,6 +31,7 @@ function evaluateProps(props: any, context: any): any {
 }
 
 // Define component for creating new component types
+console.log('About to define the define type');
 createViz({
   type: "define",
   name: "define",
@@ -43,6 +52,8 @@ createViz({
           .filter(([_, config]) => !(config as any).required && (config as any).default !== undefined)
           .map(([name, config]) => [name, (config as any).default])
       ),
+      // Set requiresContainer based on the props or default to true for most visualizations
+      requiresContainer: props.requiresContainer !== undefined ? props.requiresContainer : true,
       generateConstraints: (spec, context) => {
         // Default constraint to fit container
         return [{ type: 'fitToContainer', container: context.container }];
@@ -51,9 +62,23 @@ createViz({
         // Get the implementation
         const implementation = props.implementation;
 
+        // Apply default values for any missing properties
+        const fullSpec = { ...spec };
+        console.log('Original spec:', spec);
+
+        for (const [propName, propConfig] of Object.entries(props.properties)) {
+          if (!(propName in fullSpec) && (propConfig as any).default !== undefined) {
+            console.log(`Adding default value for ${propName}:`, (propConfig as any).default);
+            fullSpec[propName] = (propConfig as any).default;
+          }
+        }
+
+        console.log('Full spec with defaults:', fullSpec);
+
         // If implementation is a function, call it with evaluated props
         if (typeof implementation === 'function') {
-          const evaluatedProps = evaluateProps(spec, { ...spec, ...solvedConstraints });
+          const evaluatedProps = evaluateProps(fullSpec, { ...fullSpec, ...solvedConstraints });
+          console.log('Evaluated props:', evaluatedProps);
           return implementation(evaluatedProps);
         }
 
@@ -90,7 +115,7 @@ createViz({
           return result;
         };
 
-        return evaluateObject(result, { ...spec, ...solvedConstraints });
+        return evaluateObject(result, { ...fullSpec, ...solvedConstraints });
       }
     });
 
@@ -98,3 +123,4 @@ createViz({
     return { type: 'group', children: [] };
   }
 }, document.createElement('div'));
+console.log('Define type definition completed');

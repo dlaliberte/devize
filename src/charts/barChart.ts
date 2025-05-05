@@ -1,7 +1,6 @@
-// Bar chart implementation using a declarative approach
-import { VizSpec, VizInstance, DataField } from '../core/types';
+// Bar chart implementation using a structured functional approach
 import { createViz } from '../core/devize';
-import { applyTransforms } from '../data/transforms';
+import { VizSpec, VizInstance, DataField } from '../core/types';
 
 // Import direct dependencies only
 import '../primitives/shapes'; // For rectangle, text, etc.
@@ -12,9 +11,6 @@ import '../components/legend'; // For legend component
 import '../components/scales/linearScale'; // For y-axis scaling
 import '../components/scales/bandScale'; // For x-axis scaling
 import '../components/data/dataMap'; // For data mapping
-import '../components/data/dataExtract'; // For extracting data
-import '../components/data/dataStats'; // For calculating statistics
-import '../components/utils/compute'; // For computing derived values
 
 // Define the barChart visualization type using the define type
 createViz({
@@ -32,92 +28,75 @@ createViz({
     width: { default: 800 },
     height: { default: 400 }
   },
-  implementation: {
-    type: 'group',
-    transform: props => `translate(${props.margin.left}, ${props.margin.top})`,
-    children: [
-      // Data preparation components
-      {
-        type: 'dataExtract',
-        data: props => props.data,
-        field: props => props.x.field,
-        as: 'xValues'
-      },
-      {
-        type: 'dataStats',
-        data: props => props.data,
-        field: props => props.y.field,
-        stats: ['min', 'max'],
-        as: 'yStats'
-      },
-      {
-        type: 'compute',
-        input: props => props.yStats.max,
-        fn: yMax => [0, yMax * 0.25, yMax * 0.5, yMax * 0.75, yMax],
-        as: 'yAxisValues'
-      },
-      {
-        type: 'compute',
-        input: props => ({
-          width: props.width,
-          height: props.height,
-          margin: props.margin
-        }),
-        fn: ({ width, height, margin }) => ({
-          chartWidth: width - margin.left - margin.right,
-          chartHeight: height - margin.top - margin.bottom
-        }),
-        as: 'dimensions'
-      },
+  requiresContainer: true, // Explicitly set this to true
+  implementation: function(props) {
+    console.log('Bar chart implementation called with props:', props);
 
-      // X-axis
-      {
-        type: 'axis',
-        orientation: 'bottom',
-        length: props => props.dimensions.chartWidth,
-        values: props => props.xValues,
-        transform: props => `translate(0, ${props.dimensions.chartHeight})`,
-        title: props => props.x.field
-      },
+    // Extract properties from props
+    const { data, x, y, color, margin, tooltip, title, grid, width, height } = props;
 
-      // Y-axis
-      {
-        type: 'axis',
-        orientation: 'left',
-        length: props => props.dimensions.chartHeight,
-        values: props => props.yAxisValues,
-        transform: 'translate(0, 0)',
-        title: props => props.y.field,
-        format: value => value.toLocaleString()
-      },
+    console.log('Data:', data);
+    console.log('Dimensions:', width, height);
 
-      // Bars
-      {
-        type: 'dataMap',
-        data: props => props.data,
-        map: (d, i, array, props) => {
-          const xField = props.x.field;
-          const yField = props.y.field;
-          const chartWidth = props.dimensions.chartWidth;
-          const chartHeight = props.dimensions.chartHeight;
-          const yMax = props.yStats.max;
+    // Calculate dimensions
+    const dimensions = {
+      chartWidth: width - margin.left - margin.right,
+      chartHeight: height - margin.top - margin.bottom
+    };
 
+    // Extract data for axes
+    const xValues = data.map(d => d[x.field]);
+
+    // Calculate y-axis statistics
+    const yValues = data.map(d => d[y.field]);
+    const yMin = Math.min(0, ...yValues);
+    const yMax = Math.max(...yValues);
+    const yAxisValues = [0, yMax * 0.25, yMax * 0.5, yMax * 0.75, yMax];
+
+    // Build the visualization with these pre-calculated values
+    const result = {
+      type: 'group',
+      transform: `translate(${margin.left}, ${margin.top})`,
+      children: [
+        // X-axis
+        {
+          type: 'axis',
+          orientation: 'bottom',
+          length: dimensions.chartWidth,
+          values: xValues,
+          transform: `translate(0, ${dimensions.chartHeight})`,
+          title: x.field
+        },
+
+        // Y-axis
+        {
+          type: 'axis',
+          orientation: 'left',
+          length: dimensions.chartHeight,
+          values: yAxisValues,
+          transform: 'translate(0, 0)',
+          title: y.field,
+          format: value => value.toLocaleString()
+        },
+
+        // Bars
+        ...data.map((d, i, array) => {
           // Calculate scales
-          const barWidth = (chartWidth / array.length) * 0.8;
-          const xScale = (index) => index * (chartWidth / array.length) + (chartWidth / array.length) * 0.5;
-          const yScale = (value) => chartHeight - (value / yMax * chartHeight);
+          const barWidth = (dimensions.chartWidth / array.length) * 0.8;
+          const xScale = (index) => index * (dimensions.chartWidth / array.length) + (dimensions.chartWidth / array.length) * 0.5;
+          const yScale = (value) => dimensions.chartHeight - (value / yMax * dimensions.chartHeight);
 
           // Calculate bar position and dimensions
-          const barHeight = chartHeight - yScale(d[yField]);
+          const barHeight = dimensions.chartHeight - yScale(d[y.field]);
           const barX = xScale(i) - barWidth / 2;
-          const barY = yScale(d[yField]);
+          const barY = yScale(d[y.field]);
 
           // Determine bar color
           let barColor;
-          if (typeof props.color === 'string') {
-            barColor = props.color;
-          } else if (props.color && props.color.field) {
-            const colorField = props.color.field;
+          if (typeof color === 'string') {
+            barColor = color;
+          } else if (color && color.field) {
+            const colorField = color.field;
             const categories = [...new Set(array.map(item => item[colorField]))];
             const colors = ["#3366CC", "#DC3912", "#FF9900", "#109618", "#990099"];
             const categoryIndex = categories.indexOf(d[colorField]);
@@ -136,51 +115,46 @@ createViz({
             stroke: '#fff',
             strokeWidth: 1,
             data: d,
-            tooltip: props.tooltip
+            tooltip: tooltip
           };
-        }
-      },
+        }),
 
-      // Title (conditionally included)
-      {
-        type: 'text',
-        x: props => props.dimensions.chartWidth / 2,
-        y: -10,
-        text: props => props.title,
-        fontSize: '16px',
-        fontFamily: 'Arial',
-        fontWeight: 'bold',
-        fill: '#333',
-        textAnchor: 'middle',
-        visible: props => props.title !== ''
-      },
+        // Title (conditionally included)
+        title ? {
+          type: 'text',
+          x: dimensions.chartWidth / 2,
+          y: -10,
+          text: title,
+          fontSize: '16px',
+          fontFamily: 'Arial',
+          fontWeight: 'bold',
+          fill: '#333',
+          textAnchor: 'middle'
+        } : null,
 
-      // Legend (conditionally included)
-      {
-        type: 'legend',
-        orientation: 'vertical',
-        transform: props => `translate(${props.dimensions.chartWidth - 120}, 0)`,
-        items: props => {
-          if (typeof props.color === 'string' || !props.color || !props.color.field) {
-            return [];
-          }
+        // Legend (conditionally included)
+        color && typeof color !== 'string' && color.field ? {
+          type: 'legend',
+          orientation: 'vertical',
+          transform: `translate(${dimensions.chartWidth - 120}, 0)`,
+          items: (() => {
+            const colorField = color.field;
+            const categories = [...new Set(data.map(d => d[colorField]))];
+            const colors = ["#3366CC", "#DC3912", "#FF9900", "#109618", "#990099"];
 
-          const colorField = props.color.field;
-          const categories = [...new Set(props.data.map(d => d[colorField]))];
-          const colors = ["#3366CC", "#DC3912", "#FF9900", "#109618", "#990099"];
+            return categories.map((category, i) => ({
+              label: category,
+              color: colors[i % colors.length]
+            }));
+          })()
+        } : null
+      ].filter(Boolean) // Remove null items
+    };
 
-          return categories.map((category, i) => ({
-            label: category,
-            color: colors[i % colors.length]
-          }));
-        },
-        visible: props => {
-          return typeof props.color !== 'string' && props.color && props.color.field;
-        }
-      }
-    ]
+    console.log('Bar chart result:', result);
+    return result;
   }
-}, document.createElement('div')); // We need a container, but it won't be used for rendering
+});
 
 /**
  * Create a bar chart
@@ -192,6 +166,7 @@ export function createBarChart(spec: VizSpec, container: HTMLElement): VizInstan
   // Create the visualization using the registered type
   return createViz({
     ...spec,
-    type: 'barChart'
-  }, container);
+    type: 'barChart',
+    container
+  });
 }
