@@ -171,7 +171,7 @@ createViz({
  * @param container The container element
  * @returns The bar chart instance
  */
-export function createBarChart(spec: VizSpec, container: HTMLElement): VizInstance {
+export function createBarChart(spec: VizSpec): VizInstance {
   // Create the visualization using the registered type
   return createViz({
     ...spec,

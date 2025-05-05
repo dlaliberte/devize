@@ -197,7 +197,7 @@ createViz({
  * @param container The container element
  * @returns The scatter plot instance
  */
-export function createScatterPlot(spec: VizSpec, container: HTMLElement): VizInstance {
+export function createScatterPlot(spec: VizSpec): VizInstance {
   // Make sure the scatter plot type is registered
   registerScatterPlotType();
 
