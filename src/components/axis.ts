@@ -89,7 +89,8 @@ createViz({
             x2: isHorizontal ? pos : (isRight ? tickLength : -tickLength),
             y2: isHorizontal ? (isBottom ? tickLength : -tickLength) : pos,
             stroke: '#000',
-            strokeWidth: 1
+            strokeWidth: 1,
+            class: 'tick'
           },
           // Tick label
           {
@@ -100,7 +101,8 @@ createViz({
             fontSize: '12px',
             fontFamily: 'Arial',
             textAnchor: isHorizontal ? 'middle' : (isRight ? 'start' : 'end'),
-            dominantBaseline: isHorizontal ? (isBottom ? 'hanging' : 'auto') : 'middle'
+            dominantBaseline: isHorizontal ? (isBottom ? 'hanging' : 'auto') : 'middle',
+            class: 'tick-label'
           }
         ]
       };
@@ -114,7 +116,8 @@ createViz({
       x2: isHorizontal ? length : 0,
       y2: isHorizontal ? 0 : length,
       stroke: '#000',
-      strokeWidth: 1
+      strokeWidth: 1,
+      class: 'axis-line'
     };
 
     // Create axis title
@@ -127,6 +130,7 @@ createViz({
       fontFamily: 'Arial',
       fontWeight: 'bold',
       textAnchor: 'middle',
+      class: 'axis-title',
       transform: !isHorizontal ? `rotate(${isRight ? 90 : -90} ${isRight ? 40 : -40} ${length / 2})` : ''
     } : null;
 
@@ -134,6 +138,7 @@ createViz({
     return {
       type: 'group',
       transform: transform,
+      class: 'axis',
       children: [
         axisLine,
         ...ticks,

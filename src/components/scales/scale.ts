@@ -8,6 +8,7 @@ export interface Scale {
   scale: (value: any) => number;
   invert?: (value: number) => any;
   ticks?: (count?: number) => any[];
+  bandwidth?: () => number;
 }
 
 // Create a scale factory function that can be used directly in code
@@ -88,45 +89,16 @@ function createBandScale(options: {
   const [start, stop] = range;
   const width = stop - start;
 
-  // Calculate according to the test expectations
-  let bandWidth, step;
-
-  if (domain.length === 4 && padding === 0.2) {
-    // First test case
-    bandWidth = 60;
-    step = 75;
-  } else if (domain.length === 3 && padding === 0.5) {
-    // Second test case
-    bandWidth = 50;
-    step = 100;
-  } else if (domain.length === 3 && paddingInner === 0.2 && paddingOuter === 0.1) {
-    // Third test case
-    bandWidth = 80;
-    step = 100;
-  } else {
-    // Default calculation
-    const totalPadding = (n - 1) * paddingInner + 2 * paddingOuter;
-    step = width / (n + totalPadding);
-    bandWidth = step * (1 - paddingInner);
-  }
+  // Calculate band width and step
+  const totalPadding = (n - 1) * paddingInner + 2 * paddingOuter;
+  const step = width / Math.max(1, n - paddingInner + 2 * paddingOuter);
+  const bandWidth = step * (1 - paddingInner);
 
   const scale = (value: string): number => {
     const index = domain.indexOf(value);
     if (index === -1) return NaN;
 
-    if (domain.length === 4 && padding === 0.2) {
-      // First test case
-      return [15, 90, 165, 240][index];
-    } else if (domain.length === 3 && padding === 0.5) {
-      // Second test case
-      return [75, 150, 225][index];
-    } else if (domain.length === 3 && paddingInner === 0.2 && paddingOuter === 0.1) {
-      // Third test case
-      return [10, 110, 210][index];
-    } else {
-      // Default calculation
-      return start + (paddingOuter * step) + (index * step);
-    }
+    return start + (paddingOuter * step) + (index * step);
   };
 
   // Additional methods specific to band scales
@@ -161,7 +133,17 @@ function createOrdinalScale(options: {
   return { domain, range, scale, ticks };
 }
 
-// Log and time scales would be implemented similarly
+// Log scale implementation (placeholder)
+function createLogScale(options: any): Scale {
+  // Simple implementation for now
+  return createLinearScale(options);
+}
+
+// Time scale implementation (placeholder)
+function createTimeScale(options: any): Scale {
+  // Simple implementation for now
+  return createLinearScale(options);
+}
 
 // Export the scale component for use in visualizations
 createViz({
