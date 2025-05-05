@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Devize - Bar Chart</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    h1, h2 {
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .viz-container {
+      width: 100%;
+      height: 400px;
+      border: 1px solid #ddd;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+
+    pre {
+      background-color: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .controls {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 4px;
+    }
+
+    button {
+      padding: 8px 16px;
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
+    button:hover {
+      background-color: #0055aa;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Bar Chart Example</h1>
+    <p>This example demonstrates a bar chart with declarative axes and legend.</p>
+
+    <div id="visualization-container" class="viz-container"
+      style="width: 800px; height: 500px; border: 1px solid #ccc;"></div>
+
+    <div class="controls">
+      <h3>Data Transformations</h3>
+      <button id="filter-btn">Filter (Revenue > 400)</button>
+      <button id="sort-btn">Sort by Revenue</button>
+      <button id="reset-btn">Reset Data</button>
+    </div>
+
+    <h2>Code</h2>
+    <pre><code>// Sample data
+const salesData = [
+  { product: "Product A", revenue: 420, profit: 210, category: "Electronics" },
+  { product: "Product B", revenue: 650, profit: 300, category: "Clothing" },
+  { product: "Product C", revenue: 340, profit: -50, category: "Electronics" },
+  { product: "Product D", revenue: 570, profit: 140, category: "Food" },
+  { product: "Product E", revenue: 320, profit: 90, category: "Clothing" }
+];
+
+// Create a bar chart
+const barChart = Devize.createBarChart({
+  type: "barChart",
+  data: salesData,
+  x: { field: "product" },
+  y: { field: "revenue" },
+  color: { field: "category" },
+  title: "Product Revenue by Category"
+}, document.getElementById("visualization-container"));</code></pre>
+
+    <a href="/examples/" class="back-link">← Back to Examples</a>
+  </div>
+
+  <script type="module">
+    // First, import the core modules
+    import { createViz, processViz } from '/src/core/devize.ts';
+    import { registerType, getAllTypes } from '/src/core/registry.ts';
+
+    // Then import the barChart module
+    import { createBarChart } from '/src/charts/barChart.ts';
+
+    // Log available types after imports
+    console.log('Available types after imports:', Object.keys(getAllTypes()));
+
+    // Sample data
+    const salesData = [
+      { product: "Product A", revenue: 420, profit: 210, category: "Electronics" },
+      { product: "Product B", revenue: 650, profit: 300, category: "Clothing" },
+      { product: "Product C", revenue: 340, profit: -50, category: "Electronics" },
+      { product: "Product D", revenue: 570, profit: 140, category: "Food" },
+      { product: "Product E", revenue: 320, profit: 90, category: "Clothing" }
+    ];
+
+    // Function to create the visualization
+    function createVisualization(data) {
+      console.log('Creating visualization with data:', data);
+      console.log('Available types before creating viz:', Object.keys(getAllTypes()));
+
+      // Clear the container
+      const container = document.getElementById("visualization-container");
+      container.innerHTML = '';
+
+      try {
+        // Create a bar chart using the specific function
+        return createBarChart({
+          data: data,
+          x: { field: "product" },
+          y: { field: "revenue" },
+          color: { field: "category" },
+          title: "Product Revenue by Category",
+          width: 800,
+          height: 500
+        }, container);
+      } catch (error) {
+        console.error('Error creating visualization:', error);
+        container.innerHTML = `<div style="color: red; padding: 20px;">Error: ${error.message}</div>`;
+      }
+    }
+
+    // Wait for all modules to load
+    window.addEventListener('load', () => {
+      console.log('Window loaded');
+      console.log('Available types after window load:', Object.keys(getAllTypes()));
+
+      // Create the initial visualization with a delay
+      setTimeout(() => {
+        console.log('Creating initial visualization');
+        console.log('Available types before timeout:', Object.keys(getAllTypes()));
+        let currentViz = createVisualization(salesData);
+
+        // Add event listeners for the buttons
+        document.getElementById('filter-btn').addEventListener('click', () => {
+          const filteredData = salesData.filter(d => d.revenue > 400);
+          currentViz = createVisualization(filteredData);
+        });
+
+        document.getElementById('sort-btn').addEventListener('click', () => {
+          const sortedData = [...salesData].sort((a, b) => b.revenue - a.revenue);
+          currentViz = createVisualization(sortedData);
+        });
+
+        document.getElementById('reset-btn').addEventListener('click', () => {
+      currentViz = createVisualization(salesData);
+    });
+  </script></body>
+</html>
