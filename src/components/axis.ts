@@ -6,89 +6,91 @@ createViz({
   name: "axis",
   properties: {
     orientation: { required: true },
-    values: { required: true },
     length: { required: true },
-    transform: { default: 'translate(0, 0)' },
+    values: { required: true },
+    positions: { default: null }, // Add support for custom positions
     title: { default: '' },
-    format: { default: (value) => value.toString() },
-    tickSize: { default: 6 },
-    labelOffset: { default: 9 }
+    format: { default: value => value.toString() },
+    transform: { default: '' }
   },
-  requiresContainer: true, // Explicitly set this to true
   implementation: function(props) {
-    console.log('Axis implementation called with props:', props);
-
-    const { orientation, values, length, title, tickSize, labelOffset, transform } = props;
-    const formatFn = typeof props.format === 'function' ? props.format : (value) => value.toString();
+    const { orientation, length, values, positions, title, format, transform } = props;
 
     const isHorizontal = orientation === 'bottom' || orientation === 'top';
     const isBottom = orientation === 'bottom';
     const isRight = orientation === 'right';
 
-    // Create ticks and labels
-    const ticks = [];
-    const valueArray = Array.isArray(values) ? values : [values];
+    // Calculate tick positions if not provided
+    const tickPositions = positions || values.map((_, i) =>
+      i * (length / (values.length - 1 || 1))
+    );
 
-    // Main axis line
-    ticks.push({
+    // Create ticks
+    const ticks = values.map((value, i) => {
+      const pos = tickPositions[i];
+      const tickLength = 6;
+
+      return {
+        type: 'group',
+        children: [
+          // Tick line
+          {
+            type: 'line',
+            x1: isHorizontal ? pos : 0,
+            y1: isHorizontal ? 0 : pos,
+            x2: isHorizontal ? pos : (isRight ? tickLength : -tickLength),
+            y2: isHorizontal ? (isBottom ? tickLength : -tickLength) : pos,
+            stroke: '#000',
+            strokeWidth: 1
+          },
+          // Tick label
+          {
+            type: 'text',
+            x: isHorizontal ? pos : (isRight ? tickLength + 5 : -tickLength - 5),
+            y: isHorizontal ? (isBottom ? tickLength + 15 : -tickLength - 5) : pos,
+            text: format(value),
+            fontSize: '12px',
+            fontFamily: 'Arial',
+            textAnchor: isHorizontal ? 'middle' : (isRight ? 'start' : 'end'),
+            dominantBaseline: isHorizontal ? (isBottom ? 'hanging' : 'auto') : 'middle'
+          }
+        ]
+      };
+    });
+
+    // Create axis line
+    const axisLine = {
       type: 'line',
       x1: 0,
       y1: 0,
       x2: isHorizontal ? length : 0,
       y2: isHorizontal ? 0 : length,
-      stroke: '#333',
+      stroke: '#000',
       strokeWidth: 1
-    });
+    };
 
-    // Calculate tick positions
-    valueArray.forEach((value, i) => {
-      const position = i / (valueArray.length - 1 || 1) * length;
+    // Create axis title
+    const axisTitle = title ? {
+      type: 'text',
+      x: isHorizontal ? length / 2 : (isRight ? 40 : -40),
+      y: isHorizontal ? (isBottom ? 50 : -40) : length / 2,
+      text: title,
+      fontSize: '14px',
+      fontFamily: 'Arial',
+      fontWeight: 'bold',
+      textAnchor: 'middle',
+      transform: !isHorizontal ? `rotate(${isRight ? 90 : -90} ${isRight ? 40 : -40} ${length / 2})` : ''
+    } : null;
 
-      // Tick mark
-      ticks.push({
-        type: 'line',
-        x1: isHorizontal ? position : (isRight ? 0 : -tickSize),
-        y1: isHorizontal ? (isBottom ? 0 : -tickSize) : position,
-        x2: isHorizontal ? position : (isRight ? tickSize : 0),
-        y2: isHorizontal ? (isBottom ? tickSize : 0) : position,
-        stroke: '#333',
-        strokeWidth: 1
-      });
-
-      // Tick label
-      ticks.push({
-        type: 'text',
-        x: isHorizontal ? position : (isRight ? labelOffset : -labelOffset),
-        y: isHorizontal ? (isBottom ? labelOffset : -labelOffset) : position,
-        text: formatFn(value),
-        fontSize: '10px',
-        fontFamily: 'Arial',
-        fill: '#333',
-        textAnchor: isHorizontal ? 'middle' : (isRight ? 'start' : 'end'),
-        dominantBaseline: isHorizontal ? (isBottom ? 'hanging' : 'auto') : 'middle'
-      });
-    });
-
-    // Axis title
-    if (title) {
-      ticks.push({
-        type: 'text',
-        x: isHorizontal ? length / 2 : (isRight ? labelOffset + 25 : -labelOffset - 25),
-        y: isHorizontal ? (isBottom ? labelOffset + 25 : -labelOffset - 25) : length / 2,
-        text: title,
-        fontSize: '12px',
-        fontFamily: 'Arial',
-        fontWeight: 'bold',
-        fill: '#333',
-        textAnchor: 'middle',
-        transform: isHorizontal ? '' : `rotate(${isRight ? 90 : -90}, ${isRight ? labelOffset + 25 : -labelOffset - 25}, ${length / 2})`
-      });
-    }
-
+    // Combine all elements
     return {
       type: 'group',
       transform: transform,
-      children: ticks
+      children: [
+        axisLine,
+        ...ticks,
+        axisTitle
+      ].filter(Boolean)
     };
   }
 });

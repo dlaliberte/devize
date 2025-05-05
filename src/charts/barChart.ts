@@ -53,17 +53,27 @@ createViz({
     const yMax = Math.max(...yValues);
     const yAxisValues = [0, yMax * 0.25, yMax * 0.5, yMax * 0.75, yMax];
 
+    // Calculate bar positioning parameters
+    const barSpacing = 0.2; // 20% of available space for spacing
+    const barWidth = (dimensions.chartWidth / data.length) * (1 - barSpacing);
+
+    // Calculate x positions for each bar center - these will be used for axis ticks too
+    const xPositions = data.map((_, i) =>
+      i * (dimensions.chartWidth / data.length) + (dimensions.chartWidth / data.length) * 0.5
+    );
+
     // Build the visualization with these pre-calculated values
     const result = {
       type: 'group',
       transform: `translate(${margin.left}, ${margin.top})`,
       children: [
-        // X-axis
+        // X-axis with corrected tick positions
         {
           type: 'axis',
           orientation: 'bottom',
           length: dimensions.chartWidth,
           values: xValues,
+          positions: xPositions, // Pass the calculated positions for ticks
           transform: `translate(0, ${dimensions.chartHeight})`,
           title: x.field
         },
@@ -81,15 +91,11 @@ createViz({
 
         // Bars
         ...data.map((d, i, array) => {
-          // Calculate scales
-          const barWidth = (dimensions.chartWidth / array.length) * 0.8;
-          const xScale = (index) => index * (dimensions.chartWidth / array.length) + (dimensions.chartWidth / array.length) * 0.5;
+          // Use the pre-calculated positions
+          const barX = xPositions[i] - barWidth / 2;
           const yScale = (value) => dimensions.chartHeight - (value / yMax * dimensions.chartHeight);
-
-          // Calculate bar position and dimensions
-          const barHeight = dimensions.chartHeight - yScale(d[y.field]);
-          const barX = xScale(i) - barWidth / 2;
           const barY = yScale(d[y.field]);
+          const barHeight = dimensions.chartHeight - barY;
 
           // Determine bar color
           let barColor;
