@@ -53,8 +53,7 @@ createViz({
           .filter(([_, config]) => !(config as any).required && (config as any).default !== undefined)
           .map(([name, config]) => [name, (config as any).default])
       ),
-      // Set requiresContainer based on the props or default to true for most visualizations
-      requiresContainer: props.requiresContainer !== undefined ? props.requiresContainer : true,
+
       generateConstraints: (spec, context) => {
         // Default constraint to fit container
         return [{ type: 'fitToContainer', container: context.container }];

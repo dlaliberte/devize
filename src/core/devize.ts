@@ -115,15 +115,15 @@ export function createViz(spec: VizSpec): VizInstance {
   const decomposed = vizType.decompose(fullSpec, solvedConstraints);
 
   // Render the decomposed visualization if it requires rendering
-  if (container && vizType.requiresContainer) {
+  if (container) {
     return renderViz(decomposed, container);
   }
 
   // Otherwise just return the processed result
-  return {
-    spec: decomposed,
-    data: decomposed.data
-  };
+  // return {
+  //   spec: decomposed,
+  //   data: decomposed.data
+  // };
 }
 /**
  * Update a visualization
