@@ -9,7 +9,7 @@ createViz({
     field: { required: true },
     as: { default: 'values' }
   },
-  isDataTransformation: true, // Mark as data transformation
+
   implementation: props => {
     // Extract values from the data array
     const values = Array.isArray(props.data)

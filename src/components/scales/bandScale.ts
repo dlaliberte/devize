@@ -37,6 +37,5 @@ createViz({
       domain: domain,
       ticks: () => domain
     };
-  },
-  isDataTransformation: true
+  }
 });

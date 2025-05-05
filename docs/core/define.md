@@ -70,8 +70,6 @@ createViz({
 | properties | object | Property definitions for the new type | Required |
 | implementation | object/function | Implementation of the visualization | Required |
 | extend | string | Name of a type to extend (inherit from) | None |
-| isDataTransformation | Boolean | Whether this is a data transformation visualization | false |
-| requiresContainer | Boolean | Whether this visualization requires a container | Auto-detected |
 
 ## Property Definitions
 
@@ -198,7 +196,6 @@ To create a data transformation visualization that doesn't render to the DOM:
 createViz({
   type: "define",
   name: "dataFilter",
-  isDataTransformation: true,
   properties: {
     data: { required: true },
     test: { required: true }

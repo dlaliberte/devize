@@ -27,7 +27,7 @@ createViz({
     width: { default: 800 },
     height: { default: 400 }
   },
-  requiresContainer: true,
+
   implementation: function(props) {
     console.log('Bar chart implementation called with props:', props);
 

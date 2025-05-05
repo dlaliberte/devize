@@ -105,16 +105,6 @@ export function createViz(spec: VizSpec): VizInstance {
     }
   }
 
-  // For non-rendering visualizations, just process the data and return
-  if (vizType.isDataTransformation) {
-    return vizType.process(fullSpec);
-  }
-
-  // For rendering visualizations, ensure we have a container
-  if (!container && vizType.requiresContainer) {
-    throw new Error(`Visualization type ${spec.type} requires a container element`);
-  }
-
   // Generate constraints
   const constraints = vizType.generateConstraints(fullSpec, { container });
 

@@ -160,7 +160,7 @@ createViz({
     clamp: { default: false },
     as: { default: 'scale' }
   },
-  isDataTransformation: true,
+
   implementation: props => {
     const scale = createScale(props.type, {
       domain: props.domain,

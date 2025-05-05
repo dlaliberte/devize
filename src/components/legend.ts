@@ -13,7 +13,7 @@ createViz({
     fontSize: { default: '12px' },
     fontFamily: { default: 'Arial' }
   },
-  requiresContainer: true,
+
   implementation: function(props) {
     const { items, orientation, transform, itemSpacing, symbolSize, fontSize, fontFamily } = props;
 
