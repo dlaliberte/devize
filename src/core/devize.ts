@@ -2,17 +2,19 @@
 import * as THREE from 'three';
 import { VizSpec, ConstraintSpec, VizInstance } from './types';
 import { getType, hasType, registerType } from './registry';
-import { createRectangle, createCircle, createLine, createText } from '../primitives/shapes';
-import { createGroup } from '../primitives/containers';
+import { defineShapePrimitives } from '../primitives/shapes';
+import { defineTextPrimitives } from '../primitives/text';
+import { defineContainerPrimitives } from '../primitives/containers';
 
 console.log('Devize module initializing');
 
 /**
  * Create a visualization from a spec
  * @param spec The visualization specification
+ * @param container Optional container element
  * @returns The visualization instance
  */
-export function createViz(spec: VizSpec): VizInstance {
+export function createViz(spec: VizSpec, container?: HTMLElement): VizInstance {
   console.log(`Creating visualization of type: ${spec.type}`);
 
   // Validate spec
@@ -20,8 +22,8 @@ export function createViz(spec: VizSpec): VizInstance {
     throw new Error('Visualization spec must have a type');
   }
 
-  // Extract container from spec if provided
-  const container = spec.container as HTMLElement;
+  // Extract container from spec if provided and not passed as parameter
+  const containerElement = container || spec.container as HTMLElement;
 
   // Special handling for the "define" type when it's being bootstrapped
   if (spec.type === "define" && !hasType("define")) {
@@ -62,22 +64,8 @@ export function createViz(spec: VizSpec): VizInstance {
     // Return a minimal instance since define doesn't render anything
     return {
       spec: spec,
-      data: {}
+      data: { name, properties, implementation }
     };
-  }
-
-  // Handle primitive types directly
-  switch (spec.type) {
-    case 'rectangle':
-      return createRectangle(spec, container);
-    case 'circle':
-      return createCircle(spec, container);
-    case 'line':
-      return createLine(spec, container);
-    case 'text':
-      return createText(spec, container);
-    case 'group':
-      return createGroup(spec, container);
   }
 
   // Check if the type is registered
@@ -105,8 +93,18 @@ export function createViz(spec: VizSpec): VizInstance {
     }
   }
 
+  // For non-rendering visualizations, just process the data and return
+  if (vizType.isDataTransformation) {
+    const processedResult = vizType.process(fullSpec);
+    // Ensure data is returned
+    if (!processedResult.data) {
+      processedResult.data = { ...fullSpec };
+    }
+    return processedResult;
+  }
+
   // Generate constraints
-  const constraints = vizType.generateConstraints(fullSpec, { container });
+  const constraints = vizType.generateConstraints(fullSpec, { container: containerElement });
 
   // Solve constraints (simplified for now)
   const solvedConstraints = solveConstraints(constraints, fullSpec);
@@ -114,17 +112,88 @@ export function createViz(spec: VizSpec): VizInstance {
   // Decompose the visualization
   const decomposed = vizType.decompose(fullSpec, solvedConstraints);
 
-  // Render the decomposed visualization if it requires rendering
-  if (container) {
-    return renderViz(decomposed, container);
+  // Create the visualization instance
+  const vizInstance = createVizElement(decomposed);
+
+  // If a container is provided, append the element to it (top-level side effect)
+  if (containerElement && vizInstance.element) {
+    // Ensure we have an SVG container at the top level
+    const svg = ensureSvg(containerElement);
+    svg.appendChild(vizInstance.element);
   }
 
-  // Otherwise just return the processed result
-  // return {
-  //   spec: decomposed,
-  //   data: decomposed.data
-  // };
+  return vizInstance;
 }
+
+/**
+ * Create a visualization element without side effects
+ * @param spec The visualization specification
+ * @returns The visualization instance
+ */
+function createVizElement(spec: VizSpec): VizInstance {
+  // Check if we need 3D rendering
+  const is3D = (spec.type && spec.type.includes && spec.type.includes('3d')) || spec.dimensions === 3;
+
+  if (is3D) {
+    return create3DVizElement(spec);
+  } else {
+    return create2DVizElement(spec);
+  }
+}
+
+/**
+ * Create a 2D visualization element without side effects
+ * @param spec The visualization specification
+ * @returns The visualization instance
+ */
+function create2DVizElement(spec: VizSpec): VizInstance {
+  console.log('Creating 2D visualization element:', spec.type);
+
+  // Get the visualization type
+  const vizType = getType(spec.type)!;
+
+  // Use the decompose method to get the implementation
+  const implementation = vizType.decompose(spec, {});
+
+  // If the implementation returns a VizInstance directly, use it
+  if (implementation.element) {
+    return implementation;
+  }
+
+  // Otherwise, recursively create the visualization from the decomposed spec
+  return createVizElement(implementation);
+}
+
+/**
+ * Create a 3D visualization element without side effects
+ * @param spec The visualization specification
+ * @returns The visualization instance
+ */
+function create3DVizElement(spec: VizSpec): VizInstance {
+  // Set up Three.js scene
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, 1, 0.1, 1000); // Default aspect ratio of 1
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+
+  // Set default size
+  renderer.setSize(800, 600);
+
+  // Position camera
+  camera.position.z = 5;
+
+  // TODO: Implement actual 3D rendering based on spec
+
+  return {
+    element: renderer.domElement,
+    spec: spec,
+    // Add Three.js specific properties
+    scene,
+    camera,
+    renderer,
+    data: { ...spec, scene, camera }
+  } as VizInstance;
+}
+
 /**
  * Update a visualization
  * @param vizInstance The visualization instance to update
@@ -178,147 +247,6 @@ function solveConstraints(constraints: ConstraintSpec[], _spec: VizSpec): any {
 }
 
 /**
- * Render a visualization
- * @param spec The visualization specification
- * @param container The container element
- * @returns The visualization instance
- */
-function renderViz(spec: VizSpec, container: HTMLElement): VizInstance {
-  console.log('Rendering visualization:', spec.type, 'to container:', container);
-
-  // Check if we need 3D rendering
-  const is3D = spec.type.includes('3d') || spec.dimensions === 3;
-
-  if (is3D) {
-    return render3DViz(spec, container);
-  } else {
-    return render2DViz(spec, container);
-  }
-}
-
-/**
- * Render a 2D visualization
- * @param spec The visualization specification
- * @param container The container element
- * @returns The visualization instance
- */
-function render2DViz(spec: VizSpec, container: HTMLElement | any): VizInstance {
-  console.log('Rendering 2D visualization:', spec.type);
-
-  // Handle different container types
-  let containerElement: HTMLElement;
-  let svgParent: Element;
-
-  if (container.element) {
-    // If container is an object with an element property (like { element: group })
-    containerElement = container.element;
-    svgParent = containerElement;
-  } else {
-    // If container is a direct DOM element
-    containerElement = container as HTMLElement;
-
-    // Create SVG element if it doesn't exist
-    let svg = containerElement.querySelector('svg');
-    if (!svg) {
-      console.log('Creating new SVG element');
-      svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      svg.setAttribute('width', '100%');
-      svg.setAttribute('height', '100%');
-      containerElement.appendChild(svg);
-    } else {
-      console.log('Using existing SVG element');
-    }
-
-    svgParent = svg;
-  }
-
-  // For group types, handle nested components
-  if (spec.type === 'group' && spec.children) {
-    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    if (spec.transform) {
-      group.setAttribute('transform', spec.transform);
-    }
-    svgParent.appendChild(group);
-
-    // Render children
-    const children = Array.isArray(spec.children) ? spec.children : [spec.children];
-    children.forEach(child => {
-      if (child) {
-        // Pass the group as the container for nested components
-        createViz({
-          ...child,
-          container: { element: group } // Pass the group element as a container-like object
-        });
-      }
-    });
-
-    return {
-      element: group,
-      spec: spec
-    };
-  }
-
-  // Handle other primitive types
-  switch (spec.type) {
-    case 'rectangle':
-      return createRectangle(spec, containerElement);
-    case 'circle':
-      return createCircle(spec, containerElement);
-    case 'line':
-      return createLine(spec, containerElement);
-    case 'text':
-      return createText(spec, containerElement);
-    default:
-      throw new Error(`Unknown visualization type: ${spec.type}`);
-  }
-}
-
-/**
- * Render a 3D visualization
- * @param spec The visualization specification
- * @param container The container element
- * @returns The visualization instance
- */
-function render3DViz(spec: VizSpec, container: HTMLElement): VizInstance {
-  // Set up Three.js scene
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(75, container.clientWidth / container.clientHeight, 0.1, 1000);
-  const renderer = new THREE.WebGLRenderer({ antialias: true });
-
-  renderer.setSize(container.clientWidth, container.clientHeight);
-  container.appendChild(renderer.domElement);
-
-  // Position camera
-  camera.position.z = 5;
-
-  // TODO: Implement actual 3D rendering based on spec
-
-  // Animation loop
-  function animate() {
-    requestAnimationFrame(animate);
-    renderer.render(scene, camera);
-  }
-
-  animate();
-
-  // Handle window resize
-  window.addEventListener('resize', () => {
-    camera.aspect = container.clientWidth / container.clientHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(container.clientWidth, container.clientHeight);
-  });
-
-  return {
-    element: renderer.domElement,
-    spec: spec,
-    // Add Three.js specific properties
-    scene,
-    camera,
-    renderer
-  } as VizInstance;
-}
-
-/**
  * Helper function to ensure an SVG element exists
  * @param container The container element or object
  * @returns The SVG element or parent element
@@ -342,3 +270,23 @@ export function ensureSvg(container: HTMLElement | any): SVGElement | Element {
     return svg as SVGElement;
   }
 }
+
+// Initialize the library by loading primitive definitions
+export function initializeLibrary() {
+  // Import and initialize the define module first
+  import('./define');
+
+  // Define primitive types
+  defineShapePrimitives();
+  defineTextPrimitives();
+  defineContainerPrimitives();
+
+  // Load component definitions
+  import('../components/axis');
+  import('../components/legend');
+
+  console.log('Library initialization complete');
+}
+
+// Auto-initialize when imported
+initializeLibrary();

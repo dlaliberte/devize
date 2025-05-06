@@ -175,7 +175,6 @@ export function createBarChart(spec: VizSpec): VizInstance {
   // Create the visualization using the registered type
   return createViz({
     ...spec,
-    type: 'barChart',
-    container
+    type: 'barChart'
   });
 }

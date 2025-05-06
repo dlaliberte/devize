@@ -1,213 +1,138 @@
 // Primitive shape implementations
 import { VizSpec, VizInstance } from '../core/types';
-import { ensureSvg } from '../core/devize';
+import { createViz } from '../core/devize';
 
-/**
- * Create a rectangle
- * @param spec The rectangle specification
- * @param container The container element or object
- * @returns The rectangle instance
- */
-export function createRectangle(spec: VizSpec, container: HTMLElement | any): VizInstance {
-  // Get the SVG element or parent element
-  let parent: Element;
+// Obsolete, but possibly useful.
 
-  if (container.element) {
-    // If container is an object with an element property
-    parent = container.element;
-  } else {
-    // If container is a direct DOM element, ensure it has an SVG
-    parent = ensureSvg(container as HTMLElement);
-  }
+// Define shape primitives
+export function defineShapePrimitives() {
+  // Define rectangle primitive
+  createViz({
+    type: "define",
+    name: "rectangle",
+    properties: {
+      x: { default: 0 },
+      y: { default: 0 },
+      width: { required: true },
+      height: { required: true },
+      fill: { default: "none" },
+      stroke: { default: "black" },
+      strokeWidth: { default: 1 },
+      rx: { default: 0 },
+      ry: { default: 0 },
+      opacity: { default: 1 }
+    },
+    implementation: props => {
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', String(props.x || 0));
+      rect.setAttribute('y', String(props.y || 0));
+      rect.setAttribute('width', String(props.width));
+      rect.setAttribute('height', String(props.height));
 
-  // Create rectangle element
-  const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      if (props.fill) rect.setAttribute('fill', props.fill);
+      if (props.stroke) rect.setAttribute('stroke', props.stroke);
+      if (props.strokeWidth) rect.setAttribute('stroke-width', String(props.strokeWidth));
+      if (props.rx) rect.setAttribute('rx', String(props.rx));
+      if (props.ry) rect.setAttribute('ry', String(props.ry));
+      if (props.opacity) rect.setAttribute('opacity', String(props.opacity));
 
-  // Set attributes from spec
-  rect.setAttribute('x', spec.x?.toString() || '0');
-  rect.setAttribute('y', spec.y?.toString() || '0');
-  rect.setAttribute('width', spec.width?.toString() || '0');
-  rect.setAttribute('height', spec.height?.toString() || '0');
+      return {
+        element: rect,
+        spec: props
+      };
+    }
+  });
 
-  // Set style attributes
-  if (spec.fill) rect.setAttribute('fill', spec.fill);
-  if (spec.stroke) rect.setAttribute('stroke', spec.stroke);
-  if (spec.strokeWidth) rect.setAttribute('stroke-width', spec.strokeWidth.toString());
-  if (spec.rx) rect.setAttribute('rx', spec.rx.toString());
-  if (spec.ry) rect.setAttribute('ry', spec.ry.toString());
-  if (spec.opacity) rect.setAttribute('opacity', spec.opacity.toString());
+  // Define circle primitive
+  createViz({
+    type: "define",
+    name: "circle",
+    properties: {
+      cx: { default: 0 },
+      cy: { default: 0 },
+      r: { required: true },
+      fill: { default: "none" },
+      stroke: { default: "black" },
+      strokeWidth: { default: 1 },
+      opacity: { default: 1 }
+    },
+    implementation: props => {
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', String(props.cx || 0));
+      circle.setAttribute('cy', String(props.cy || 0));
+      circle.setAttribute('r', String(props.r));
 
-  // Add to SVG
-  parent.appendChild(rect);
+      if (props.fill) circle.setAttribute('fill', props.fill);
+      if (props.stroke) circle.setAttribute('stroke', props.stroke);
+      if (props.strokeWidth) circle.setAttribute('stroke-width', String(props.strokeWidth));
+      if (props.opacity) circle.setAttribute('opacity', String(props.opacity));
 
-  // Return the visualization instance
-  return {
-    element: rect,
-    spec: spec
-  };
-}
+      return {
+        element: circle,
+        spec: props
+      };
+    }
+  });
 
-/**
- * Create a circle
- * @param spec The circle specification
- * @param container The container element or object
- * @returns The circle instance
- */
-export function createCircle(spec: VizSpec, container: HTMLElement | any): VizInstance {
-  // Get the SVG element or parent element
-  let parent: Element;
+  // Define line primitive
+  createViz({
+    type: "define",
+    name: "line",
+    properties: {
+      x1: { required: true },
+      y1: { required: true },
+      x2: { required: true },
+      y2: { required: true },
+      stroke: { default: "black" },
+      strokeWidth: { default: 1 },
+      strokeDasharray: { default: "" },
+      opacity: { default: 1 }
+    },
+    implementation: props => {
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', String(props.x1));
+      line.setAttribute('y1', String(props.y1));
+      line.setAttribute('x2', String(props.x2));
+      line.setAttribute('y2', String(props.y2));
 
-  if (container.element) {
-    // If container is an object with an element property
-    parent = container.element;
-  } else {
-    // If container is a direct DOM element, ensure it has an SVG
-    parent = ensureSvg(container as HTMLElement);
-  }
+      if (props.stroke) line.setAttribute('stroke', props.stroke);
+      if (props.strokeWidth) line.setAttribute('stroke-width', String(props.strokeWidth));
+      if (props.strokeDasharray) line.setAttribute('stroke-dasharray', props.strokeDasharray);
+      if (props.opacity) line.setAttribute('opacity', String(props.opacity));
 
-  // Create circle element
-  const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      return {
+        element: line,
+        spec: props
+      };
+    }
+  });
 
-  // Set attributes from spec
-  circle.setAttribute('cx', spec.cx?.toString() || '0');
-  circle.setAttribute('cy', spec.cy?.toString() || '0');
-  circle.setAttribute('r', spec.r?.toString() || '0');
+  // Define path primitive
+  createViz({
+    type: "define",
+    name: "path",
+    properties: {
+      d: { required: true },
+      fill: { default: "none" },
+      stroke: { default: "black" },
+      strokeWidth: { default: 1 },
+      strokeDasharray: { default: "" },
+      opacity: { default: 1 }
+    },
+    implementation: props => {
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', props.d);
 
-  // Set style attributes
-  if (spec.fill) circle.setAttribute('fill', spec.fill);
-  if (spec.stroke) circle.setAttribute('stroke', spec.stroke);
-  if (spec.strokeWidth) circle.setAttribute('stroke-width', spec.strokeWidth.toString());
-  if (spec.opacity) circle.setAttribute('opacity', spec.opacity.toString());
+      if (props.fill) path.setAttribute('fill', props.fill);
+      if (props.stroke) path.setAttribute('stroke', props.stroke);
+      if (props.strokeWidth) path.setAttribute('stroke-width', String(props.strokeWidth));
+      if (props.strokeDasharray) path.setAttribute('stroke-dasharray', props.strokeDasharray);
+      if (props.opacity) path.setAttribute('opacity', String(props.opacity));
 
-  // Add to SVG
-  parent.appendChild(circle);
-
-  // Return the visualization instance
-  return {
-    element: circle,
-    spec: spec
-  };
-}
-
-/**
- * Create a line
- * @param spec The line specification
- * @param container The container element or object
- * @returns The line instance
- */
-export function createLine(spec: VizSpec, container: HTMLElement | any): VizInstance {
-  // Get the SVG element or parent element
-  let parent: Element;
-
-  if (container.element) {
-    // If container is an object with an element property
-    parent = container.element;
-  } else {
-    // If container is a direct DOM element, ensure it has an SVG
-    parent = ensureSvg(container as HTMLElement);
-  }
-
-  // Create line element
-  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-
-  // Set attributes from spec
-  line.setAttribute('x1', spec.x1?.toString() || '0');
-  line.setAttribute('y1', spec.y1?.toString() || '0');
-  line.setAttribute('x2', spec.x2?.toString() || '0');
-  line.setAttribute('y2', spec.y2?.toString() || '0');
-
-  // Set style attributes
-  if (spec.stroke) line.setAttribute('stroke', spec.stroke);
-  if (spec.strokeWidth) line.setAttribute('stroke-width', spec.strokeWidth.toString());
-  if (spec.strokeDasharray) line.setAttribute('stroke-dasharray', spec.strokeDasharray);
-  if (spec.opacity) line.setAttribute('opacity', spec.opacity.toString());
-
-  // Add to SVG
-  parent.appendChild(line);
-
-  // Return the visualization instance
-  return {
-    element: line,
-    spec: spec
-  };
-}
-
-/**
- * Create a text element
- * @param spec The text specification
- * @param container The container element or object
- * @returns The text instance
- */
-export function createText(spec: VizSpec, container: HTMLElement | any): VizInstance {
-  // Get the SVG element or parent element
-  let parent: Element;
-
-  if (container.element) {
-    // If container is an object with an element property
-    parent = container.element;
-  } else {
-    // If container is a direct DOM element, ensure it has an SVG
-    parent = ensureSvg(container as HTMLElement);
-  }
-
-  // Create text element
-  const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-
-  // Set attributes from spec
-  text.setAttribute('x', spec.x?.toString() || '0');
-  text.setAttribute('y', spec.y?.toString() || '0');
-
-  // Set style attributes
-  if (spec.fill) text.setAttribute('fill', spec.fill);
-  if (spec.fontSize) text.setAttribute('font-size', spec.fontSize);
-  if (spec.fontFamily) text.setAttribute('font-family', spec.fontFamily);
-  if (spec.fontWeight) text.setAttribute('font-weight', spec.fontWeight);
-  if (spec.textAnchor) text.setAttribute('text-anchor', spec.textAnchor);
-  if (spec.dominantBaseline) text.setAttribute('dominant-baseline', spec.dominantBaseline);
-  if (spec.opacity) text.setAttribute('opacity', spec.opacity.toString());
-  if (spec.transform) text.setAttribute('transform', spec.transform);
-
-  // Set the text content
-  text.textContent = spec.text || '';
-
-  // Add to SVG
-  parent.appendChild(text);
-
-  // Return the visualization instance
-  return {
-    element: text,
-    spec: spec
-  };
-}
-
-/**
- * Create a path
- * @param spec The path specification
- * @param container The container element
- * @returns The path instance
- */
-export function createPath(spec: VizSpec, container: HTMLElement): VizInstance {
-  const svg = ensureSvg(container);
-
-  // Create path element
-  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-
-  // Set attributes from spec
-  if (spec.d) path.setAttribute('d', spec.d);
-
-  // Set style attributes
-  if (spec.fill) path.setAttribute('fill', spec.fill);
-  if (spec.stroke) path.setAttribute('stroke', spec.stroke);
-  if (spec.strokeWidth) path.setAttribute('stroke-width', spec.strokeWidth.toString());
-  if (spec.strokeDasharray) path.setAttribute('stroke-dasharray', spec.strokeDasharray);
-  if (spec.opacity) path.setAttribute('opacity', spec.opacity.toString());
-
-  // Add to SVG
-  svg.appendChild(path);
-
-  // Return the visualization instance
-  return {
-    element: path,
-    spec: spec
-  };
+      return {
+        element: path,
+        spec: props
+      };
+    }
+  });
 }
