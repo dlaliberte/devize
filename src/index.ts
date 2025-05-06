@@ -2,7 +2,7 @@
 console.log('Main module initializing');
 import './core/registry';
 import './core/devize';
-import './core/define';
+import './core/obsolete-define';
 
 // Then import visualization types
 import './components/data/dataExtract';

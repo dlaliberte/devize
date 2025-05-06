@@ -1,20 +1,21 @@
-# Define Visualization Type Design
+# Define Visualization Type
 
 ## Overview
 
-The "define" visualization type is a core component of Devize that enables the creation of new visualization types declaratively. This document outlines the design and implementation of this foundational feature.
+The "define" visualization type is a core component of Devize that enables the creation of new visualization types declaratively. It serves as the foundation for extending the library with custom visualizations without writing explicit code.
 
-## Design Principles
+## Purpose
 
-1. **Declarative Definition**: Allow new visualization types to be defined using the same declarative syntax as regular visualizations
-2. **Self-Registration**: Automatically register new types with the system
-3. **Property Validation**: Provide mechanisms for property validation and defaults
-4. **Implementation Flexibility**: Support both declarative and functional implementations
-5. **Extensibility**: Enable extending existing types
+The "define" type serves several key purposes:
+1. Provides a declarative way to create new visualization types
+2. Establishes a consistent interface for type definitions
+3. Handles property validation and default values
+4. Enables composition of visualizations
+5. Supports the extension of existing types
 
 ## Architecture
 
-The "define" type serves as a meta-visualization that processes its properties to register a new visualization type:
+The "define" type is a meta-visualization that processes its properties to register a new visualization type:
 
 ```
 ┌─────────────────┐     ┌───────────────┐     ┌────────────────┐
@@ -23,77 +24,94 @@ The "define" type serves as a meta-visualization that processes its properties t
 └─────────────────┘     └───────────────┘     └────────────────┘
 ```
 
-## Core Components
+## Basic Usage
 
-### 1. Define Type Handler
-
-The define type handler processes visualization definitions and registers them with the type registry.
-
-### 2. Property Processing
-
-The property processor evaluates property values, handles templates, and applies defaults.
-
-### 3. Implementation Evaluation
-
-The implementation evaluator processes the implementation specification based on its type (declarative or functional).
-
-## Implementation Approach
-
-The "define" type is implemented as a special case in the system, using a metacircular definition where it defines itself:
-
-```typescript
+```javascript
 createViz({
   type: "define",
-  name: "define",
+  name: "labeledCircle",
   properties: {
-    name: { required: true },
-    properties: { required: true },
-    implementation: { required: true }
+    cx: { required: true },
+    cy: { required: true },
+    r: { required: true, default: 10 },
+    fill: { default: "steelblue" },
+    stroke: { default: "navy" },
+    strokeWidth: { default: 1 },
+    label: { required: true },
+    fontSize: { default: 12 }
   },
-  implementation: props => {
-    // Register the new type
-    registerType({
-      name: props.name,
-      // Extract required properties
-      requiredProps: Object.entries(props.properties)
-        .filter(([_, config]) => (config as any).required)
-        .map(([name]) => name),
-      // Extract optional properties with defaults
-      optionalProps: Object.fromEntries(
-        Object.entries(props.properties)
-          .filter(([_, config]) => !(config as any).required && (config as any).default !== undefined)
-          .map(([name, config]) => [name, (config as any).default])
-      ),
-      // Implementation details
-      // ...
-    });
-
-    // Return an empty group as this component doesn't render anything
-    return { type: 'group', children: [] };
+  implementation: {
+    type: "group",
+    children: [
+      {
+        type: "circle",
+        cx: "{{cx}}",
+        cy: "{{cy}}",
+        r: "{{r}}",
+        fill: "{{fill}}",
+        stroke: "{{stroke}}",
+        strokeWidth: "{{strokeWidth}}"
+      },
+      {
+        type: "text",
+        x: "{{cx}}",
+        y: "{{cy}}",
+        text: "{{label}}",
+        fontSize: "{{fontSize}}",
+        textAnchor: "middle",
+        dominantBaseline: "middle",
+        fill: "black"
+      }
+    ]
   }
 });
 ```
 
-## Property Definition
+Once defined, the new visualization type can be used like any built-in type:
 
-Properties for new visualization types are defined using a structured format:
+```javascript
+const myCircle = createViz({
+  type: "labeledCircle",
+  cx: 100,
+  cy: 100,
+  r: 30,
+  fill: "coral",
+  label: "Hello!",
+  fontSize: 14
+});
+
+renderViz(myCircle, document.getElementById("viz-container"));
+```
+
+## Properties
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| name | string | Name of the new visualization type | Required |
+| properties | object | Property definitions for the new type | Required |
+| implementation | object/function | Implementation of the visualization | Required |
+| extend | string | Name of a type to extend (inherit from) | None |
+
+## Property Definitions
+
+The `properties` object defines the interface of your visualization type:
 
 ```javascript
 properties: {
   propertyName: {
     required: Boolean,     // Whether the property is required
     default: any,          // Default value if not provided
-    type: string,          // Expected type (e.g., "number", "string")
+    type: string,          // Expected type (e.g., "number", "string", "array")
     validate: function     // Optional validation function
   }
 }
 ```
 
-## Implementation Types
+## Implementation Approaches
 
-### 1. Declarative Implementation
+### 1. Declarative Implementation with Template Notation
 
-A declarative implementation uses a visualization specification with template notation:
+A declarative implementation uses a visualization specification object with template notation to reference properties:
 
 ```javascript
 implementation: {
@@ -103,16 +121,24 @@ implementation: {
       type: "circle",
       cx: "{{cx}}",        // Template notation for property reference
       cy: "{{cy}}",
-      r: "{{r}}",
+      r: "{{r * 2}}",      // Simple expressions are supported
       fill: "{{fill}}"
     }
   ]
 }
 ```
 
+#### Template Notation
+
+The template notation `{{expression}}` allows you to:
+- Reference properties directly: `{{propertyName}}`
+- Use simple expressions: `{{width / 2}}`, `{{height * 0.8}}`
+- Access nested properties: `{{data.length}}`, `{{config.colors[0]}}`
+- Use conditional expressions: `{{isVisible ? 1 : 0}}`
+
 ### 2. Functional Implementation
 
-A functional implementation uses a function that receives properties and returns a specification:
+A functional implementation uses a function that receives all properties and returns a visualization specification:
 
 ```javascript
 implementation: props => {
@@ -127,9 +153,11 @@ implementation: props => {
 }
 ```
 
-## Type Extension
+This approach gives you full control over the implementation.
 
-The "define" type supports extending existing types:
+## Extending Existing Types
+
+You can extend an existing visualization type to inherit its properties and behavior:
 
 ```javascript
 createViz({
@@ -145,136 +173,73 @@ createViz({
 });
 ```
 
-## Property Evaluation
-
-The system evaluates properties in implementations using several mechanisms:
-
-1. **Template Notation**: `{{expression}}` for referencing properties
-2. **Property Functions**: Functions that receive the full context
-3. **Recursive Evaluation**: Nested property evaluation for complex structures
-
 ## Bootstrapping Process
 
 The "define" type presents a bootstrapping challenge since it needs to define itself. The solution involves:
 
-1. Special handling in the core system for the initial "define" type
+1. Special handling in `createViz` for the initial "define" type
 2. Using this initial implementation to register the full "define" type
 3. Using the registered type for all subsequent definitions
 
-## Usage Examples
-
-### Defining a Simple Visualization Type
+The bootstrapping process works as follows:
 
 ```javascript
-createViz({
-  type: "define",
-  name: "labeledCircle",
-  properties: {
-    cx: { required: true },
-    cy: { required: true },
-    r: { required: true, default: 10 },
-    label: { required: true },
-    fontSize: { default: 12 }
-  },
-  implementation: {
-    type: "group",
-    children: [
-      {
-        type: "circle",
-        cx: "{{cx}}",
-        cy: "{{cy}}",
-        r: "{{r}}",
-        fill: "steelblue"
-      },
-      {
-        type: "text",
-        x: "{{cx}}",
-        y: "{{cy}}",
-        text: "{{label}}",
-        fontSize: "{{fontSize}}",
-        textAnchor: "middle",
-        dominantBaseline: "middle",
-        fill: "white"
-      }
-    ]
-  }
-});
+// In src/core/define.ts
+
 ```
 
-### Using the Defined Type
+## Property Evaluation
 
-```javascript
-const myCircle = createViz({
-  type: "labeledCircle",
-  cx: 100,
-  cy: 100,
-  r: 30,
-  label: "Hello!"
-});
-```
+When processing a visualization defined with the "define" type:
 
-## Primitive Implementation Using Define
+1. Default values are applied for any missing properties
+2. Required properties are validated
+3. Properties are evaluated based on their type:
+   - Function properties are called with the current context
+   - Template strings are processed
+   - Nested objects are recursively evaluated
 
-Shape primitives should be implemented using the "define" type:
+## Implementation Details
 
-```javascript
-// Rectangle primitive
-createViz({
-  type: "define",
-  name: "rectangle",
-  properties: {
-    x: { default: 0 },
-    y: { default: 0 },
-    width: { required: true },
-    height: { required: true },
-    fill: { default: "none" },
-    stroke: { default: "black" },
-    strokeWidth: { default: 1 },
-    cornerRadius: { default: 0 }
-  },
-  implementation: props => {
-    // Validation
-    if (props.width <= 0 || props.height <= 0) {
-      throw new Error('Rectangle width and height must be positive');
-    }
+The "define" type works by:
 
-    // Return a specification that the renderer can process
-    return {
-      _renderType: "rect",  // Internal rendering type
-      attributes: {
-        x: props.x,
-        y: props.y,
-        width: props.width,
-        height: props.height,
-        fill: props.fill,
-        stroke: props.stroke,
-        'stroke-width': props.strokeWidth,
-        rx: props.cornerRadius,
-        ry: props.cornerRadius
-      }
-    };
-  }
-});
-```
+1. Registering the new visualization type in the Devize registry
+2. Processing property definitions to establish required properties and defaults
+3. Creating a type handler that validates properties and processes the implementation
+4. Making the new type available for use with `createViz`
 
-## Future Enhancements
+This mechanism is the foundation of Devize's extensibility, allowing the library to grow with custom visualizations while maintaining a consistent interface.
 
-1. **Type Validation**: Enhanced type checking for properties
-2. **Documentation Generation**: Automatic documentation from type definitions
-3. **Visual Editor**: GUI for creating and editing type definitions
-4. **Type Libraries**: Shareable libraries of visualization types
-5. **Versioning**: Support for versioning of visualization types
+## Best Practices
 
-## Conclusion
+1. **Choose the Right Implementation Approach**:
+   - Use declarative with templates for simple visualizations
+   - Use functional for complex logic or data transformations
 
-The "define" visualization type is the foundation of Devize's extensibility. By providing a declarative way to create new visualization types, it enables a consistent approach to building and composing visualizations while maintaining the functional, container-independent design philosophy.
+2. **Property Naming**:
+   - Use consistent naming conventions
+   - Match property names with their visual meaning
+   - Use descriptive names for clarity
+
+3. **Implementation Structure**:
+   - Keep implementations focused on a single responsibility
+   - Compose complex visualizations from simpler ones
+   - Reuse existing visualization types when possible
+
+4. **Documentation**:
+   - Include comments explaining the purpose of the visualization
+   - Document any non-obvious property usage
+   - Provide examples of how to use the visualization
 
 ## References
 
 - Related File: [src/core/define.ts](../src/core/define.ts)
 - Related File: [src/core/registry.ts](../src/core/registry.ts)
+- Related File: [src/core/creator.ts](../src/core/creator.ts)
+- Related File: [src/core/renderer.ts](../src/core/renderer.ts)
 - Related File: [src/core/devize.ts](../src/core/devize.ts)
-- Design Document: [design/primitives.md](primitives.md)
-- Design Document: [design/primitive_implementation.md](primitive_implementation.md)
+- Design Document: [design/viz_creation_rendering.md](viz_creation_rendering.md)
+- Design Document: [design/rendering.md](rendering.md)
 - User Documentation: [docs/core/define.md](../docs/core/define.md)
 - Examples: [examples/define_examples.js](../examples/define_examples.js)
+[src/core/define.ts](../src/core/obsolete-define.ts)
