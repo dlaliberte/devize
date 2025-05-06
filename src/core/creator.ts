@@ -2,12 +2,9 @@
  * Visualization Creator
  *
  * Purpose: Creates visualization objects from specifications
- * Author: [Author Name]
- * Creation Date: [Date]
- * Last Modified: [Date]
  */
 
-import { getVizType } from './registry';
+import { getType, hasType } from './registry';
 
 /**
  * Create a visualization object from a specification
@@ -16,13 +13,31 @@ import { getVizType } from './registry';
  * @returns A processed object with rendering functions
  */
 export function createViz(spec) {
+  // Handle null/undefined
+  if (!spec) {
+    throw new Error('Visualization specification cannot be null or undefined');
+  }
+
   // If it's already a processed object with rendering functions, return it
   if (spec.renderSVG || spec.renderCanvas) {
     return spec;
   }
 
+  // Handle missing type
+  if (!spec.type) {
+    throw new Error('Visualization specification must have a type');
+  }
+
+  // Special case for bootstrapping the 'define' type
+  // This is needed because the 'define' type needs to define itself
+  if (spec.type === 'define' && spec.name === 'define' && !hasType('define')) {
+    // The define type will be registered by the define.ts module
+    // Just return a placeholder for now
+    return { type: 'group', children: [] };
+  }
+
   // Get the visualization type
-  const vizType = getVizType(spec.type);
+  const vizType = getType(spec.type);
 
   if (!vizType) {
     throw new Error(`Unknown visualization type: ${spec.type}`);

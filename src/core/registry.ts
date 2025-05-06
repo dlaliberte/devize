@@ -9,6 +9,21 @@ const typeRegistry: Record<string, VisualizationType> = {};
  * @param type The visualization type to register
  */
 export function registerType(type: VisualizationType): void {
+  if (!type || typeof type !== 'object') {
+    console.error('Invalid visualization type provided to registerType');
+    return;
+  }
+
+  if (!type.name || typeof type.name !== 'string') {
+    console.error('Visualization type must have a valid name');
+    return;
+  }
+
+  if (!type.decompose || typeof type.decompose !== 'function') {
+    console.error(`Visualization type '${type.name}' must have a decompose function`);
+    return;
+  }
+
   console.log(`Registering visualization type: ${type.name}`);
   if (typeRegistry[type.name]) {
     console.warn(`Visualization type '${type.name}' is already registered. It will be overwritten.`);
@@ -54,4 +69,14 @@ export function removeType(name: string): boolean {
   }
   delete typeRegistry[name];
   return true;
+}
+
+/**
+ * Reset the registry - for testing purposes only
+ * @internal This function should only be used in tests
+ */
+export function _resetRegistryForTesting(): void {
+  Object.keys(typeRegistry).forEach(key => {
+    delete typeRegistry[key];
+  });
 }
