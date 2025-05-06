@@ -11,10 +11,9 @@ console.log('Devize module initializing');
 /**
  * Create a visualization from a spec
  * @param spec The visualization specification
- * @param container Optional container element
  * @returns The visualization instance
  */
-export function createViz(spec: VizSpec, container?: HTMLElement): VizInstance {
+export function createViz(spec: VizSpec): VizInstance {
   console.log(`Creating visualization of type: ${spec.type}`);
 
   // Validate spec
@@ -23,7 +22,7 @@ export function createViz(spec: VizSpec, container?: HTMLElement): VizInstance {
   }
 
   // Extract container from spec if provided and not passed as parameter
-  const containerElement = container || spec.container as HTMLElement;
+  const containerElement = spec.container as HTMLElement;
 
   // Special handling for the "define" type when it's being bootstrapped
   if (spec.type === "define" && !hasType("define")) {

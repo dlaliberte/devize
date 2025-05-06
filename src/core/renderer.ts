@@ -7,7 +7,7 @@
  * Last Modified: [Date]
  */
 
-import { processVisualization } from './processor';
+import { createViz } from './creator';
 import { isSVGContainer, isCanvasContainer } from './utils';
 
 /**
@@ -17,9 +17,9 @@ import { isSVGContainer, isCanvasContainer } from './utils';
  * @param container - The DOM container to render into
  * @returns The rendered result
  */
-export function render(spec, container) {
+export function renderViz(spec, container) {
   // Process the visualization specification
-  const processed = processVisualization(spec);
+  const processed = createViz(spec);
 
   // Determine the rendering backend based on the container
   if (isSVGContainer(container)) {

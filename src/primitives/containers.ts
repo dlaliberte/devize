@@ -2,6 +2,8 @@
 import { VizSpec, VizInstance } from '../core/types';
 import { createViz } from '../core/devize';
 
+// obsolete, see group.ts.
+
 // Define container primitives
 export function defineContainerPrimitives() {
   // Define group primitive

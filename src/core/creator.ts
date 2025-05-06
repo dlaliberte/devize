@@ -1,23 +1,21 @@
 /**
- * Visualization Processor
+ * Visualization Creator
  *
- * Purpose: Processes visualization specifications into renderable objects
+ * Purpose: Creates visualization objects from specifications
  * Author: [Author Name]
  * Creation Date: [Date]
  * Last Modified: [Date]
  */
 
-// obsolete, see define.ts and renderer.ts.
-
 import { getVizType } from './registry';
 
 /**
- * Process a visualization specification into a renderable object
+ * Create a visualization object from a specification
  *
  * @param spec - The visualization specification
  * @returns A processed object with rendering functions
  */
-export function processVisualization(spec) {
+export function createViz(spec) {
   // If it's already a processed object with rendering functions, return it
   if (spec.renderSVG || spec.renderCanvas) {
     return spec;
@@ -82,6 +80,7 @@ function validateProperties(spec, vizType) {
  * - Related File: src/core/registry.ts
  * - Related File: src/core/renderer.ts
  * - Related File: src/core/define.ts
+ * - Design Document: design/viz_creation_rendering.md
  * - Design Document: design/rendering.md
- * - Design Document: design/primitive_implementation.md
+ * - Design Document: design/define.md
  */
