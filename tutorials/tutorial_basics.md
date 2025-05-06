@@ -26,7 +26,7 @@ Let's create a simple visualization - a colored rectangle. With Devize, you defi
 
 ```javascript
 // Import the library (if using modules)
-import { createViz } from 'devize';
+import { createViz, renderViz } from 'devize';
 
 // Create a container element
 const container = document.getElementById('visualization-container');
@@ -39,7 +39,10 @@ const rectangleViz = createViz({
   fill: "steelblue",
   stroke: "black",
   strokeWidth: 2
-}, container);
+});
+
+// Render the visualization to the container
+renderViz(rectangleViz, container);
 ```
 
 This creates a blue rectangle with a black border inside your container element. Notice how we're describing *what* we want (a rectangle with specific dimensions and colors) rather than *how* to create it (no DOM manipulation or SVG creation code).
@@ -60,9 +63,10 @@ const rect = createViz({
   fill: "coral",
   stroke: "darkred",
   strokeWidth: 2,
-  rx: 10,     // Rounded corners (x-radius)
-  ry: 10      // Rounded corners (y-radius)
-}, container);
+  cornerRadius: 10     // Rounded corners
+});
+
+renderViz(rect, container);
 ```
 
 ### Circles
@@ -76,7 +80,9 @@ const circle = createViz({
   fill: "lightgreen",
   stroke: "darkgreen",
   strokeWidth: 2
-}, container);
+});
+
+renderViz(circle, container);
 ```
 
 ### Lines
@@ -90,7 +96,9 @@ const line = createViz({
   y2: 150,    // End y-coordinate
   stroke: "purple",
   strokeWidth: 3
-}, container);
+});
+
+renderViz(line, container);
 ```
 
 ### Text
@@ -105,7 +113,9 @@ const text = createViz({
   fontFamily: "Arial",
   fill: "navy",
   textAnchor: "middle"  // Center-align text
-}, container);
+});
+
+renderViz(text, container);
 ```
 
 ## Basic Positioning and Styling
@@ -134,7 +144,46 @@ const styledRect = createViz({
   strokeWidth: 4,
   strokeDasharray: "5,3",          // Dashed line pattern
   opacity: 0.8                     // Overall transparency
-}, container);
+});
+
+renderViz(styledRect, container);
+```
+
+## Grouping Visualizations
+
+The `group` primitive allows you to combine multiple visualizations into a single unit:
+
+```javascript
+const group = createViz({
+  type: "group",
+  children: [
+    {
+      type: "rectangle",
+      x: 10,
+      y: 10,
+      width: 80,
+      height: 60,
+      fill: "lightblue"
+    },
+    {
+      type: "circle",
+      cx: 120,
+      cy: 40,
+      r: 30,
+      fill: "lightpink"
+    },
+    {
+      type: "text",
+      x: 70,
+      y: 100,
+      text: "Grouped Elements",
+      fontSize: 14,
+      textAnchor: "middle"
+    }
+  ]
+});
+
+renderViz(group, container);
 ```
 
 ## Simple Data Binding
@@ -151,7 +200,7 @@ const data = [
   { category: "E", value: 12 }
 ];
 
-// Create a group to hold our bars
+// Create a group with bars based on data
 const barChart = createViz({
   type: "group",
   children: data.map((item, index) => ({
@@ -164,7 +213,9 @@ const barChart = createViz({
     stroke: "navy",
     strokeWidth: 1
   }))
-}, container);
+});
+
+renderViz(barChart, container);
 ```
 
 This creates a simple bar chart where each bar's height is determined by the corresponding data value.
@@ -213,7 +264,9 @@ const labeledBarChart = createViz({
       textAnchor: "middle"
     }))
   ]
-}, container);
+});
+
+renderViz(labeledBarChart, container);
 ```
 
 ## Updating Visualizations
@@ -230,8 +283,9 @@ const updatedData = [
   { category: "E", value: 6 }
 ];
 
-// Update the visualization
-updateViz(barChart, {
+// Create updated visualization
+const updatedBarChart = createViz({
+  type: "group",
   children: updatedData.map((item, index) => ({
     type: "rectangle",
     x: index * 60 + 20,
@@ -243,6 +297,9 @@ updateViz(barChart, {
     strokeWidth: 1
   }))
 });
+
+// Replace the previous visualization
+renderViz(updatedBarChart, container);
 ```
 
 ## Creating a Simple Scatter Plot
@@ -282,8 +339,65 @@ const scatterPlot = createViz({
     strokeWidth: 1,
     opacity: 0.7
   }))
-}, container);
+});
+
+renderViz(scatterPlot, container);
 ```
+
+## Creating a Custom Visualization Type
+
+One of Devize's powerful features is the ability to define new visualization types. Let's create a simple labeled circle type:
+
+```javascript
+// Define a new visualization type
+createViz({
+  type: "define",
+  name: "labeledCircle",
+  properties: {
+    cx: { required: true },
+    cy: { required: true },
+    r: { default: 20 },
+    fill: { default: "steelblue" },
+    label: { required: true },
+    fontSize: { default: 12 }
+  },
+  implementation: {
+    type: "group",
+    children: [
+      {
+        type: "circle",
+        cx: "{{cx}}",
+        cy: "{{cy}}",
+        r: "{{r}}",
+        fill: "{{fill}}"
+      },
+      {
+        type: "text",
+        x: "{{cx}}",
+        y: "{{cy}}",
+        text: "{{label}}",
+        fontSize: "{{fontSize}}",
+        textAnchor: "middle",
+        dominantBaseline: "middle",
+        fill: "white"
+      }
+    ]
+  }
+});
+
+// Use the new type
+const labeledCircle = createViz({
+  type: "labeledCircle",
+  cx: 150,
+  cy: 100,
+  r: 40,
+  label: "Hello!"
+});
+
+renderViz(labeledCircle, container);
+```
+
+This defines a new `labeledCircle` type that combines a circle with centered text, then creates an instance of it.
 
 ## Next Steps
 
@@ -296,7 +410,23 @@ In the next tutorial, we'll introduce the constraint system, which is one of the
 1. Modify the bar chart to use different colors for each bar based on its value.
 2. Create a simple line chart using the `line` primitive and data binding.
 3. Add a title and axis labels to the scatter plot.
-4. Create a simple pie chart using the `path` primitive (hint: you'll need to calculate the arc paths).
-5. Experiment with different styling options for the visualizations.
+4. Create a simple pie chart using circles and positioning them in a circular arrangement.
+5. Define a custom "barWithLabel" visualization type that combines a rectangle with a label.
+
+## References
+
+- Related File: [src/core/devize.ts](../src/core/devize.ts)
+- Related File: [src/core/creator.ts](../src/core/creator.ts)
+- Related File: [src/core/renderer.ts](../src/core/renderer.ts)
+- Related File: [src/primitives/rectangle.ts](../src/primitives/rectangle.ts)
+- Related File: [src/primitives/circle.ts](../src/primitives/circle.ts)
+- Related File: [src/primitives/line.ts](../src/primitives/line.ts)
+- Related File: [src/primitives/text.ts](../src/primitives/text.ts)
+- Related File: [src/primitives/group.ts](../src/primitives/group.ts)
+- Design Document: [design/primitives.md](../design/primitives.md)
+- Design Document: [design/devize_system.md](../design/devize_system.md)
+- Design Document: [design/define.md](../design/define.md)
+- User Documentation: [docs/primitives/shapes.md](../docs/primitives/shapes.md)
+- Next Tutorial: [tutorials/tutorial_constraints.md](tutorial_constraints.md)
 
 Happy visualizing with Devize!

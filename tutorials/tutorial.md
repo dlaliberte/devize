@@ -13,7 +13,7 @@ npm install devize
 Then import it in your project:
 
 ```typescript
-import { createViz, registerType } from 'devize';
+import { createViz, renderViz, registerType } from 'devize';
 ```
 
 ## 2. Creating Your First Visualization
@@ -39,7 +39,10 @@ const pointViz = createViz({
   constraints: [
     { type: "fitToContainer", priority: "high" }
   ]
-}, document.getElementById("viz-container"));
+});
+
+// Render it to a container
+renderViz(pointViz, document.getElementById("viz-container"));
 ```
 
 This creates a simple visualization with three points positioned according to their x and y values.
@@ -49,6 +52,7 @@ This creates a simple visualization with three points positioned according to th
 Let's enhance our visualization by adding text labels:
 
 ```typescript
+// Create a visualization with points and labels
 const labeledPointViz = createViz({
   type: "group",
   children: [
@@ -74,7 +78,10 @@ const labeledPointViz = createViz({
   constraints: [
     { type: "fitToContainer", priority: "high" }
   ]
-}, document.getElementById("viz-container"));
+});
+
+// Render it to a container
+renderViz(labeledPointViz, document.getElementById("viz-container"));
 ```
 
 Here, we've created a group containing two visualizations: a point group and a text group. Both use the same data, but the text group displays labels offset slightly from each point.
@@ -84,6 +91,7 @@ Here, we've created a group containing two visualizations: a point group and a t
 Now, let's create a visualization with different shapes:
 
 ```typescript
+// Create a visualization with different shapes
 const shapesViz = createViz({
   type: "group",
   children: [
@@ -121,7 +129,10 @@ const shapesViz = createViz({
   constraints: [
     { type: "fitToContainer", priority: "high" }
   ]
-}, document.getElementById("viz-container"));
+});
+
+// Render it to a container
+renderViz(shapesViz, document.getElementById("viz-container"));
 ```
 
 This creates a visualization with three different shapes: a rectangle, a circle, and a line.
@@ -131,6 +142,7 @@ This creates a visualization with three different shapes: a rectangle, a circle,
 Let's explore how constraints can help with layout:
 
 ```typescript
+// Create a visualization with constrained layout
 const constrainedViz = createViz({
   type: "group",
   children: [
@@ -164,7 +176,10 @@ const constrainedViz = createViz({
       elements: ["rect1", "rect2"]
     }
   ]
-}, document.getElementById("viz-container"));
+});
+
+// Render it to a container
+renderViz(constrainedViz, document.getElementById("viz-container"));
 ```
 
 In this example, we've used constraints to position the second rectangle to the right of the first one, with a 20-pixel gap, and aligned their vertical centers.
@@ -182,6 +197,7 @@ const salesData = [
   { product: "Product D", revenue: 570 }
 ];
 
+// Create a bar chart
 const barChart = createViz({
   type: "barChart",
   data: salesData,
@@ -192,7 +208,10 @@ const barChart = createViz({
     { type: "fitToContainer", priority: "high" },
     { type: "barWidthRatio", value: 0.7 }
   ]
-}, document.getElementById("viz-container"));
+});
+
+// Render it to a container
+renderViz(barChart, document.getElementById("viz-container"));
 ```
 
 This creates a simple bar chart showing revenue by product. Under the hood, the `barChart` type is a composite visualization that includes axes, bars, and possibly labels.
@@ -202,6 +221,7 @@ This creates a simple bar chart showing revenue by product. Under the hood, the 
 Let's customize our bar chart:
 
 ```typescript
+// Create a customized bar chart
 const customBarChart = createViz({
   type: "barChart",
   data: salesData,
@@ -240,7 +260,10 @@ const customBarChart = createViz({
     { type: "barWidthRatio", value: 0.7 },
     { type: "aspectRatio", value: 1.5 }
   ]
-}, document.getElementById("viz-container"));
+});
+
+// Render it to a container
+renderViz(customBarChart, document.getElementById("viz-container"));
 ```
 
 Here, we've customized the axes, added colors, a title, and specified an aspect ratio constraint.
@@ -261,6 +284,7 @@ const populationData = [
   { country: "Brazil", gdp: 14000, population: 214, continent: "South America" }
 ];
 
+// Create a scatter plot
 const scatterPlot = createViz({
   type: "scatterPlot",
   data: populationData,
@@ -296,7 +320,10 @@ const scatterPlot = createViz({
     { type: "fitToContainer", priority: "high" },
     { type: "aspectRatio", value: 1.5 }
   ]
-}, document.getElementById("viz-container"));
+});
+
+// Render it to a container
+renderViz(scatterPlot, document.getElementById("viz-container"));
 ```
 
 This creates a scatter plot with points sized according to population and colored by continent.
@@ -306,6 +333,7 @@ This creates a scatter plot with points sized according to population and colore
 Let's create a dashboard with multiple visualizations:
 
 ```typescript
+// Create a dashboard with multiple visualizations
 const dashboard = createViz({
   type: "dashboard",
   layout: { type: "grid", columns: 2, rows: 2, gap: 20 },
@@ -348,7 +376,10 @@ const dashboard = createViz({
     { type: "fitToContainer", priority: "high" },
     { type: "equalSize", elements: ["view1", "view2", "view3", "view4"] }
   ]
-}, document.getElementById("dashboard-container"));
+});
+
+// Render it to a container
+renderViz(dashboard, document.getElementById("dashboard-container"));
 ```
 
 This creates a 2x2 grid dashboard with four different visualizations.
@@ -358,6 +389,7 @@ This creates a 2x2 grid dashboard with four different visualizations.
 Let's add some basic interactivity:
 
 ```typescript
+// Create an interactive visualization
 const interactiveViz = createViz({
   type: "barChart",
   data: salesData,
@@ -386,7 +418,10 @@ const interactiveViz = createViz({
   constraints: [
     { type: "fitToContainer", priority: "high" }
   ]
-}, document.getElementById("viz-container"));
+});
+
+// Render it to a container
+renderViz(interactiveViz, document.getElementById("viz-container"));
 ```
 
 This adds hover and click interactions to the bars in our bar chart.
@@ -469,7 +504,7 @@ const radialBarChartType = {
 // Register the custom type
 registerType(radialBarChartType);
 
-// Use the custom type
+// Create a visualization using the custom type
 const radialBarChart = createViz({
   type: "radialBarChart",
   data: salesData,
@@ -481,7 +516,10 @@ const radialBarChart = createViz({
     { type: "fitToContainer", priority: "high" },
     { type: "aspectRatio", value: 1 }
   ]
-}, document.getElementById("viz-container"));
+});
+
+// Render it to a container
+renderViz(radialBarChart, document.getElementById("viz-container"));
 ```
 
 This defines and uses a custom radial bar chart visualization type.
