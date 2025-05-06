@@ -6,7 +6,7 @@ import { createScale } from '../components/scales/scale';
 // Import direct dependencies only
 import '../primitives/shapes'; // For rectangle, text, etc.
 import '../primitives/containers'; // For group
-import '../core/obsolete-define'; // For the define component
+import '../core/define'; // For the define component
 import '../components/axis'; // For axis component
 import '../components/legend'; // For legend component
 import '../components/scales/scale'; // For scaling

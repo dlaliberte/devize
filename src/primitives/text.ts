@@ -1,50 +1,3 @@
-// Text primitive implementations
-import { createViz } from '../core/devize.js';
-import { createSVGElement, applyAttributes } from '../renderers/svgUtils.js';
-
-// Define text primitives
-// export function defineTextPrimitives() {
-//   // Define text primitive
-//   createViz({
-//     type: "define",
-//     name: "text",
-//     properties: {
-//       x: { default: 0 },
-//       y: { default: 0 },
-//       text: { required: true },
-//       fill: { default: "black" },
-//       fontSize: { default: 12 },
-//       fontFamily: { default: "sans-serif" },
-//       fontWeight: { default: "normal" },
-//       textAnchor: { default: "start" },
-//       dominantBaseline: { default: "auto" },
-//       opacity: { default: 1 },
-//       transform: { default: "" }
-//     },
-//     implementation: props => {
-//       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-//       text.setAttribute('x', String(props.x || 0));
-//       text.setAttribute('y', String(props.y || 0));
-
-//       if (props.fill) text.setAttribute('fill', props.fill);
-//       if (props.fontSize) text.setAttribute('font-size', String(props.fontSize));
-//       if (props.fontFamily) text.setAttribute('font-family', props.fontFamily);
-//       if (props.fontWeight) text.setAttribute('font-weight', props.fontWeight);
-//       if (props.textAnchor) text.setAttribute('text-anchor', props.textAnchor);
-//       if (props.dominantBaseline) text.setAttribute('dominant-baseline', props.dominantBaseline);
-//       if (props.opacity) text.setAttribute('opacity', String(props.opacity));
-//       if (props.transform) text.setAttribute('transform', props.transform);
-
-//       text.textContent = props.text || '';
-
-//       return {
-//         element: text,
-//         spec: props
-//       };
-//     }
-//   });
-// }
-
 /**
  * Text Primitive Implementation
  *
@@ -54,6 +7,12 @@ import { createSVGElement, applyAttributes } from '../renderers/svgUtils.js';
  * Last Modified: [Date]
  */
 
+import { registerDefineType } from '../core/define';
+import { createViz } from '../core/creator';
+import { createSVGElement, applyAttributes } from '../renderers/svgUtils';
+
+// Make sure define type is registered
+registerDefineType();
 
 // Define the text type
 createViz({
@@ -65,9 +24,12 @@ createViz({
     text: { required: true },
     fontSize: { default: 12 },
     fontFamily: { default: 'sans-serif' },
+    fontWeight: { default: 'normal' },
     fill: { default: 'black' },
     textAnchor: { default: 'start' },
-    dominantBaseline: { default: 'auto' }
+    dominantBaseline: { default: 'auto' },
+    opacity: { default: 1 },
+    transform: { default: '' }
   },
   implementation: props => {
     // Prepare attributes
@@ -76,9 +38,12 @@ createViz({
       y: props.y,
       'font-size': props.fontSize,
       'font-family': props.fontFamily,
+      'font-weight': props.fontWeight,
       fill: props.fill,
       'text-anchor': props.textAnchor,
-      'dominant-baseline': props.dominantBaseline
+      'dominant-baseline': props.dominantBaseline,
+      opacity: props.opacity,
+      transform: props.transform || null
     };
 
     // Return a specification with rendering functions
@@ -97,10 +62,17 @@ createViz({
       },
 
       renderCanvas: (ctx) => {
-        const { x, y, 'font-size': fontSize, 'font-family': fontFamily, fill,
-                'text-anchor': textAnchor, 'dominant-baseline': dominantBaseline } = attributes;
+        const { x, y, 'font-size': fontSize, 'font-family': fontFamily, 'font-weight': fontWeight,
+                fill, 'text-anchor': textAnchor, 'dominant-baseline': dominantBaseline, opacity } = attributes;
 
-        ctx.font = `${fontSize}px ${fontFamily}`;
+        // Save the current context state
+        ctx.save();
+
+        // Apply opacity
+        ctx.globalAlpha = opacity;
+
+        // Set font
+        ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
         ctx.fillStyle = fill;
 
         // Handle text anchor
@@ -123,7 +95,33 @@ createViz({
           ctx.textBaseline = 'alphabetic';
         }
 
+        // Apply transform if specified
+        if (props.transform) {
+          // Parse and apply SVG transform to canvas context
+          // This is a simplified implementation and may not handle all transform types
+          const transformStr = props.transform.trim();
+          if (transformStr.startsWith('translate')) {
+            const match = transformStr.match(/translate\(([^,]+),([^)]+)\)/);
+            if (match) {
+              const tx = parseFloat(match[1]);
+              const ty = parseFloat(match[2]);
+              ctx.translate(tx, ty);
+            }
+          } else if (transformStr.startsWith('rotate')) {
+            const match = transformStr.match(/rotate\(([^)]+)\)/);
+            if (match) {
+              const angle = parseFloat(match[1]) * Math.PI / 180;
+              ctx.rotate(angle);
+            }
+          }
+          // Additional transform types could be handled here
+        }
+
+        // Draw the text
         ctx.fillText(props.text, x, y);
+
+        // Restore the context state
+        ctx.restore();
 
         return true; // Indicate successful rendering
       },

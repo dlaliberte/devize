@@ -190,7 +190,7 @@ New primitives can be added by following these steps:
 
 ## References
 
-- Related File: [src/core/define.ts](../src/core/obsolete-define.ts)
+- Related File: [src/core/define.ts](../src/core/define.ts)
 - Related File: [src/core/registry.ts](../src/core/registry.ts)
 - Related File: [src/core/devize.ts](../src/core/devize.ts)
 - Related File: [src/primitives/rectangle.ts](../src/primitives/rectangle.ts)

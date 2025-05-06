@@ -1,81 +1,65 @@
 /**
- * Rectangle Primitive Implementation
+ * Circle Primitive Implementation
  *
- * Purpose: Implements the rectangle primitive visualization using define
+ * Purpose: Implements the circle primitive visualization using define
  * Author: [Author Name]
  * Creation Date: [Date]
  * Last Modified: [Date]
  */
 
-import { createViz } from '../core/devize.js';
-import { createSVGElement, applyAttributes } from '../renderers/svgUtils.js';
+import { registerDefineType } from '../core/define';
+import { createViz } from '../core/creator';
+import { createSVGElement, applyAttributes } from '../renderers/svgUtils';
 
-// Define the rectangle type
+// Make sure define type is registered
+registerDefineType();
+
+// Define the circle type using createViz
 createViz({
   type: "define",
-  name: "rectangle",
+  name: "circle",
   properties: {
-    x: { default: 0 },
-    y: { default: 0 },
-    width: { required: true },
-    height: { required: true },
+    cx: { required: true },
+    cy: { required: true },
+    r: { required: true },
     fill: { default: "none" },
     stroke: { default: "black" },
-    strokeWidth: { default: 1 },
-    cornerRadius: { default: 0 }
+    strokeWidth: { default: 1 }
   },
   implementation: props => {
     // Validation
-    if (props.width <= 0 || props.height <= 0) {
-      throw new Error('Rectangle width and height must be positive');
+    if (props.r <= 0) {
+      throw new Error('Circle radius must be positive');
     }
 
     // Prepare attributes
     const attributes = {
-      x: props.x,
-      y: props.y,
-      width: props.width,
-      height: props.height,
+      cx: props.cx,
+      cy: props.cy,
+      r: props.r,
       fill: props.fill,
       stroke: props.stroke,
-      'stroke-width': props.strokeWidth,
-      rx: props.cornerRadius,
-      ry: props.cornerRadius
+      'stroke-width': props.strokeWidth
     };
 
     // Return a specification with rendering functions
     return {
-      _renderType: "rect",  // Internal rendering type
+      _renderType: "circle",  // Internal rendering type
       attributes: attributes,
 
       // Rendering functions for different backends
       renderSVG: (container) => {
-        const element = createSVGElement('rect');
+        const element = createSVGElement('circle');
         applyAttributes(element, attributes);
         if (container) container.appendChild(element);
         return element;
       },
 
       renderCanvas: (ctx) => {
-        const { x, y, width, height, fill, stroke, 'stroke-width': strokeWidth, rx: cornerRadius } = attributes;
+        const { cx, cy, r, fill, stroke, 'stroke-width': strokeWidth } = attributes;
 
         ctx.beginPath();
-
-        if (cornerRadius > 0) {
-          // Draw rounded rectangle
-          ctx.moveTo(x + cornerRadius, y);
-          ctx.lineTo(x + width - cornerRadius, y);
-          ctx.arcTo(x + width, y, x + width, y + cornerRadius, cornerRadius);
-          ctx.lineTo(x + width, y + height - cornerRadius);
-          ctx.arcTo(x + width, y + height, x + width - cornerRadius, y + height, cornerRadius);
-          ctx.lineTo(x + cornerRadius, y + height);
-          ctx.arcTo(x, y + height, x, y + height - cornerRadius, cornerRadius);
-          ctx.lineTo(x, y + cornerRadius);
-          ctx.arcTo(x, y, x + cornerRadius, y, cornerRadius);
-        } else {
-          // Draw regular rectangle
-          ctx.rect(x, y, width, height);
-        }
+        ctx.arc(cx, cy, r, 0, Math.PI * 2);
 
         if (fill !== 'none') {
           ctx.fillStyle = fill;
@@ -110,5 +94,5 @@ createViz({
  * - Design Document: design/primitives.md
  * - Design Document: design/rendering.md
  * - User Documentation: docs/primitives/shapes.md
- * - Test Cases: tests/primitives/rectangle.test.js
+ * - Test Cases: tests/primitives/circle.test.js
  */

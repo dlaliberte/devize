@@ -266,7 +266,7 @@ The separation of `createViz` and `renderViz` provides a clean architecture that
 - Related File: [src/core/devize.ts](../src/core/devize.ts)
 - Related File: [src/core/renderer.ts](../src/core/renderer.ts)
 - Related File: [src/core/processor.ts](../src/core/processor.ts)
-- Related File: [src/core/define.ts](../src/core/obsolete-define.ts)
+- Related File: [src/core/define.ts](../src/core/define.ts)
 - Related File: [src/core/registry.ts](../src/core/registry.ts)
 - Design Document: [design/define.md](define.md)
 - Design Document: [design/rendering.md](rendering.md)

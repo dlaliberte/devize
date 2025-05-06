@@ -1,30 +1,22 @@
-import { defineConfig, devices } from '@playwright/test';
+import { PlaywrightTestConfig } from '@playwright/test';
 
-export default defineConfig({
+const config: PlaywrightTestConfig = {
   testDir: './tests',
-  timeout: 30 * 1000,
-  expect: {
-    timeout: 5000
-  },
-  fullyParallel: true,
+  timeout: 30000,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  reporter: [['html'], ['list']],
   use: {
-    actionTimeout: 0,
-    baseURL: 'http://localhost:3000',
     trace: 'on-first-retry',
+    screenshot: 'only-on-failure',
   },
-  projects: [
-    {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
-    },
-  ],
+  outputDir: 'test-results/',
   webServer: {
-    command: 'npm run dev',
+    command: 'npm run build && npm run serve',
     port: 3000,
+    timeout: 120000,
     reuseExistingServer: !process.env.CI,
   },
-});
+};
+
+export default config;

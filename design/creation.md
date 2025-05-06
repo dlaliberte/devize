@@ -235,7 +235,7 @@ For performance, `createViz` could be enhanced with:
 - Related File: [src/core/creator.ts](../src/core/creator.ts)
 - Related File: [src/core/renderer.ts](../src/core/renderer.ts)
 - Related File: [src/core/registry.ts](../src/core/registry.ts)
-- Related File: [src/core/define.ts](../src/core/obsolete-define.ts)
+- Related File: [src/core/define.ts](../src/core/define.ts)
 - Design Document: [design/viz_creation_rendering.md](viz_creation_rendering.md)
 - Design Document: [design/rendering.md](rendering.md)
 - Design Document: [design/define.md](define.md)

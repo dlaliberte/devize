@@ -80,7 +80,7 @@ export function initializeLibrary() {
   console.log('Devize library initializing');
 
   // Import and initialize the define module first
-  import('./obsolete-define');
+  import('./define');
 
   // Define primitive types
   defineShapePrimitives();
