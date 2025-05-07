@@ -1,14 +1,14 @@
-# Visualization Creation in Devize
+# Visualization Building in Devize
 
 ## Overview
 
-This document outlines the design of Devize's visualization creation system, focusing on the `createViz` function which is the core API for creating visualization objects. This function processes visualization specifications into renderable objects that can later be rendered to various backends.
+This document outlines the design of Devize's visualization building system, focusing on the `buildViz` function which is the core API for creating visualization objects. This function processes visualization specifications into renderable objects that can later be rendered to various backends.
 
-## Core Function: `createViz`
+## Core Function: `buildViz`
 
 ### Purpose
 
-`createViz` is the primary API function for creating visualizations in Devize. It:
+`buildViz` is the primary API function for building visualizations in Devize. It:
 - Takes a visualization specification
 - Processes the specification into a renderable object
 - Returns the processed visualization object with rendering functions
@@ -17,7 +17,7 @@ This document outlines the design of Devize's visualization creation system, foc
 ### Signature
 
 ```typescript
-function createViz(spec: VisualizationSpec): RenderableVisualization
+function buildViz(spec: VisualizationSpec): RenderableVisualization
 ```
 
 Where:
@@ -48,7 +48,7 @@ Where:
 
 ## Processing Flow
 
-The processing flow in `createViz` follows these steps:
+The processing flow in `buildViz` follows these steps:
 
 1. **Input Check**: If the input is already a processed object with rendering functions, return it
 2. **Type Resolution**: Look up the visualization type in the registry
@@ -57,19 +57,48 @@ The processing flow in `createViz` follows these steps:
 5. **Implementation Execution**: Call the type's implementation function to produce a renderable object
 6. **Return**: Return the processed object with rendering functions
 
+## The RenderableVisualization Interface
+
+The `buildViz` function returns a `RenderableVisualization` object, which includes:
+
+```typescript
+interface RenderableVisualization {
+  // The original specification
+  spec: VisualizationSpec;
+
+  // The type of visualization
+  type: string;
+
+  // Render to a DOM container
+  render: (container: HTMLElement) => RenderedResult;
+
+  // Render to an SVG element
+  renderToSvg: (svg: SVGElement) => SVGElement;
+
+  // Render to a Canvas context
+  renderToCanvas: (ctx: CanvasRenderingContext2D) => void;
+
+  // Update with a new specification
+  update: (newSpec: VisualizationSpec) => RenderableVisualization;
+
+  // Get computed properties
+  getProperty: (name: string) => any;
+}
+```
+
 ## Relationship with Other Components
 
 ### Relationship with `renderViz`
 
-`renderViz` uses `createViz` internally:
-1. `renderViz` calls `createViz` to process the visualization specification
+`renderViz` uses `buildViz` internally:
+1. `renderViz` calls `buildViz` to process the visualization specification
 2. `renderViz` then selects the appropriate backend based on the container
 3. `renderViz` calls the rendering function with the container
 4. This separation allows for a clean division of responsibilities
 
 ```
 ┌─────────────────┐     ┌───────────────┐     ┌────────────────┐
-│ renderViz       │────▶│ createViz     │────▶│ renderable     │
+│ renderViz       │────▶│ buildViz      │────▶│ renderable     │
 │ (with container)│     │               │     │ object         │
 └─────────────────┘     └───────────────┘     └────────────────┘
         │                                              │
@@ -84,25 +113,25 @@ The processing flow in `createViz` follows these steps:
 
 ### Relationship with Type Registry
 
-`createViz` depends on the type registry:
+`buildViz` depends on the type registry:
 1. It looks up visualization types by name
 2. It uses the type's properties for validation and defaults
 3. It calls the type's implementation function
 
 ### Relationship with "define" Type
 
-The "define" type has a special relationship with `createViz`:
-1. When `createViz` processes a "define" visualization, it registers a new type
-2. This registration makes the type available for subsequent calls to `createViz`
-3. This allows for extending the visualization system with new types
+The "define" type has a special relationship with `buildViz`:
+1. When `buildViz` processes a "define" visualization, it registers a new type
+2. This registration makes the type available for subsequent calls to `buildViz`
+3. The returned object can be rendered to provide documentation or a visual representation of the type
 
 ## Usage Examples
 
 ### Basic Usage
 
 ```javascript
-// Create a simple rectangle visualization
-const rectangle = createViz({
+// Build a simple rectangle visualization
+const rectangle = buildViz({
   type: "rectangle",
   x: 10,
   y: 20,
@@ -115,11 +144,11 @@ const rectangle = createViz({
 renderViz(rectangle, document.getElementById('container'));
 ```
 
-### Creating Composite Visualizations
+### Building Composite Visualizations
 
 ```javascript
-// Create a group with multiple children
-const group = createViz({
+// Build a group with multiple children
+const group = buildViz({
   type: "group",
   children: [
     {
@@ -148,7 +177,7 @@ renderViz(group, document.getElementById('container'));
 
 ```javascript
 // Define a new visualization type
-createViz({
+buildViz({
   type: "define",
   name: "labeledCircle",
   properties: {
@@ -181,7 +210,7 @@ createViz({
 });
 
 // Use the new type
-const labeledCircle = createViz({
+const labeledCircle = buildViz({
   type: "labeledCircle",
   cx: 150,
   cy: 150,
@@ -197,27 +226,27 @@ renderViz(labeledCircle, document.getElementById('container'));
 
 ### 1. Immutability
 
-`createViz` treats input specifications as immutable:
+`buildViz` treats input specifications as immutable:
 - It creates a copy of the specification before applying defaults
 - It does not modify the original specification
 - This ensures that the same specification can be used multiple times
 
 ### 2. Idempotence
 
-`createViz` is idempotent for processed objects:
+`buildViz` is idempotent for processed objects:
 - If given an already processed object, it returns it unchanged
 - This allows for passing the same object through multiple processing steps
 
 ### 3. Error Handling
 
-`createViz` provides clear error messages:
+`buildViz` provides clear error messages:
 - Unknown visualization types
 - Missing required properties
 - Invalid property values (via type-specific validation)
 
 ### 4. Performance Considerations
 
-For performance, `createViz` could be enhanced with:
+For performance, `buildViz` could be enhanced with:
 - Caching of processed visualizations
 - Lazy evaluation of complex properties
 - Optimized property validation
@@ -236,7 +265,7 @@ For performance, `createViz` could be enhanced with:
 - Related File: [src/core/renderer.ts](../src/core/renderer.ts)
 - Related File: [src/core/registry.ts](../src/core/registry.ts)
 - Related File: [src/core/define.ts](../src/core/define.ts)
-- Design Document: [design/viz_creation_rendering.md](viz_creation_rendering.md)
+- Design Document: [design/viz_creation_rendering.md](viz_building_rendering.md)
 - Design Document: [design/rendering.md](rendering.md)
 - Design Document: [design/define.md](define.md)
 - User Documentation: [docs/core/visualization.md](../docs/core/visualization.md)

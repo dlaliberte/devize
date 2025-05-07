@@ -1,22 +1,22 @@
-# Visualization Creation and Rendering in Devize
+# Visualization Building and Rendering in Devize
 
 ## Overview
 
-This document clarifies the relationship between visualization creation (`createViz`) and visualization rendering (`renderViz`) in Devize, and explains how these core functions work together in the visualization pipeline.
+This document clarifies the relationship between visualization building (`buildViz`) and visualization rendering (`renderViz`) in Devize, and explains how these core functions work together in the visualization pipeline.
 
 ## Core Functions
 
-### 1. Visualization Creation (`createViz`)
+### 1. Visualization Building (`buildViz`)
 
-`createViz` is the primary API function for creating visualizations:
+`buildViz` is the primary API function for building visualizations:
 - Takes a visualization specification
 - Processes the specification into a renderable object
 - Returns the processed visualization object
 - Does NOT render to a container (no container parameter)
 
 ```javascript
-// Create a visualization (without rendering)
-const myViz = createViz({
+// Build a visualization (without rendering)
+const myViz = buildViz({
   type: "rectangle",
   width: 100,
   height: 50,
@@ -26,9 +26,9 @@ const myViz = createViz({
 
 ### 2. Visualization Rendering (`renderViz`)
 
-`renderViz` (currently named `render` in the codebase) is responsible for rendering:
-- Takes a visualization specification and a container
-- Processes the specification using the same logic as `createViz`
+`renderViz` is responsible for rendering:
+- Takes a visualization specification or a renderable visualization and a container
+- If given a specification, processes it using the same logic as `buildViz`
 - Selects the appropriate rendering backend based on the container
 - Renders the visualization to the container
 - Returns the rendered result
@@ -42,19 +42,19 @@ const renderedResult = renderViz({
 }, document.getElementById('container'));
 ```
 
-## The Relationship Between Creation and Rendering
+## The Relationship Between Building and Rendering
 
 The relationship between these functions is:
 
-1. Both `createViz` and `renderViz` process visualization specifications
-2. `createViz` stops after creating the renderable object
+1. Both `buildViz` and `renderViz` process visualization specifications
+2. `buildViz` stops after creating the renderable object
 3. `renderViz` continues by selecting a backend and rendering to a container
-4. `renderViz` uses the same processing logic as `createViz` internally
+4. `renderViz` uses the same processing logic as `buildViz` internally
 
 ```
 ┌─────────────────┐     ┌───────────────┐     ┌────────────────┐
-│ createViz       │────▶│ process       │────▶│ renderable     │
-│ (creation only) │     │ specification │     │ object         │
+│ buildViz        │────▶│ process       │────▶│ renderable     │
+│ (building only) │     │ specification │     │ object         │
 └─────────────────┘     └───────────────┘     └────────────────┘
 
 ┌─────────────────┐     ┌───────────────┐     ┌────────────────┐     ┌────────────────┐
@@ -67,7 +67,7 @@ The relationship between these functions is:
 
 ### Processing Logic
 
-Both `createViz` and `renderViz` use the same core processing logic:
+Both `buildViz` and `renderViz` use the same core processing logic:
 
 1. Resolve the visualization type from the registry
 2. Apply default values for optional properties
@@ -77,14 +77,14 @@ Both `createViz` and `renderViz` use the same core processing logic:
 
 The key difference is that `renderViz` takes the additional step of calling the appropriate rendering function with the provided container.
 
-### Refactoring Recommendation
+### Implementation Recommendation
 
-Currently, the processing logic is in `processVisualization` in `src/core/processor.ts`. Since this logic is essentially what `createViz` should do, we recommend:
+The processing logic should be implemented in `buildViz` in `src/core/builder.ts`. Then:
 
-1. Rename `processVisualization` to `createViz`
-2. Update `renderViz` (currently `render`) to use `createViz` internally
-3. Ensure `createViz` doesn't accept a container parameter
-4. Keep `renderViz` as the function that handles container-based rendering
+1. `buildViz` handles the processing of specifications into renderable objects
+2. `renderViz` uses `buildViz` internally to process specifications
+3. `renderViz` then handles container-based rendering
+4. This ensures a clean separation of concerns
 
 ### Type Registration
 
@@ -96,13 +96,13 @@ The "define" type has the side effect of registering new types:
 
 ## Usage Patterns
 
-### 1. Create and Render Separately
+### 1. Build and Render Separately
 
-The most common pattern is to create and render separately:
+The most common pattern is to build and render separately:
 
 ```javascript
-// Create a visualization
-const myCircle = createViz({
+// Build a visualization
+const myCircle = buildViz({
   type: "circle",
   cx: 100,
   cy: 100,
@@ -134,7 +134,7 @@ Define new types and use them:
 
 ```javascript
 // Define a new type
-createViz({
+buildViz({
   type: "define",
   name: "labeledCircle",
   properties: {
@@ -167,7 +167,7 @@ createViz({
 });
 
 // Use the new type
-const labeledCircle = createViz({
+const labeledCircle = buildViz({
   type: "labeledCircle",
   cx: 150,
   cy: 150,
@@ -217,19 +217,19 @@ When processing a specification that both defines and uses types:
 
 ## Best Practices
 
-### 1. Separate Creation from Rendering
+### 1. Separate Building from Rendering
 
-Keep visualization creation separate from rendering:
-- Create visualizations with `createViz`
+Keep visualization building separate from rendering:
+- Build visualizations with `buildViz`
 - Render them with `renderViz`
 - This separation allows for more flexible usage patterns
 
 ### 2. Reuse Processed Visualizations
 
-Once a visualization is processed with `createViz`, it can be rendered multiple times:
+Once a visualization is processed with `buildViz`, it can be rendered multiple times:
 
 ```javascript
-const myViz = createViz({ type: "circle", r: 30 });
+const myViz = buildViz({ type: "circle", r: 30 });
 
 // Render to multiple containers
 renderViz(myViz, container1);
@@ -242,7 +242,7 @@ For better organization, define types in separate files:
 
 ```javascript
 // In circle-types.js
-createViz({
+buildViz({
   type: "define",
   name: "labeledCircle",
   // ... properties and implementation
@@ -259,13 +259,13 @@ renderViz({
 
 ## Conclusion
 
-The separation of `createViz` and `renderViz` provides a clean architecture that separates visualization creation from rendering. This design allows for more flexible usage patterns, better reuse of visualizations, and a clearer mental model of the visualization pipeline.
+The separation of `buildViz` and `renderViz` provides a clean architecture that separates visualization building from rendering. This design allows for more flexible usage patterns, better reuse of visualizations, and a clearer mental model of the visualization pipeline.
 
 ## References
 
 - Related File: [src/core/devize.ts](../src/core/devize.ts)
 - Related File: [src/core/renderer.ts](../src/core/renderer.ts)
-- Related File: [src/core/processor.ts](../src/core/processor.ts)
+- Related File: [src/core/builder.ts](../src/core/builder.ts)
 - Related File: [src/core/define.ts](../src/core/define.ts)
 - Related File: [src/core/registry.ts](../src/core/registry.ts)
 - Design Document: [design/define.md](define.md)

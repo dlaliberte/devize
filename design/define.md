@@ -27,7 +27,7 @@ The "define" type is a meta-visualization that processes its properties to regis
 ## Basic Usage
 
 ```javascript
-createViz({
+buildViz({
   type: "define",
   name: "labeledCircle",
   properties: {
@@ -72,7 +72,7 @@ createViz({
 Once defined, the new visualization type can be used like any built-in type:
 
 ```javascript
-const myCircle = createViz({
+const myCircle = buildViz({
   type: "labeledCircle",
   cx: 100,
   cy: 100,
@@ -135,7 +135,7 @@ This approach gives you full control over the implementation and provides better
 You can extend an existing visualization type to inherit its properties and behavior:
 
 ```javascript
-createViz({
+buildViz({
   type: "define",
   name: "horizontalBarChart",
   extend: "barChart",
@@ -165,9 +165,22 @@ The extension mechanism merges properties from the base type with the new type, 
 
 The "define" type presents a bootstrapping challenge since it needs to define itself. The solution involves:
 
-1. Special handling in `createViz` for the initial "define" type
+1. Special handling in `buildViz` for the initial "define" type
 2. Using this initial implementation to register the full "define" type
 3. Using the registered type for all subsequent definitions
+
+## What buildViz Returns for "define"
+
+When `buildViz` processes a "define" visualization:
+
+1. It registers the new type in the registry
+2. It returns a `RenderableVisualization` object that:
+   - Contains the original specification
+   - Includes rendering functions that, when called, produce a visual representation of the type definition
+   - Can be used for documentation purposes
+   - Has methods for all standard rendering backends (SVG, Canvas)
+
+This means that while the primary purpose of a "define" visualization is to register a new type, the returned object can also be rendered to provide documentation or a visual representation of the type.
 
 ## Property Evaluation
 
@@ -186,7 +199,7 @@ The "define" type works by:
 1. Registering the new visualization type in the Devize registry
 2. Processing property definitions to establish required properties and defaults
 3. Creating a type handler that validates properties and processes the implementation
-4. Making the new type available for use with `createViz`
+4. Making the new type available for use with `buildViz`
 
 This mechanism is the foundation of Devize's extensibility, allowing the library to grow with custom visualizations while maintaining a consistent interface.
 
@@ -216,10 +229,10 @@ This mechanism is the foundation of Devize's extensibility, allowing the library
 
 - Related File: [src/core/define.ts](../src/core/define.ts)
 - Related File: [src/core/registry.ts](../src/core/registry.ts)
-- Related File: [src/core/creator.ts](../src/core/creator.ts)
+- Related File: [src/core/builder.ts](../src/core/builder.ts)
 - Related File: [src/core/renderer.ts](../src/core/renderer.ts)
 - Related File: [src/core/devize.ts](../src/core/devize.ts)
-- Design Document: [design/viz_creation_rendering.md](viz_creation_rendering.md)
+- Design Document: [design/viz_creation_rendering.md](viz_building_rendering.md)
 - Design Document: [design/rendering.md](rendering.md)
 - User Documentation: [docs/core/define.md](../docs/core/define.md)
 - Examples: [examples/define_examples.js](../examples/define_examples.js)

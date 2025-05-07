@@ -11,7 +11,7 @@ This document outlines the architecture of the Devize system as a whole, focusin
 The Devize system consists of several core components that work together:
 
 1. **Type Registry**: Manages visualization type definitions (`src/core/registry.ts`)
-2. **Visualization Creator**: Processes specifications into renderable objects (`src/core/creator.ts`)
+2. **Visualization Builder**: Processes specifications into renderable objects (`src/core/builder.ts`)
 3. **Visualization Renderer**: Renders visualizations to DOM containers (`src/core/renderer.ts`)
 4. **Type Definition System**: Allows defining new visualization types (`src/core/define.ts`)
 5. **Primitive Visualizations**: Built-in visualization types (`src/primitives/`)
@@ -23,7 +23,7 @@ The Devize system consists of several core components that work together:
 │                                                                 │
 │  ┌─────────────┐   ┌─────────────┐   ┌─────────────────────┐    │
 │  │ Type        │   │ Visualization│   │ Visualization      │    │
-│  │ Registry    │◄──┤ Creator     │◄──┤ Renderer           │    │
+│  │ Registry    │◄──┤ Builder     │◄──┤ Renderer           │    │
 │  │             │   │             │   │                     │    │
 │  └─────────────┘   └─────────────┘   └─────────────────────┘    │
 │         ▲                 ▲                     ▲                │
@@ -37,6 +37,39 @@ The Devize system consists of several core components that work together:
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+```mermaid
+graph TD
+    Devize --> TypeRegistry
+    Devize --> VisualizationBuilder
+    Devize --> VisualizationRenderer
+    Devize --> TypeDefinitionSystem
+    Devize --> PrimitiveVisualizations
+```
+
+```mermaid
+
+classDiagram
+    class Devize {
+        +buildViz(spec: VisualizationSpec): RenderableVisualization
+        +renderViz(spec: VisualizationSpec | RenderableVisualization, container: HTMLElement): RenderedResult
+        +updateViz(vizInstance: RenderableVisualization, newSpec: VisualizationSpec): RenderableVisualization
+        +registerType(typeDefinition: TypeDefinition): void
+        +hasType(typeName: string): boolean
+        +getType(typeName: string): TypeDefinition | undefined
+        +registerData(name: string, data: any): void
+        +getData(name: string): any
+        +ensureSvg(container: HTMLElement): SVGElement
+        +initializeLibrary(): void
+    }
+    Devize --> TypeRegistry : Manages visualization types
+    Devize --> VisualizationBuilder : Processes specifications
+    Devize --> VisualizationRenderer : Renders visualizations
+    Devize --> TypeDefinitionSystem : Defines new types
+    Devize --> PrimitiveVisualizations : Built-in types
+
+```
+
 
 ## Main Entry Point: `devize.ts`
 
@@ -54,8 +87,8 @@ The public API exposed by `devize.ts` includes:
 ### Core Functions
 
 ```typescript
-// Create a visualization from a specification
-export function createViz(spec: VisualizationSpec): RenderableVisualization;
+// Build a visualization from a specification
+export function buildViz(spec: VisualizationSpec): RenderableVisualization;
 
 // Render a visualization to a container
 export function renderViz(spec: VisualizationSpec | RenderableVisualization, container: HTMLElement): RenderedResult;
@@ -138,7 +171,7 @@ Users can integrate Devize into their web pages in several ways:
 <script src="https://unpkg.com/devize/dist/devize.min.js"></script>
 <script>
   // Devize is available as a global object
-  const viz = Devize.createViz({
+  const viz = Devize.buildViz({
     type: "rectangle",
     width: 100,
     height: 50,
@@ -153,9 +186,9 @@ Users can integrate Devize into their web pages in several ways:
 
 ```html
 <script type="module">
-  import { createViz, renderViz } from 'https://unpkg.com/devize/dist/devize.esm.js';
+  import { buildViz, renderViz } from 'https://unpkg.com/devize/dist/devize.esm.js';
 
-  const viz = createViz({
+  const viz = buildViz({
     type: "rectangle",
     width: 100,
     height: 50,
@@ -170,9 +203,9 @@ Users can integrate Devize into their web pages in several ways:
 
 ```javascript
 // After installing via npm
-import { createViz, renderViz } from 'devize';
+import { buildViz, renderViz } from 'devize';
 
-const viz = createViz({
+const viz = buildViz({
   type: "rectangle",
   width: 100,
   height: 50,
@@ -182,12 +215,64 @@ const viz = createViz({
 renderViz(viz, document.getElementById('container'));
 ```
 
-## Implementation Design
+## The RenderableVisualization Interface
 
-The implementation of `src/core/devize.ts` will:
+The `buildViz` function returns a `RenderableVisualization` object, which includes:
 
-```typescript:src/core/devize.ts
+```typescript
+interface RenderableVisualization {
+  // The original specification
+  spec: VisualizationSpec;
 
+  // The type of visualization
+  type: string;
+
+  // Render to a DOM container
+  render: (container: HTMLElement) => RenderedResult;
+
+  // Render to an SVG element
+  renderToSvg: (svg: SVGElement) => SVGElement;
+
+  // Render to a Canvas context
+  renderToCanvas: (ctx: CanvasRenderingContext2D) => void;
+
+  // Update with a new specification
+  update: (newSpec: VisualizationSpec) => RenderableVisualization;
+
+  // Get computed properties
+  getProperty: (name: string) => any;
+}
+```
+
+## The "define" Visualization
+
+The "define" visualization is special because it registers new visualization types. When `buildViz` processes a "define" specification, it:
+
+1. Creates a type definition from the specification
+2. Registers the type with the registry
+3. Returns a `RenderableVisualization` that, when rendered, produces a visual representation of the type definition (useful for documentation)
+
+```typescript
+// Example of a "define" visualization
+const defineViz = buildViz({
+  type: "define",
+  name: "myCircle",
+  properties: {
+    radius: { type: "number", default: 10 },
+    fill: { type: "color", default: "blue" }
+  },
+  render: (props, container) => {
+    // Rendering logic for the new type
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("r", props.radius);
+    circle.setAttribute("fill", props.fill);
+    container.appendChild(circle);
+  }
+});
+
+// The defineViz object can be rendered to show documentation
+// or it can be ignored since the type is already registered
+renderViz(defineViz, document.getElementById('docs-container'));
 ```
 
 ## Bootstrapping Process
@@ -196,16 +281,29 @@ The bootstrapping process for Devize is critical, as it involves a circular depe
 
 1. When `devize.ts` is loaded, it calls `initializeLibrary()`
 2. `initializeLibrary()` imports `define.ts`
-3. `define.ts` uses a special case in `createViz` to handle the "define" type before it's registered
+3. `define.ts` uses a special case in `buildViz` to handle the "define" type before it's registered
 4. Once "define" is registered, it can be used to define other types
 5. The primitive visualizations are defined using the now-registered "define" type
 6. Component definitions are loaded, which may define additional visualization types
+
+## Core System Dependencies
+
+To use Devize effectively, several core components must work together:
+
+1. **Registry**: Stores visualization type definitions
+2. **Builder**: Constructs renderable visualizations from specifications
+3. **Renderer**: Renders visualizations to DOM containers
+4. **Define System**: Allows registering new visualization types
+5. **Primitive Types**: Provides basic building blocks
+
+Even for testing individual components, this core system must be initialized. The `initializeLibrary()` function ensures all necessary components are loaded and initialized properly.
 
 ## Design Considerations
 
 ### 1. Modular Architecture
 
 The system uses a modular architecture:
+
 - Each core component is in its own file
 - Components have clear responsibilities
 - Dependencies between components are explicit
@@ -213,6 +311,7 @@ The system uses a modular architecture:
 ### 2. Progressive Enhancement
 
 The library supports progressive enhancement:
+
 - Basic visualizations work without additional components
 - Advanced features can be loaded as needed
 - Users can extend the library with their own components
@@ -220,6 +319,7 @@ The library supports progressive enhancement:
 ### 3. Minimal Global State
 
 The system minimizes global state:
+
 - The type registry is the primary global state
 - The data registry provides a convenient way to share data
 - Most functions are pure and don't rely on global state
@@ -227,6 +327,7 @@ The system minimizes global state:
 ### 4. Browser Compatibility
 
 The library is designed to work in modern browsers:
+
 - It uses standard DOM APIs
 - It supports both SVG and Canvas rendering
 - It can be bundled for older browsers if needed
@@ -242,11 +343,11 @@ The library is designed to work in modern browsers:
 ## References
 
 - Related File: [src/core/devize.ts](../src/core/devize.ts)
-- Related File: [src/core/creator.ts](../src/core/creator.ts)
+- Related File: [src/core/builder.ts](../src/core/builder.ts)
 - Related File: [src/core/renderer.ts](../src/core/renderer.ts)
 - Related File: [src/core/registry.ts](../src/core/registry.ts)
 - Related File: [src/core/define.ts](../src/core/define.ts)
-- Design Document: [design/viz_creation_rendering.md](viz_creation_rendering.md)
+- Design Document: [design/viz_creation_rendering.md](viz_building_rendering.md)
 - Design Document: [design/rendering.md](rendering.md)
 - Design Document: [design/define.md](define.md)
 - User Documentation: [docs/getting_started.md](../docs/getting_started.md)

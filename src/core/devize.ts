@@ -7,95 +7,97 @@
  * Last Modified: [Date]
  */
 
-// Export core functions from their respective modules
-export { createViz } from './creator';
-export { renderViz } from './renderer';
-export { registerType, getType, hasType } from './registry';
+// Main entry point for the Devize library
+import { registerType, getType, hasType, getAllTypes } from './registry';
+import { createViz } from './creator';
+import { renderViz, updateViz } from './renderer';
+import { VisualizationType, VizSpec } from './types';
 
-// Import primitive definitions
-import { defineShapePrimitives } from '../primitives/shapes';
-import { defineTextPrimitives } from '../primitives/text';
-import { defineContainerPrimitives } from '../primitives/containers';
-
-// Data registry for storing named datasets
-const dataRegistry = new Map();
+// Data registry for storing named data sources
+const dataRegistry: Record<string, any> = {};
 
 /**
  * Register data for use in visualizations
- *
- * @param name - The name to register the data under
- * @param data - The data to register
+ * @param name The name to register the data under
+ * @param data The data to register
  */
 export function registerData(name: string, data: any): void {
-  dataRegistry.set(name, data);
+  dataRegistry[name] = data;
 }
 
 /**
  * Get registered data
- *
- * @param name - The name of the data to retrieve
+ * @param name The name of the registered data
  * @returns The registered data or undefined if not found
  */
 export function getData(name: string): any {
-  return dataRegistry.get(name);
+  return dataRegistry[name];
 }
 
 /**
- * Update an existing visualization
- *
- * @param vizInstance - The visualization instance to update
- * @param newSpec - The new specification
- * @returns The updated visualization instance
- */
-export function updateViz(vizInstance: any, newSpec: any): any {
-  if (!vizInstance || !vizInstance.spec) {
-    throw new Error('Invalid visualization instance');
-  }
-
-  // Create a new visualization with the updated spec
-  return createViz({ ...vizInstance.spec, ...newSpec });
-}
-
-/**
- * Helper function to ensure an SVG element exists
- *
- * @param container - The container element
+ * Ensure an SVG element exists in a container
+ * @param container The container element
  * @returns The SVG element
  */
 export function ensureSvg(container: HTMLElement): SVGElement {
+  // Check if the container already has an SVG element
   let svg = container.querySelector('svg');
+
+  // If not, create one
   if (!svg) {
     svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('width', '100%');
     svg.setAttribute('height', '100%');
     container.appendChild(svg);
   }
+
   return svg as SVGElement;
 }
 
 /**
- * Initialize the library by loading primitive definitions
+ * Initialize the Devize library
+ * This function ensures that all core components are loaded and initialized
  */
 export function initializeLibrary() {
-  console.log('Devize library initializing');
+  console.log('Initializing Devize library');
 
-  // Import and initialize the define module first
+  // Import the define module first to bootstrap the type system
+  // This is a special case - we need to ensure define.ts is loaded
+  // before any other modules that use it
   import('./define');
 
-  // Define primitive types
-  defineShapePrimitives();
-  defineTextPrimitives();
-  defineContainerPrimitives();
+  // Now we can load primitive types
+  // These will be loaded asynchronously, but that's fine because
+  // they'll register themselves with the type registry
+  import('../primitives/rectangle');
+  import('../primitives/circle');
+  import('../primitives/line');
+  import('../primitives/text');
+  import('../primitives/group');
+  import('../primitives/layer');
 
   // Load component definitions
-  import('../components/axis');
-  import('../components/legend');
+  import('../components/scales/linearScale');
+  import('../components/scales/bandScale');
 
-  console.log('Devize library initialization complete');
+  console.log('Library initialization complete');
 }
 
-// Auto-initialize when imported
-initializeLibrary();
+// Auto-initialize when imported in browser environments
+if (typeof window !== 'undefined') {
+  initializeLibrary();
+}
+
+// Export core functions
+export {
+  createViz,
+  renderViz,
+  updateViz,
+  registerType,
+  getType,
+  hasType,
+  getAllTypes
+};
 
 /**
  * References:

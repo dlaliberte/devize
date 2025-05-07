@@ -9,14 +9,14 @@ This document outlines the design of Devize's top-level rendering system, which 
 ### Core Components
 
 1. **Renderer**: The main entry point for rendering visualizations
-2. **Visualization Processor**: Processes visualization specifications into renderable objects
+2. **Visualization Builder**: Processes visualization specifications into renderable objects
 3. **Backend Adapters**: Specific implementations for different rendering targets (SVG, Canvas, WebGL)
 4. **Group Container**: Special primitive for composing multiple visualizations
 
 ```
 ┌─────────────────┐     ┌───────────────┐     ┌────────────────┐
 │ Visualization   │     │ Visualization │     │ Rendering      │
-│ Specification   │────▶│ Processor     │────▶│ Functions      │
+│ Specification   │────▶│ Builder       │────▶│ Functions      │
 └─────────────────┘     └───────────────┘     └────────────────┘
                                                       │
                                                       ▼
@@ -44,9 +44,9 @@ The renderer performs several key functions:
 4. **Rendering Execution**: Calls the appropriate rendering function with the container
 5. **Error Handling**: Manages errors during the rendering process
 
-### Visualization Processor
+### Visualization Builder
 
-The processor is responsible for converting visualization specifications into renderable objects:
+The builder is responsible for converting visualization specifications into renderable objects:
 
 1. **Type Resolution**: Looks up the visualization type in the registry
 2. **Property Validation**: Ensures all required properties are present
@@ -69,8 +69,8 @@ The group container is a special primitive that composes multiple visualizations
 The rendering flow in Devize follows these steps:
 
 1. **Specification Creation**: User creates a visualization specification
-2. **Top-Level Rendering**: The `render` function is called with the spec and a container
-3. **Specification Processing**: The processor converts the spec into a renderable object
+2. **Top-Level Rendering**: The `renderViz` function is called with the spec and a container
+3. **Specification Processing**: The builder converts the spec into a renderable object
 4. **Backend Selection**: The renderer selects the appropriate backend based on the container
 5. **Rendering Execution**: The rendering function is called with the container
 6. **Recursive Rendering**: For composite visualizations like groups, child elements are rendered recursively
@@ -102,10 +102,10 @@ const spec = {
 
 // User calls the render function with a container
 const container = document.getElementById('visualization');
-render(spec, container);
+renderViz(spec, container);
 
 // Internally:
-// 1. The processor processes the group specification
+// 1. The builder processes the group specification
 // 2. The group implementation processes its children
 // 3. The renderer calls the appropriate rendering function
 // 4. The group's rendering function renders each child
@@ -160,7 +160,7 @@ A key design principle is that visualization definitions do not accept or use co
 ## References
 
 - Related File: [src/core/renderer.ts](../src/core/renderer.ts)
-- Related File: [src/core/processor.ts](../src/core/processor.ts)
+- Related File: [src/core/builder.ts](../src/core/builder.ts)
 - Related File: [src/core/registry.ts](../src/core/registry.ts)
 - Related File: [src/primitives/group.ts](../src/primitives/group.ts)
 - Design Document: [design/primitive_implementation.md](primitive_implementation.md)
