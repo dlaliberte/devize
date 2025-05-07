@@ -1,4 +1,4 @@
-import { createViz } from '../../src/core/devize';
+import { buildViz } from '../../src/core/devize';
 import '../../src/charts/barChart';
 
 describe('Complex Chart Integration', () => {
@@ -25,7 +25,7 @@ describe('Complex Chart Integration', () => {
     ];
 
     // Create chart with color mapping
-    const chart = createViz({
+    const chart = buildViz({
       type: 'barChart',
       data: data,
       x: { field: 'product' },
@@ -66,7 +66,7 @@ describe('Complex Chart Integration', () => {
       { product: 'Product C', revenue: 340 }
     ];
 
-    const chart = createViz({
+    const chart = buildViz({
       type: 'barChart',
       data: data,
       x: { field: 'product' },

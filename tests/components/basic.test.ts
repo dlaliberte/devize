@@ -1,4 +1,4 @@
-import { createViz } from '../../src/core/devize';
+import { buildViz } from '../../src/core/devize';
 import '../../src/components/axis';
 import '../../src/components/legend';
 
@@ -16,7 +16,7 @@ describe('Basic Component Tests', () => {
 
   test('axis component should be created without errors', () => {
     // Create a group to contain the axis
-    const group = createViz({
+    const group = buildViz({
       type: 'group',
       children: [
         {
@@ -37,7 +37,7 @@ describe('Basic Component Tests', () => {
 
   test('legend component should be created without errors', () => {
     // Create a group to contain the legend
-    const group = createViz({
+    const group = buildViz({
       type: 'group',
       children: [
         {

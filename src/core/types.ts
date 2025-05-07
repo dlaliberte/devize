@@ -1,116 +1,63 @@
-// Core type definitions for Devize
-
 /**
- * Visualization specification
+ * Core type definitions that allow components to reference each other
+ * without direct dependencies
  */
-export interface VizSpec {
+
+// Visualization specification interface
+export interface VisualizationSpec {
   type: string;
-  data?: any[] | DataSource | string;
-  transforms?: DataTransform[];
   [key: string]: any;
 }
 
-/**
- * Visualization instance
- */
-export interface VizInstance {
+// Rendered result interface
+export interface RenderedResult {
   element: HTMLElement | SVGElement;
-  spec: VizSpec;
-  [key: string]: any;
+  update: (newSpec: VisualizationSpec) => RenderedResult;
+  cleanup: () => void;
 }
 
-/**
- * Data field specification
- */
-export interface DataField {
-  field: string;
-  range?: [number, number];
-  [key: string]: any;
-}
-
-/**
- * Data source specification
- */
-export interface DataSource {
-  type: 'csv' | 'json' | 'reference' | 'remote';
-  url?: string;
-  content?: string | object;
-  name?: string;
-  format?: string;
-  [key: string]: any;
-}
-
-/**
- * Field mapping for lookup transformations
- */
-export interface FieldMapping {
-  source: string;
-  target: string;
-}
-
-/**
- * Data transformation specification
- */
-export interface DataTransform {
-  type: 'filter' | 'sort' | 'aggregate' | 'formula' | 'bin' | 'lookup' | 'stack' | 'window';
-  field?: string;
-  test?: string | ((d: any) => boolean);
-  order?: 'ascending' | 'descending';
-  groupBy?: string | string[];
-  ops?: string | string[];
-  fields?: string | string[];
-  expr?: string | ((d: any) => any);
-  as?: string | string[];
-  bins?: number;
-  from?: {
-    values: any[];
-    key: string;
-  };
-  lookup?: string;
-  offset?: 'zero' | 'normalize' | 'center';
-  frame?: [number | null, number | null];
-  [key: string]: any;
-}
-
-/**
- * Constraint specification
- */
-export interface ConstraintSpec {
+// Renderable visualization interface
+export interface RenderableVisualization {
+  spec: VisualizationSpec;
   type: string;
-  priority?: 'low' | 'medium' | 'high';
-  container?: HTMLElement;
-  [key: string]: any;
+  render: (container: HTMLElement) => RenderedResult;
+  renderToSvg: (svg: SVGElement) => SVGElement;
+  renderToCanvas: (ctx: CanvasRenderingContext2D) => void;
+  update: (newSpec: VisualizationSpec) => RenderableVisualization;
+  getProperty: (name: string) => any;
 }
 
-/**
- * Visualization type definition
- */
-export interface VisualizationType {
+// Type definition interface
+export interface TypeDefinition {
   name: string;
-  requiredProps: string[];
-  optionalProps?: Record<string, any>;
-  generateConstraints: (spec: VizSpec, context: any) => ConstraintSpec[];
-  decompose: (spec: VizSpec, solvedConstraints: any) => any;
+  properties: Record<string, PropertyDefinition>;
+  implementation: any;
+  extend?: string;
 }
 
-/**
- * Interaction specification
- */
-export interface InteractionSpec {
-  type: 'hover' | 'click' | 'drag' | 'zoom' | 'brush';
-  target: string;
-  effect?: any;
-  action?: (data: any, event: Event) => void;
-  [key: string]: any;
+// Property definition interface
+export interface PropertyDefinition {
+  required?: boolean;
+  default?: any;
+  type?: string;
+  validate?: (value: any) => boolean;
 }
 
-/**
- * Animation specification
- */
-export interface AnimationSpec {
-  type: 'fade' | 'slide' | 'scale' | 'custom';
-  duration?: number;
-  delay?: number;
-  easing?: string;
-  [key: string]: any;
+// Registry interface
+export interface Registry {
+  registerType(type: TypeDefinition): void;
+  registerTypeDirectly(spec: any): void;
+  hasType(name: string): boolean;
+  getType(name: string): TypeDefinition | undefined;
+  getAllTypes(): Record<string, TypeDefinition>;
+}
+
+// Builder interface
+export interface Builder {
+  buildViz(spec: VisualizationSpec): RenderableVisualization;
+}
+
+// Renderer interface
+export interface Renderer {
+  renderViz(viz: VisualizationSpec | RenderableVisualization, container: HTMLElement): RenderedResult;
 }

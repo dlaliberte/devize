@@ -7,12 +7,12 @@
  * Last Modified: [Date]
  */
 
-import { createViz } from '../core/devize';
+import { buildViz } from '../core/devize';
 import { createSVGElement } from '../renderers/svgUtils';
 import { processVisualization } from '../core/processor';
 
 // Define the group type
-createViz({
+buildViz({
   type: "define",
   name: "group",
   properties: {

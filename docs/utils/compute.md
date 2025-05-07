@@ -51,7 +51,7 @@ The `compute` component performs calculations on input data and makes the result
 The component applies the specified function to the input and makes the result available under the specified name in the props passed to child components.
 
 ```typescript
-createViz({
+buildViz({
   type: "define",
   name: "compute",
   properties: {

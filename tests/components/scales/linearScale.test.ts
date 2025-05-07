@@ -1,9 +1,9 @@
-import { createViz } from '../../../src/core/devize';
+import { buildViz } from '../../../src/core/devize';
 import '../../../src/components/scales/linearScale';
 
 describe('Linear Scale Component', () => {
   test('should scale values linearly', () => {
-    const result = createViz({
+    const result = buildViz({
       type: 'linearScale',
       domain: [0, 100],
       range: [0, 500],
@@ -19,7 +19,7 @@ describe('Linear Scale Component', () => {
   });
 
   test('should handle reversed ranges', () => {
-    const result = createViz({
+    const result = buildViz({
       type: 'linearScale',
       domain: [0, 100],
       range: [500, 0], // Reversed range
@@ -35,7 +35,7 @@ describe('Linear Scale Component', () => {
   });
 
   test('should handle custom output property name', () => {
-    const result = createViz({
+    const result = buildViz({
       type: 'linearScale',
       domain: [0, 100],
       range: [0, 1],

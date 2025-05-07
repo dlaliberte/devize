@@ -7,7 +7,7 @@ Container components in Devize allow you to group and organize multiple visualiz
 The group type allows composing multiple visualizations together:
 
 ```javascript
-createViz({
+buildViz({
   type: "group",
   children: [
     {
@@ -45,7 +45,7 @@ createViz({
 The dashboard type creates a grid layout of visualizations:
 
 ```javascript
-createViz({
+buildViz({
   type: "dashboard",
   layout: { type: "grid", columns: 2, rows: 2, gap: 20 },
   views: [

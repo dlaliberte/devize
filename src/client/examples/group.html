@@ -56,7 +56,7 @@
     <div id="visualization-container" class="viz-container"></div>
 
     <h2>Code</h2>
-    <pre><code>const shapesViz = createViz({
+    <pre><code>const shapesViz = buildViz({
   type: "group",
   children: [
     {
@@ -97,9 +97,9 @@
   </div>
 
   <script type="module">
-    import { createViz } from '/core/devize.js';
+    import { buildViz } from '/core/devize.js';
 
-    const shapesViz = createViz({
+    const shapesViz = buildViz({
       type: "group",
       children: [
         {

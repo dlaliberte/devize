@@ -57,7 +57,7 @@
 
     <h2>Code</h2>
     <pre><code>// Create a simple rectangle visualization
-const rectangleViz = createViz({
+const rectangleViz = buildViz({
   type: "rectangle",
   x: 50,
   y: 50,
@@ -72,10 +72,10 @@ const rectangleViz = createViz({
   </div>
 
   <script type="module">
-    import { createViz } from '/core/devize.js';
+    import { buildViz } from '/core/devize.js';
 
     // Create a simple rectangle visualization
-    const rectangleViz = createViz({
+    const rectangleViz = buildViz({
       type: "rectangle",
       x: 50,
       y: 50,

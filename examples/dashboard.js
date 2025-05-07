@@ -1,4 +1,4 @@
-const dashboard = createViz({
+const dashboard = buildViz({
   type: "dashboard",
   layout: { type: "grid", columns: 2 },
   views: [

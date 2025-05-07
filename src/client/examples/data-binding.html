@@ -96,7 +96,7 @@ const data = [
 ];
 
 // Create a bar chart with data binding
-const barChart = createViz({
+const barChart = buildViz({
   type: "barChart",
   data: data,
   x: { field: "product" },
@@ -143,7 +143,7 @@ const barChart = createViz({
       tooltip: true
     };
 
-    let barChart = createViz(currentSpec, document.getElementById("visualization-container"));
+    let barChart = buildViz(currentSpec, document.getElementById("visualization-container"));
 
     // Add event listeners for controls
     document.getElementById("sort-asc").addEventListener("click", function() {
@@ -180,7 +180,7 @@ const barChart = createViz({
 
       // Create a new chart with the updated data
       currentSpec.data = currentData;
-      barChart = createViz(currentSpec, container);
+      barChart = buildViz(currentSpec, container);
     }
   </script>
 </body>

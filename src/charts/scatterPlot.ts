@@ -1,6 +1,6 @@
 // Scatter plot implementation using a declarative approach
 import { VizSpec, VizInstance, DataField } from '../core/types';
-import { createViz } from '../core/devize';
+import { buildViz } from '../core/devize';
 import { applyTransforms } from '../data/transforms';
 
 // Import direct dependencies only
@@ -11,7 +11,7 @@ import '../components/axis'; // For axis component
 import '../components/legend'; // For legend component
 
 // Define the scatterPlot visualization type using the define type
-createViz({
+buildViz({
   type: "define",
   name: "scatterPlot",
   properties: {
@@ -202,5 +202,5 @@ export function createScatterPlot(spec: VizSpec): VizInstance {
   registerScatterPlotType();
 
   // Create the visualization using the registered type
-  return createViz(spec, container);
+  return buildViz(spec, container);
 }

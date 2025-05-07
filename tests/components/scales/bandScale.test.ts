@@ -1,9 +1,9 @@
-import { createViz } from '../../../src/core/devize';
+import { buildViz } from '../../../src/core/devize';
 import '../../../src/components/scales/bandScale';
 
 describe('Band Scale Component', () => {
   test('should map domain values to range values with proper bandwidth', () => {
-    const result = createViz({
+    const result = buildViz({
       type: 'bandScale',
       domain: ['A', 'B', 'C', 'D'],
       range: [0, 300],
@@ -53,7 +53,7 @@ describe('Band Scale Component', () => {
   });
 
   test('should handle different padding values', () => {
-    const result = createViz({
+    const result = buildViz({
       type: 'bandScale',
       domain: ['A', 'B', 'C'],
       range: [0, 300],
@@ -91,7 +91,7 @@ describe('Band Scale Component', () => {
   });
 
   test('should handle paddingInner and paddingOuter separately', () => {
-    const result = createViz({
+    const result = buildViz({
       type: 'bandScale',
       domain: ['A', 'B', 'C'],
       range: [0, 300],
@@ -130,7 +130,7 @@ describe('Band Scale Component', () => {
   });
 
   test('should handle empty domain', () => {
-    const result = createViz({
+    const result = buildViz({
       type: 'bandScale',
       domain: [],
       range: [0, 300],
@@ -148,7 +148,7 @@ describe('Band Scale Component', () => {
   });
 
   test('should handle single value domain', () => {
-    const result = createViz({
+    const result = buildViz({
       type: 'bandScale',
       domain: ['A'],
       range: [0, 300],
@@ -172,7 +172,7 @@ describe('Band Scale Component', () => {
   });
 
   test('should return NaN for values not in domain', () => {
-    const result = createViz({
+    const result = buildViz({
       type: 'bandScale',
       domain: ['A', 'B', 'C'],
       range: [0, 300],
@@ -189,7 +189,7 @@ describe('Band Scale Component', () => {
   });
 
   test('should provide ticks method that returns domain values', () => {
-    const result = createViz({
+    const result = buildViz({
       type: 'bandScale',
       domain: ['A', 'B', 'C'],
       range: [0, 300],

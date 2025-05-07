@@ -66,7 +66,7 @@ The `dataMap` component maps each item in a data array to a visualization compon
 The component applies the map function to each item in the data array and returns the resulting array of visualization components.
 
 ```typescript
-createViz({
+buildViz({
   type: "define",
   name: "dataMap",
   properties: {

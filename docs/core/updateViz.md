@@ -12,7 +12,7 @@ function updateViz(vizInstance: VizInstance, newSpec: VizSpec): VizInstance
 
 ### Parameters
 
-- `vizInstance`: The visualization instance to update (returned from a previous `createViz` call)
+- `vizInstance`: The visualization instance to update (returned from a previous `buildViz` call)
 - `newSpec`: The new specification properties to apply
 
 ### Return Value
@@ -23,7 +23,7 @@ function updateViz(vizInstance: VizInstance, newSpec: VizSpec): VizInstance
 
 ```javascript
 // Create initial visualization
-const myViz = createViz({
+const myViz = buildViz({
   type: "circle",
   cx: 150,
   cy: 150,

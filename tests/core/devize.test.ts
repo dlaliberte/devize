@@ -1,4 +1,4 @@
-import { createViz, updateViz } from '../../src/core/devize';
+import { buildViz, updateViz } from '../../src/core/devize';
 
 describe('Core Devize Framework', () => {
   // Setup DOM environment for tests
@@ -13,8 +13,8 @@ describe('Core Devize Framework', () => {
     document.body.removeChild(container);
   });
 
-  test('createViz should create a basic rectangle', () => {
-    const viz = createViz({
+  test('buildViz should create a basic rectangle', () => {
+    const viz = buildViz({
       type: 'rectangle',
       x: 10,
       y: 20,
@@ -34,7 +34,7 @@ describe('Core Devize Framework', () => {
   });
 
   test('updateViz should update properties of an existing visualization', () => {
-    const viz = createViz({
+    const viz = buildViz({
       type: 'rectangle',
       x: 10,
       y: 20,
@@ -54,8 +54,8 @@ describe('Core Devize Framework', () => {
     expect(updatedViz.element.getAttribute('x')).toBe('10'); // Unchanged
   });
 
-  test('createViz should handle nested components', () => {
-    const viz = createViz({
+  test('buildViz should handle nested components', () => {
+    const viz = buildViz({
       type: 'group',
       children: [
         {
@@ -83,10 +83,10 @@ describe('Core Devize Framework', () => {
     expect(viz.element.children[1].tagName.toLowerCase()).toBe('circle');
   });
 
-  test('createViz should handle missing properties', () => {
+  test('buildViz should handle missing properties', () => {
     // We need to check if the function throws or not
     try {
-      const viz = createViz({
+      const viz = buildViz({
         type: 'rectangle',
         x: 10,
         y: 20,

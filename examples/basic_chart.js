@@ -1,4 +1,4 @@
-const barChart = createViz({
+const barChart = buildViz({
   type: "barChart",
   data: salesData,
   x: { field: "product" },

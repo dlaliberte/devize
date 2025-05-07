@@ -1,7 +1,7 @@
-import { createViz } from '../core/devize';
+import { buildViz } from '../core/devize';
 
 // Define the legend component
-createViz({
+buildViz({
   type: "define",
   name: "legend",
   properties: {

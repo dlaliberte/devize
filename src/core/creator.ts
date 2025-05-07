@@ -12,7 +12,7 @@ import { getType, hasType } from './registry';
  * @param spec - The visualization specification
  * @returns A processed object with rendering functions
  */
-export function createViz(spec) {
+export function buildViz(spec) {
   // Handle null/undefined
   if (!spec) {
     throw new Error('Visualization specification cannot be null or undefined');

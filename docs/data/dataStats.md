@@ -60,7 +60,7 @@ The `dataStats` component calculates statistics from a data array based on a spe
 The component calculates the requested statistics from the specified field in the data array and makes the results available in the props passed to child components.
 
 ```typescript
-createViz({
+buildViz({
   type: "define",
   name: "dataStats",
   properties: {

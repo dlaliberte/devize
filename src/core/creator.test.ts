@@ -1,5 +1,5 @@
 import { describe, test, expect, beforeEach, vi, afterEach } from 'vitest';
-import { createViz } from './creator';
+import { buildViz } from './creator';
 import { registerType, getType, _resetRegistryForTesting } from './registry';
 import { VisualizationType } from './types';
 
@@ -64,8 +64,8 @@ describe('Visualization Creator', () => {
         renderCanvas: () => {}
       };
 
-      // createViz should return it unchanged
-      const result = createViz(processedObject);
+      // buildViz should return it unchanged
+      const result = buildViz(processedObject);
       expect(result).toBe(processedObject);
     });
 
@@ -80,7 +80,7 @@ describe('Visualization Creator', () => {
         height: 50
       };
 
-      const result = createViz(spec);
+      const result = buildViz(spec);
 
       // Should call the decompose function with the spec
       expect(mockDecompose).toHaveBeenCalledWith(spec);
@@ -108,7 +108,7 @@ describe('Visualization Creator', () => {
         r: 50
       };
 
-      createViz(spec);
+      buildViz(spec);
 
       // Should call decompose with the spec including default values
       expect(mockDecompose).toHaveBeenCalledWith({
@@ -139,7 +139,7 @@ describe('Visualization Creator', () => {
         stroke: 'blue'
       };
 
-      createViz(spec);
+      buildViz(spec);
 
       // Should call decompose with the spec including custom values
       expect(mockDecompose).toHaveBeenCalledWith({
@@ -160,7 +160,7 @@ describe('Visualization Creator', () => {
 
       // Should throw when missing required properties
       expect(() => {
-        createViz({
+        buildViz({
           type: 'text',
           x: 100
           // Missing y and text
@@ -195,7 +195,7 @@ describe('Visualization Creator', () => {
       });
 
       // Valid spec should not throw
-      createViz({
+      buildViz({
         type: 'customRect',
         width: 100,
         height: 50
@@ -204,7 +204,7 @@ describe('Visualization Creator', () => {
 
       // Invalid spec should throw
       expect(() => {
-        createViz({
+        buildViz({
           type: 'customRect',
           width: -10,
           height: 50
@@ -216,7 +216,7 @@ describe('Visualization Creator', () => {
   describe('Error Handling', () => {
     test('should throw for unknown visualization types', () => {
       expect(() => {
-        createViz({
+        buildViz({
           type: 'nonExistentType',
           width: 100,
           height: 50
@@ -227,19 +227,19 @@ describe('Visualization Creator', () => {
     test('should handle null or undefined specifications', () => {
       expect(() => {
         // @ts-ignore - Testing runtime behavior with invalid input
-        createViz(null);
+        buildViz(null);
       }).toThrow();
 
       expect(() => {
         // @ts-ignore - Testing runtime behavior with invalid input
-        createViz(undefined);
+        buildViz(undefined);
       }).toThrow();
     });
 
     test('should handle specifications without a type', () => {
       expect(() => {
         // @ts-ignore - Testing runtime behavior with invalid input
-        createViz({
+        buildViz({
           width: 100,
           height: 50
         });

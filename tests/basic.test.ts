@@ -1,4 +1,4 @@
-import { createViz } from '../src/core/devize';
+import { buildViz } from '../src/core/devize';
 import '../src/primitives/shapes';
 import '../src/primitives/containers';
 
@@ -15,7 +15,7 @@ describe('Basic Visualization Tests', () => {
   });
 
   test('should create a rectangle', () => {
-    const viz = createViz({
+    const viz = buildViz({
       type: 'rectangle',
       x: 10,
       y: 20,
@@ -30,7 +30,7 @@ describe('Basic Visualization Tests', () => {
   });
 
   test('should create a group with children', () => {
-    const viz = createViz({
+    const viz = buildViz({
       type: 'group',
       children: [
         {

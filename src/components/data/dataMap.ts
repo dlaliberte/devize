@@ -1,10 +1,10 @@
-import { createViz } from '../../core/devize';
+import { buildViz } from '../../core/devize';
 import { hasType } from '../../core/registry';
 
 // Only define the dataMap component if it's not already registered
 if (!hasType('dataMap')) {
   // Define a more flexible dataMap component
-  createViz({
+  buildViz({
     type: "define",
     name: "dataMap",
     properties: {

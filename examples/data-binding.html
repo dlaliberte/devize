@@ -106,7 +106,7 @@ let currentSpec = {
   tooltip: true
 };
 
-let barChart = createViz(currentSpec, document.getElementById("visualization-container"));
+let barChart = buildViz(currentSpec, document.getElementById("visualization-container"));
 
 // Add event listeners for controls
 document.getElementById("sort-asc").addEventListener("click", function() {
@@ -143,7 +143,7 @@ function updateChart() {
 
   // Create a new chart with the updated data
   currentSpec.data = currentData;
-  barChart = createViz(currentSpec, container);
+  barChart = buildViz(currentSpec, container);
 }</code></pre>
 
     <a href="/examples/" class="back-link">← Back to Examples</a>

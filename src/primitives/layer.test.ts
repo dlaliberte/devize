@@ -3,9 +3,9 @@ import { getType } from '../core/registry';
 import { setupTestEnvironment } from '../test/setup';
 import { registerLayerType } from './layer';
 
-// Mock createViz to ensure it doesn't try to use the real implementation
+// Mock buildViz to ensure it doesn't try to use the real implementation
 vi.mock('../core/creator', () => ({
-  createViz: vi.fn((spec) => {
+  buildViz: vi.fn((spec) => {
     // If this is a define type, manually call the implementation
     if (spec.type === 'define') {
       const defineType = require('../core/registry').getType('define');

@@ -5,7 +5,7 @@ Devize supports several primitive visualization types that can be used as buildi
 ## Rectangle
 
 ```javascript
-createViz({
+buildViz({
   type: "rectangle",
   x: 50,
   y: 50,
@@ -34,7 +34,7 @@ createViz({
 ## Circle
 
 ```javascript
-createViz({
+buildViz({
   type: "circle",
   cx: 150,
   cy: 150,
@@ -59,7 +59,7 @@ createViz({
 ## Line
 
 ```javascript
-createViz({
+buildViz({
   type: "line",
   x1: 50,
   y1: 200,
@@ -86,7 +86,7 @@ createViz({
 ## Text
 
 ```javascript
-createViz({
+buildViz({
   type: "text",
   x: 100,
   y: 100,

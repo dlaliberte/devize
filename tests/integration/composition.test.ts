@@ -1,4 +1,4 @@
-import { createViz } from '../../src/core/devize';
+import { buildViz } from '../../src/core/devize';
 import '../../src/primitives/shapes';
 import '../../src/primitives/containers';
 
@@ -16,7 +16,7 @@ describe('Visualization Composition', () => {
 
   test('should compose multiple visualizations', () => {
     // Create a complex visualization with multiple components
-    const viz = createViz({
+    const viz = buildViz({
       type: 'group',
       children: [
         // Background

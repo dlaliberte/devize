@@ -1,4 +1,4 @@
-import { createViz } from '../../src/core/devize';
+import { buildViz } from '../../src/core/devize';
 import '../../src/charts/barChart';
 
 describe('Bar Chart', () => {
@@ -20,7 +20,7 @@ describe('Bar Chart', () => {
       { product: 'Product C', revenue: 340 }
     ];
 
-    const chart = createViz({
+    const chart = buildViz({
       type: 'barChart',
       data: data,
       x: { field: 'product' },
@@ -51,7 +51,7 @@ describe('Bar Chart', () => {
       { product: 'Product C', revenue: 340, category: 'Electronics' }
     ];
 
-    const chart = createViz({
+    const chart = buildViz({
       type: 'barChart',
       data: data,
       x: { field: 'product' },

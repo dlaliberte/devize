@@ -266,7 +266,7 @@ Devize provides a powerful mechanism for defining new visualization types declar
 
 ```json
 // Define a new visualization type
-createViz({
+buildViz({
   type: "define",
   name: "labeledCircle",
   properties: {
@@ -309,7 +309,7 @@ createViz({
 The extend property allows inheriting from an existing visualization type:
 
 ```json
-createViz({
+buildViz({
   type: "define",
   name: "horizontalBarChart",
   extend: "barChart",
@@ -360,7 +360,7 @@ Devize supports multiple types of data sources:
 #### 6.2.1 Inline Data
 
 ```javascript
-const vizWithInlineData = createViz({
+const vizWithInlineData = buildViz({
   type: "barChart",
   data: {
     type: "inline",
@@ -386,7 +386,7 @@ registerData("salesData", [
 ]);
 
 // Create visualization with referenced data
-const vizWithReferencedData = createViz({
+const vizWithReferencedData = buildViz({
   type: "barChart",
   data: {
     type: "reference",
@@ -400,7 +400,7 @@ const vizWithReferencedData = createViz({
 #### 6.2.3 URL Data
 
 ```javascript
-const vizWithUrlData = createViz({
+const vizWithUrlData = buildViz({
   type: "barChart",
   data: {
     type: "url",
@@ -443,7 +443,7 @@ Visualization templates separate the structure of a visualization from its data:
 
 ```javascript
 // Create a template
-const barChartTemplate = createVizTemplate({
+const barChartTemplate = buildVizTemplate({
   type: "barChart",
   data: {
     type: "reference",

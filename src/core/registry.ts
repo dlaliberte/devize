@@ -1,82 +1,49 @@
-// Registry for visualization types
-import { VisualizationType } from './types';
-
-console.log('Registry module initializing');
-const typeRegistry: Record<string, VisualizationType> = {};
+import { TypeDefinition, Registry } from './types';
 
 /**
- * Register a visualization type
- * @param type The visualization type to register
+ * Registry for visualization types
  */
-export function registerType(type: VisualizationType): void {
-  if (!type || typeof type !== 'object') {
-    console.error('Invalid visualization type provided to registerType');
-    return;
+export class TypeRegistry implements Registry {
+  private types: Map<string, TypeDefinition> = new Map();
+
+  // Normal registration through define
+  registerType(type: TypeDefinition): void {
+    this.types.set(type.name, type);
   }
 
-  if (!type.name || typeof type.name !== 'string') {
-    console.error('Visualization type must have a valid name');
-    return;
+  // Direct registration for bootstrapping
+  registerTypeDirectly(spec: any): void {
+    const type: TypeDefinition = {
+      name: spec.name,
+      properties: spec.properties,
+      implementation: spec.implementation,
+      extend: spec.extend
+    };
+    this.types.set(type.name, type);
   }
 
-  if (!type.decompose || typeof type.decompose !== 'function') {
-    console.error(`Visualization type '${type.name}' must have a decompose function`);
-    return;
+  hasType(name: string): boolean {
+    return this.types.has(name);
   }
 
-  console.log(`Registering visualization type: ${type.name}`);
-  if (typeRegistry[type.name]) {
-    console.warn(`Visualization type '${type.name}' is already registered. It will be overwritten.`);
+  getType(name: string): TypeDefinition | undefined {
+    return this.types.get(name);
   }
-  typeRegistry[type.name] = type;
-  console.log(`Current registry contains: ${Object.keys(typeRegistry).join(', ')}`);
-}
 
-/**
- * Get a visualization type by name
- * @param name The name of the visualization type
- * @returns The visualization type or undefined if not found
- */
-export function getType(name: string): VisualizationType | undefined {
-  return typeRegistry[name];
-}
-
-/**
- * Check if a visualization type is registered
- * @param name The name of the visualization type
- * @returns True if the type is registered, false otherwise
- */
-export function hasType(name: string): boolean {
-  return !!typeRegistry[name];
-}
-
-/**
- * Get all registered visualization types
- * @returns An array of all registered visualization types
- */
-export function getAllTypes(): VisualizationType[] {
-  return Object.values(typeRegistry);
-}
-
-/**
- * Remove a visualization type from the registry
- * @param name The name of the visualization type to remove
- * @returns True if the type was removed, false if it wasn't registered
- */
-export function removeType(name: string): boolean {
-  if (!typeRegistry[name]) {
-    return false;
+  getAllTypes(): Record<string, TypeDefinition> {
+    const result: Record<string, TypeDefinition> = {};
+    this.types.forEach((value, key) => {
+      result[key] = value;
+    });
+    return result;
   }
-  delete typeRegistry[name];
-  return true;
 }
 
-/**
- * Reset the registry - for testing purposes only
- * @internal This function should only be used in tests
- */
-export function _resetRegistryForTesting(): void {
-  Object.keys(typeRegistry).forEach(key => {
-    delete typeRegistry[key];
-  });
-}
+// Singleton instance
+export const registry = new TypeRegistry();
+
+// Export for convenience
+export const registerType = registry.registerType.bind(registry);
+export const hasType = registry.hasType.bind(registry);
+export const getType = registry.getType.bind(registry);
+export const getAllTypes = registry.getAllTypes.bind(registry);

@@ -47,7 +47,7 @@
   window.hideTooltip = hideTooltip;
 
   // Define the tooltip primitive
-  createViz({
+  buildViz({
       type: "define",
       name: "tooltip",
       properties: {

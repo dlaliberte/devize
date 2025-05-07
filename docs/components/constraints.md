@@ -7,7 +7,7 @@ Constraints in Devize help control the layout and appearance of visualizations.
 Constraints are specified in the `constraints` array of a visualization specification:
 
 ```javascript
-createViz({
+buildViz({
   type: "group",
   children: [
     {

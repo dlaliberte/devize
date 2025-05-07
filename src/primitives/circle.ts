@@ -8,14 +8,14 @@
  */
 
 import { registerDefineType } from '../core/define';
-import { createViz } from '../core/creator';
+import { buildViz } from '../core/creator';
 import { createSVGElement, applyAttributes } from '../renderers/svgUtils';
 
 // Make sure define type is registered
 registerDefineType();
 
-// Define the circle type using createViz
-createViz({
+// Define the circle type using buildViz
+buildViz({
   type: "define",
   name: "circle",
   properties: {

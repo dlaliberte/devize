@@ -5,9 +5,9 @@ import { createScale } from './scale';
 import './linearScale'; // Import to ensure the visualization types are registered
 import './bandScale';   // Import to ensure the visualization types are registered
 
-// Mock createViz to avoid actual rendering
+// Mock buildViz to avoid actual rendering
 vi.mock('../../core/creator', () => ({
-    createViz: vi.fn((spec) => {
+    buildViz: vi.fn((spec) => {
       // For linearScale
       if (spec.type === 'linearScale') {
         const [domainMin, domainMax] = spec.domain;

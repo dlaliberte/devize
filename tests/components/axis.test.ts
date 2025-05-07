@@ -1,4 +1,4 @@
-import { createViz } from '../../src/core/devize';
+import { buildViz } from '../../src/core/devize';
 import { vi } from 'vitest';
 import '../../src/components/axis';
 import '../../src/primitives/shapes';
@@ -28,7 +28,7 @@ describe('Axis Component', () => {
 
     // This shouldn't throw an error
     expect(() => {
-      createViz({
+      buildViz({
         type: 'group',
         children: [axisSpec],
         container
@@ -41,7 +41,7 @@ describe('Axis Component', () => {
     const formatter = vi.fn(value => `$${value}`);
 
     // Create a visualization with an axis using the formatter
-    createViz({
+    buildViz({
       type: 'group',
       children: [
         {

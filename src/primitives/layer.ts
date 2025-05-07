@@ -7,7 +7,7 @@
  * Last Modified: [Date]
  */
 
-import { createViz } from '../core/creator';
+import { buildViz } from '../core/creator';
 import { registerDefineType } from '../core/define';
 import { getType } from '../core/registry';
 
@@ -17,7 +17,7 @@ export function registerLayerType() {
   registerDefineType();
 
   // Define the layer visualization type
-  createViz({
+  buildViz({
     type: "define",
     name: "layer",
     properties: {

@@ -7,29 +7,108 @@
  * Last Modified: [Date]
  */
 
-import { createViz } from './creator';
-import { isSVGContainer, isCanvasContainer } from './utils';
+import { VisualizationSpec, RenderableVisualization, RenderedResult } from './types';
+import { buildViz } from './builder';
 
 /**
- * Render a visualization specification to a container
- *
- * @param spec - The visualization specification
- * @param container - The DOM container to render into
- * @returns The rendered result
+ * Ensure an SVG element exists in a container
  */
-export function renderViz(spec, container) {
+export function ensureSvg(container: HTMLElement): SVGElement {
+  // Check if the container already has an SVG element
+  let svg = container.querySelector('svg');
+
+  // If not, create one
+  if (!svg) {
+    svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('width', '100%');
+    svg.setAttribute('height', '100%');
+    container.appendChild(svg);
+  }
+
+  return svg as SVGElement;
+}
+
+/**
+ * Check if a container is an SVG container
+ */
+function isSVGContainer(container: HTMLElement): boolean {
+  return container.tagName.toLowerCase() === 'svg';
+}
+
+/**
+ * Check if a container is a Canvas container
+ */
+function isCanvasContainer(container: HTMLElement): boolean {
+  return container.tagName.toLowerCase() === 'canvas';
+}
+
+/**
+ * Render a visualization to a container
+ */
+export function renderViz(
+  viz: VisualizationSpec | RenderableVisualization,
+  container: HTMLElement
+): RenderedResult {
   // Process the visualization specification
-  const processed = createViz(spec);
+  const renderable = buildViz(viz);
 
   // Determine the rendering backend based on the container
   if (isSVGContainer(container)) {
-    return renderToSVG(processed, container);
+    // Direct SVG rendering
+    const element = renderable.renderToSvg(container as SVGElement);
+    return {
+      element,
+      update: (newSpec: VisualizationSpec) => {
+        const updatedViz = renderable.update(newSpec);
+        return renderViz(updatedViz, container);
+      },
+      cleanup: () => {
+        if (element.parentNode) {
+          element.parentNode.removeChild(element);
+        }
+      }
+    };
   } else if (isCanvasContainer(container)) {
-    return renderToCanvas(processed, container);
+    // Canvas rendering
+    const ctx = (container as HTMLCanvasElement).getContext('2d');
+    if (!ctx) {
+      throw new Error('Could not get 2D context from canvas element');
+    }
+
+    // Clear the canvas
+    ctx.clearRect(0, 0, container.clientWidth, container.clientHeight);
+
+    // Render to canvas
+    renderable.renderToCanvas(ctx);
+
+    // Return result
+    return {
+      element: container,
+      update: (newSpec: VisualizationSpec) => {
+        const updatedViz = renderable.update(newSpec);
+        return renderViz(updatedViz, container);
+      },
+      cleanup: () => {
+        // Clear the canvas
+        if (ctx) {
+          ctx.clearRect(0, 0, container.clientWidth, container.clientHeight);
+        }
+      }
+    };
   } else {
-    // Default to SVG rendering
-    return renderToSVG(processed, prepareDefaultContainer(container));
+    // Default to SVG rendering in a container
+    return renderable.render(container);
   }
+}
+
+/**
+ * Update an existing visualization
+ */
+export function updateViz(
+  vizInstance: RenderableVisualization,
+  newSpec: VisualizationSpec
+): RenderableVisualization {
+  return vizInstance.update(newSpec);
 }
 
 /**

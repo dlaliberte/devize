@@ -1,4 +1,4 @@
-import { createViz, updateViz } from '../../src/core/devize';
+import { buildViz, updateViz } from '../../src/core/devize';
 import '../../src/primitives/shapes';
 import '../../src/primitives/containers';
 
@@ -14,9 +14,9 @@ describe('Core Framework', () => {
     document.body.removeChild(container);
   });
 
-  test('createViz should create basic shapes', () => {
+  test('buildViz should create basic shapes', () => {
     // Rectangle
-    const rect = createViz({
+    const rect = buildViz({
       type: 'rectangle',
       x: 10,
       y: 20,
@@ -30,7 +30,7 @@ describe('Core Framework', () => {
     expect(rect.element.tagName.toLowerCase()).toBe('rect');
 
     // Circle
-    const circle = createViz({
+    const circle = buildViz({
       type: 'circle',
       cx: 50,
       cy: 50,
@@ -43,7 +43,7 @@ describe('Core Framework', () => {
     expect(circle.element.tagName.toLowerCase()).toBe('circle');
 
     // Line
-    const line = createViz({
+    const line = buildViz({
       type: 'line',
       x1: 0,
       y1: 0,
@@ -57,7 +57,7 @@ describe('Core Framework', () => {
     expect(line.element.tagName.toLowerCase()).toBe('line');
 
     // Text
-    const text = createViz({
+    const text = buildViz({
       type: 'text',
       x: 50,
       y: 50,
@@ -70,8 +70,8 @@ describe('Core Framework', () => {
     expect(text.element.tagName.toLowerCase()).toBe('text');
   });
 
-  test('createViz should create groups with children', () => {
-    const group = createViz({
+  test('buildViz should create groups with children', () => {
+    const group = buildViz({
       type: 'group',
       children: [
         {
@@ -102,7 +102,7 @@ describe('Core Framework', () => {
 
   test('updateViz should update properties', () => {
     // Create initial visualization
-    const rect = createViz({
+    const rect = buildViz({
       type: 'rectangle',
       x: 10,
       y: 20,

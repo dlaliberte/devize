@@ -1,11 +1,11 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { getType, _resetRegistryForTesting } from '../core/registry';
 import { registerDefineType } from '../core/define';
-import { createViz } from '../core/creator';
+import { buildViz } from '../core/creator';
 
-// Mock createViz to capture calls
+// Mock buildViz to capture calls
 vi.mock('../core/creator', () => ({
-  createViz: vi.fn()
+  buildViz: vi.fn()
 }));
 
 // Reset registry and register define type before each test

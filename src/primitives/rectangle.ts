@@ -7,11 +7,11 @@
  * Last Modified: [Date]
  */
 
-import { createViz } from '../core/devize.js';
+import { buildViz } from '../core/devize.js';
 import { createSVGElement, applyAttributes } from '../renderers/svgUtils.js';
 
 // Define the rectangle type
-createViz({
+buildViz({
   type: "define",
   name: "rectangle",
   properties: {

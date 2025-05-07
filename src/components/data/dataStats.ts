@@ -1,7 +1,7 @@
 // Data statistics component
-import { createViz } from '../../core/devize';
+import { buildViz } from '../../core/devize';
 
-createViz({
+buildViz({
   type: "define",
   name: "dataStats",
   properties: {

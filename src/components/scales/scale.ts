@@ -1,5 +1,5 @@
 // Base scale functionality
-import { createViz } from '../../core/creator';
+import { buildViz } from '../../core/creator';
 import './linearScale'; // Import to ensure the visualization types are registered
 import './bandScale';   // Import to ensure the visualization types are registered
 
@@ -25,7 +25,7 @@ export function createScale(type: string, options: any): Scale {
 
   switch (type) {
     case 'linear':
-      scaleViz = createViz({
+      scaleViz = buildViz({
         type: 'linearScale',
         domain: options.domain,
         range: options.range,
@@ -36,7 +36,7 @@ export function createScale(type: string, options: any): Scale {
       break;
 
     case 'band':
-      scaleViz = createViz({
+      scaleViz = buildViz({
         type: 'bandScale',
         domain: options.domain,
         range: options.range,
@@ -55,7 +55,7 @@ export function createScale(type: string, options: any): Scale {
       // For now, use linear scale as placeholder
       // TODO: Implement proper log scale
       console.warn('Log scale is not fully implemented yet, using linear scale as fallback');
-      scaleViz = createViz({
+      scaleViz = buildViz({
         type: 'linearScale',
         domain: options.domain,
         range: options.range,
@@ -67,7 +67,7 @@ export function createScale(type: string, options: any): Scale {
       // For now, use linear scale as placeholder
       // TODO: Implement proper time scale
       console.warn('Time scale is not fully implemented yet, using linear scale as fallback');
-      scaleViz = createViz({
+      scaleViz = buildViz({
         type: 'linearScale',
         domain: options.domain,
         range: options.range,
@@ -108,7 +108,7 @@ function createOrdinalScale(options: {
 }
 
 // Export a unified scale component that can create any type of scale
-createViz({
+buildViz({
   type: "define",
   name: "scale",
   properties: {

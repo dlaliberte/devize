@@ -1,7 +1,7 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { registerType, getType, hasType, _resetRegistryForTesting } from '../core/registry';
 import { registerDefineType } from '../core/define';
-import { createViz } from '../core/creator';
+import { buildViz } from '../core/creator';
 
 // Create a mock document object for SVG creation
 global.document = {
@@ -12,9 +12,9 @@ global.document = {
   }))
 } as any;
 
-// Mock createViz to capture calls
+// Mock buildViz to capture calls
 vi.mock('../core/creator', () => ({
-  createViz: vi.fn((spec) => {
+  buildViz: vi.fn((spec) => {
     // If this is the define type for path, manually register it
     if (spec.type === 'define' && spec.name === 'path') {
       const implementation = spec.implementation;
@@ -46,7 +46,7 @@ beforeEach(() => {
   registerDefineType();
 
   // Manually register the path type
-  createViz({
+  buildViz({
     type: "define",
     name: "path",
     properties: {

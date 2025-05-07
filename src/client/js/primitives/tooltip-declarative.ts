@@ -1,5 +1,5 @@
 import { registerType } from '../../../core/registry';
-import { createViz } from '../../../core/devize';
+import { buildViz } from '../../../core/devize';
 
 // Register the tooltip visualization type
 registerType({
@@ -126,7 +126,7 @@ registerType({
 
 // Helper function to create a tooltip
 export function createTooltip(props, container) {
-  return createViz({
+  return buildViz({
     type: "tooltip",
     ...props
   }, container);

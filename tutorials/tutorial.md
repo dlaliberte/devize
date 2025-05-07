@@ -13,7 +13,7 @@ npm install devize
 Then import it in your project:
 
 ```typescript
-import { createViz, renderViz, registerType } from 'devize';
+import { buildViz, renderViz, registerType } from 'devize';
 ```
 
 ## 2. Creating Your First Visualization
@@ -29,7 +29,7 @@ const data = [
 ];
 
 // Create a simple point visualization
-const pointViz = createViz({
+const pointViz = buildViz({
   type: "pointGroup",
   data: data,
   x: { field: "x" },
@@ -53,7 +53,7 @@ Let's enhance our visualization by adding text labels:
 
 ```typescript
 // Create a visualization with points and labels
-const labeledPointViz = createViz({
+const labeledPointViz = buildViz({
   type: "group",
   children: [
     {
@@ -92,7 +92,7 @@ Now, let's create a visualization with different shapes:
 
 ```typescript
 // Create a visualization with different shapes
-const shapesViz = createViz({
+const shapesViz = buildViz({
   type: "group",
   children: [
     {
@@ -143,7 +143,7 @@ Let's explore how constraints can help with layout:
 
 ```typescript
 // Create a visualization with constrained layout
-const constrainedViz = createViz({
+const constrainedViz = buildViz({
   type: "group",
   children: [
     {
@@ -198,7 +198,7 @@ const salesData = [
 ];
 
 // Create a bar chart
-const barChart = createViz({
+const barChart = buildViz({
   type: "barChart",
   data: salesData,
   x: { field: "product", type: "ordinal" },
@@ -222,7 +222,7 @@ Let's customize our bar chart:
 
 ```typescript
 // Create a customized bar chart
-const customBarChart = createViz({
+const customBarChart = buildViz({
   type: "barChart",
   data: salesData,
   x: {
@@ -285,7 +285,7 @@ const populationData = [
 ];
 
 // Create a scatter plot
-const scatterPlot = createViz({
+const scatterPlot = buildViz({
   type: "scatterPlot",
   data: populationData,
   x: {
@@ -334,7 +334,7 @@ Let's create a dashboard with multiple visualizations:
 
 ```typescript
 // Create a dashboard with multiple visualizations
-const dashboard = createViz({
+const dashboard = buildViz({
   type: "dashboard",
   layout: { type: "grid", columns: 2, rows: 2, gap: 20 },
   views: [
@@ -390,7 +390,7 @@ Let's add some basic interactivity:
 
 ```typescript
 // Create an interactive visualization
-const interactiveViz = createViz({
+const interactiveViz = buildViz({
   type: "barChart",
   data: salesData,
   x: { field: "product" },
@@ -505,7 +505,7 @@ const radialBarChartType = {
 registerType(radialBarChartType);
 
 // Create a visualization using the custom type
-const radialBarChart = createViz({
+const radialBarChart = buildViz({
   type: "radialBarChart",
   data: salesData,
   angle: { field: "product" },
@@ -533,7 +533,7 @@ Let's create a simple labeled circle visualization:
 
 ```javascript
 // Define a new visualization type
-createViz({
+buildViz({
   type: "define",
   name: "labeledCircle",
   properties: {
@@ -573,7 +573,7 @@ createViz({
 }, document.getElementById("definitions-container"));
 
 // Now use the new visualization type
-const labeledCircleViz = createViz({
+const labeledCircleViz = buildViz({
   type: "labeledCircle",
   cx: 100,
   cy: 100,
@@ -589,7 +589,7 @@ You can also extend existing visualization types:
 
 ```javascript
 // Define a horizontal bar chart by extending the standard bar chart
-createViz({
+buildViz({
   type: "define",
   name: "horizontalBarChart",
   extend: "barChart",
@@ -602,7 +602,7 @@ createViz({
 }, document.getElementById("definitions-container"));
 
 // Use the new horizontal bar chart
-const horizontalBarChart = createViz({
+const horizontalBarChart = buildViz({
   type: "horizontalBarChart",
   data: salesData,
   x: { field: "revenue" },

@@ -1,12 +1,12 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { registerType, getType, hasType, _resetRegistryForTesting } from '../core/registry';
 import { registerDefineType } from '../core/define';
-import { createViz } from '../core/creator';
+import { buildViz } from '../core/creator';
 
-// Mock createViz to capture calls and execute define implementations
+// Mock buildViz to capture calls and execute define implementations
 vi.mock('../core/creator', () => ({
-  createViz: vi.fn((spec) => {
-    console.log('Mock createViz called with type:', spec.type);
+  buildViz: vi.fn((spec) => {
+    console.log('Mock buildViz called with type:', spec.type);
 
     // If this is a define call, manually register the type
     if (spec.type === 'define') {
@@ -54,7 +54,7 @@ beforeEach(() => {
   console.log('Define type registered:', hasType('define'));
 
   // Register the text type with transform support
-  createViz({
+  buildViz({
     type: "define",
     name: "text",
     properties: {

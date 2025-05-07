@@ -39,37 +39,8 @@ The Devize system consists of several core components that work together:
 ```
 
 ```mermaid
-graph TD
-    Devize --> TypeRegistry
-    Devize --> VisualizationBuilder
-    Devize --> VisualizationRenderer
-    Devize --> TypeDefinitionSystem
-    Devize --> PrimitiveVisualizations
-```
-
-```mermaid
-
-classDiagram
-    class Devize {
-        +buildViz(spec: VisualizationSpec): RenderableVisualization
-        +renderViz(spec: VisualizationSpec | RenderableVisualization, container: HTMLElement): RenderedResult
-        +updateViz(vizInstance: RenderableVisualization, newSpec: VisualizationSpec): RenderableVisualization
-        +registerType(typeDefinition: TypeDefinition): void
-        +hasType(typeName: string): boolean
-        +getType(typeName: string): TypeDefinition | undefined
-        +registerData(name: string, data: any): void
-        +getData(name: string): any
-        +ensureSvg(container: HTMLElement): SVGElement
-        +initializeLibrary(): void
-    }
-    Devize --> TypeRegistry : Manages visualization types
-    Devize --> VisualizationBuilder : Processes specifications
-    Devize --> VisualizationRenderer : Renders visualizations
-    Devize --> TypeDefinitionSystem : Defines new types
-    Devize --> PrimitiveVisualizations : Built-in types
 
 ```
-
 
 ## Main Entry Point: `devize.ts`
 

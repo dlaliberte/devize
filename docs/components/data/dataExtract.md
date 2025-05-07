@@ -51,7 +51,7 @@ const salesData = [
 The component extracts the specified field from each item in the data array and makes the resulting array available under the specified name in the props passed to child components.
 
 ```typescript
-createViz({
+buildViz({
   type: "define",
   name: "dataExtract",
   properties: {

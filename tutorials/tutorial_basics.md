@@ -26,13 +26,13 @@ Let's create a simple visualization - a colored rectangle. With Devize, you defi
 
 ```javascript
 // Import the library (if using modules)
-import { createViz, renderViz } from 'devize';
+import { buildViz, renderViz } from 'devize';
 
 // Create a container element
 const container = document.getElementById('visualization-container');
 
 // Create a simple rectangle visualization
-const rectangleViz = createViz({
+const rectangleViz = buildViz({
   type: "rectangle",
   width: 200,
   height: 100,
@@ -54,7 +54,7 @@ Devize provides several primitive visualization types that you can use as buildi
 ### Rectangles
 
 ```javascript
-const rect = createViz({
+const rect = buildViz({
   type: "rectangle",
   x: 50,      // Position from left
   y: 50,      // Position from top
@@ -72,7 +72,7 @@ renderViz(rect, container);
 ### Circles
 
 ```javascript
-const circle = createViz({
+const circle = buildViz({
   type: "circle",
   cx: 150,    // Center x-coordinate
   cy: 100,    // Center y-coordinate
@@ -88,7 +88,7 @@ renderViz(circle, container);
 ### Lines
 
 ```javascript
-const line = createViz({
+const line = buildViz({
   type: "line",
   x1: 50,     // Start x-coordinate
   y1: 50,     // Start y-coordinate
@@ -104,7 +104,7 @@ renderViz(line, container);
 ### Text
 
 ```javascript
-const text = createViz({
+const text = buildViz({
   type: "text",
   x: 100,
   y: 100,
@@ -133,7 +133,7 @@ Common styling properties for visualizations include:
 - `visible`: Whether the element is visible (true/false)
 
 ```javascript
-const styledRect = createViz({
+const styledRect = buildViz({
   type: "rectangle",
   x: 50,
   y: 150,
@@ -154,7 +154,7 @@ renderViz(styledRect, container);
 The `group` primitive allows you to combine multiple visualizations into a single unit:
 
 ```javascript
-const group = createViz({
+const group = buildViz({
   type: "group",
   children: [
     {
@@ -201,7 +201,7 @@ const data = [
 ];
 
 // Create a group with bars based on data
-const barChart = createViz({
+const barChart = buildViz({
   type: "group",
   children: data.map((item, index) => ({
     type: "rectangle",
@@ -225,7 +225,7 @@ This creates a simple bar chart where each bar's height is determined by the cor
 Let's enhance our bar chart by adding labels:
 
 ```javascript
-const labeledBarChart = createViz({
+const labeledBarChart = buildViz({
   type: "group",
   children: [
     // First, add the bars
@@ -284,7 +284,7 @@ const updatedData = [
 ];
 
 // Create updated visualization
-const updatedBarChart = createViz({
+const updatedBarChart = buildViz({
   type: "group",
   children: updatedData.map((item, index) => ({
     type: "rectangle",
@@ -327,7 +327,7 @@ const colorScale = {
 };
 
 // Create a scatter plot
-const scatterPlot = createViz({
+const scatterPlot = buildViz({
   type: "group",
   children: scatterData.map(point => ({
     type: "circle",
@@ -350,7 +350,7 @@ One of Devize's powerful features is the ability to define new visualization typ
 
 ```javascript
 // Define a new visualization type
-createViz({
+buildViz({
   type: "define",
   name: "labeledCircle",
   properties: {
@@ -386,7 +386,7 @@ createViz({
 });
 
 // Use the new type
-const labeledCircle = createViz({
+const labeledCircle = buildViz({
   type: "labeledCircle",
   cx: 150,
   cy: 100,

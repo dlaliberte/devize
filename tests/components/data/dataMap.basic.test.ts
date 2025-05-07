@@ -1,4 +1,4 @@
-import { createViz } from '../../../src/core/devize';
+import { buildViz } from '../../../src/core/devize';
 import '../../../src/components/data/dataMap';
 
 describe('DataMap Basic Tests', () => {
@@ -9,7 +9,7 @@ describe('DataMap Basic Tests', () => {
       { id: 3, name: 'Charlie', score: 78 }
     ];
 
-    const result = createViz({
+    const result = buildViz({
       type: 'dataMap',
       data: data,
       map: (item) => ({

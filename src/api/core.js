@@ -1,5 +1,5 @@
 // Create a visualization from a specification
-function createViz(spec, container) {
+function buildViz(spec, container) {
   // Parse and validate spec
   const parsedSpec = parseSpec(spec);
 

@@ -1,4 +1,4 @@
-import { createViz } from '../../../src/core/devize';
+import { buildViz } from '../../../src/core/devize';
 import '../../../src/components/data/dataMap';
 
 describe('DataMap Component', () => {
@@ -9,7 +9,7 @@ describe('DataMap Component', () => {
       { id: 3, name: 'Charlie', score: 78 }
     ];
 
-    const result = createViz({
+    const result = buildViz({
       type: 'dataMap',
       data: data,
       map: (item) => ({
@@ -52,7 +52,7 @@ describe('DataMap Component', () => {
   test('dataMap should provide index and array to map function', () => {
     const data = [10, 20, 30, 40];
 
-    const result = createViz({
+    const result = buildViz({
       type: 'dataMap',
       data: data,
       map: (item, index, array) => ({
@@ -93,7 +93,7 @@ describe('DataMap Component', () => {
   });
 
   test('dataMap should handle empty data array', () => {
-    const result = createViz({
+    const result = buildViz({
       type: 'dataMap',
       data: [],
       map: (item) => ({ value: item })
@@ -116,7 +116,7 @@ describe('DataMap Component', () => {
   });
 
   test('dataMap should handle non-array data', () => {
-    const result = createViz({
+    const result = buildViz({
       type: 'dataMap',
       data: 'not an array',
       map: (item) => ({ value: item })

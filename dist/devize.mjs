@@ -687,7 +687,7 @@ export {
   q as createRectangle,
   yt as createScatterPlot,
   O as createText,
-  $ as createViz,
+  $ as buildViz,
   F as ensureSvg,
   st as getAllTypes,
   U as getType,

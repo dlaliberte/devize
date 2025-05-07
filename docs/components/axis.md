@@ -96,7 +96,7 @@ The axis appearance can be customized by modifying the implementation or by wrap
 
 ```javascript
 // Define a custom axis with different styling
-createViz({
+buildViz({
   type: "define",
   name: "customAxis",
   properties: {

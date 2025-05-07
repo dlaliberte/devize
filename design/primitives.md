@@ -33,7 +33,7 @@ All primitive shapes follow this implementation pattern:
 
 ```javascript
 // Definition (no container)
-const shapeSpec = createViz({
+const shapeSpec = buildViz({
   type: "rectangle",
   width: 100,
   height: 50,
@@ -41,7 +41,7 @@ const shapeSpec = createViz({
 });
 
 // Composition (no container)
-const compositeSpec = createViz({
+const compositeSpec = buildViz({
   type: "group",
   children: [shapeSpec, otherShapeSpec]
 });
@@ -141,7 +141,7 @@ function renderViz(vizSpec, container) {
 
 ```javascript
 function createBarChart(data) {
-  return createViz({
+  return buildViz({
     type: "group",
     children: data.map((item, index) => ({
       type: "rectangle",
@@ -165,7 +165,7 @@ renderViz(barChartSpec, document.getElementById("chart-container"));
 
 ```javascript
 function createLabeledCircle(cx, cy, r, label) {
-  return createViz({
+  return buildViz({
     type: "group",
     children: [
       {

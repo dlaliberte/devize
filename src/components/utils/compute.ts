@@ -1,7 +1,7 @@
 // Compute component for derived values
-import { createViz } from '../../core/devize';
+import { buildViz } from '../../core/devize';
 
-createViz({
+buildViz({
   type: "define",
   name: "compute",
   properties: {

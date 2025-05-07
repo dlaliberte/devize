@@ -13,10 +13,10 @@ Visualization templates allow you to create reusable visualization structures th
 ### Creating a Template
 
 ```javascript
-import { createVizTemplate, renderVizTemplate } from 'devize';
+import { buildVizTemplate, renderVizTemplate } from 'devize';
 
 // Create a bar chart template
-const barChartTemplate = createVizTemplate({
+const barChartTemplate = buildVizTemplate({
   type: "group",
   constraints: [
     { type: "fitToContainer", padding: 20 }
@@ -101,7 +101,7 @@ This creates two bar charts using the same template but with different data. The
 Templates can include expressions that are evaluated at render time:
 
 ```javascript
-const dynamicTemplate = createVizTemplate({
+const dynamicTemplate = buildVizTemplate({
   type: "group",
   constraints: [
     { type: "fitToContainer", padding: 20 }
@@ -137,7 +137,7 @@ Devize allows you to extend existing visualization types to create new ones. Thi
 ### Basic Type Extension
 
 ```javascript
-import { extendType, createViz } from 'devize';
+import { extendType, buildViz } from 'devize';
 
 // Extend the rectangle type to create a "card" type
 extendType("rectangle", {
@@ -209,7 +209,7 @@ extendType("rectangle", {
 });
 
 // Use the new card type
-const card = createViz({
+const card = buildViz({
   type: "card",
   x: 50,
   y: 50,
@@ -270,7 +270,7 @@ extendType("barChart", {
 });
 
 // Use the horizontal bar chart
-const horizontalBarChart = createViz({
+const horizontalBarChart = buildViz({
   type: "horizontalBarChart",
   data: salesData,
   x: { field: "revenue" },
@@ -353,7 +353,7 @@ registerType({
 });
 
 // Use the dual axis chart
-const dualAxisChart = createViz({
+const dualAxisChart = buildViz({
   type: "dualAxisChart",
   data: timeSeriesData,
   x: { field: "date", type: "temporal" },
@@ -371,7 +371,7 @@ Now that we understand templates and type extensions, let's create some standard
 ### Bar Chart
 
 ```javascript
-const barChart = createViz({
+const barChart = buildViz({
   type: "barChart",
   data: salesData,
   x: { field: "product", type: "ordinal" },
@@ -386,7 +386,7 @@ const barChart = createViz({
 ### Line Chart
 
 ```javascript
-const lineChart = createViz({
+const lineChart = buildViz({
   type: "lineChart",
   data: timeSeriesData,
   x: { field: "date", type: "temporal" },
@@ -401,7 +401,7 @@ const lineChart = createViz({
 ### Scatter Plot
 
 ```javascript
-const scatterPlot = createViz({
+const scatterPlot = buildViz({
   type: "scatterPlot",
   data: populationData,
   x: { field: "income", type: "quantitative" },
@@ -417,7 +417,7 @@ const scatterPlot = createViz({
 ### Pie Chart
 
 ```javascript
-const pieChart = createViz({
+const pieChart = buildViz({
   type: "pieChart",
   data: marketShareData,
   value: { field: "share", type: "quantitative" },

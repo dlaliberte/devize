@@ -13,7 +13,7 @@ const salesData = [
   { product: "Product D", revenue: 570 }
 ];
 
-createViz({
+buildViz({
   type: "barChart",
   data: salesData,
   x: { field: "product", type: "ordinal" },
@@ -122,7 +122,7 @@ title: {
 ## Customization Example
 
 ```javascript
-createViz({
+buildViz({
   type: "barChart",
   data: salesData,
   x: {
@@ -171,7 +171,7 @@ createViz({
 To create a horizontal bar chart, set the `orientation` property to "horizontal":
 
 ```javascript
-createViz({
+buildViz({
   type: "barChart",
   orientation: "horizontal",
   data: salesData,
@@ -187,7 +187,7 @@ createViz({
 You can add interactions to the bar chart:
 
 ```javascript
-createViz({
+buildViz({
   type: "barChart",
   data: salesData,
   x: { field: "product", type: "ordinal" },
@@ -221,7 +221,7 @@ createViz({
 Add tooltips to display additional information when hovering over bars:
 
 ```javascript
-createViz({
+buildViz({
   type: "barChart",
   data: salesData,
   x: { field: "product", type: "ordinal" },

@@ -26,11 +26,11 @@ Let's see how to use these constraints in practice.
 One of the most basic constraints is fitting a visualization to its container:
 
 ```javascript
-import { createViz } from 'devize';
+import { buildViz } from 'devize';
 
 const container = document.getElementById('visualization-container');
 
-const responsiveRect = createViz({
+const responsiveRect = buildViz({
   type: "rectangle",
   fill: "steelblue",
   stroke: "navy",
@@ -46,7 +46,7 @@ This rectangle will automatically resize to fit its container. If the container 
 You can also specify padding:
 
 ```javascript
-const paddedRect = createViz({
+const paddedRect = buildViz({
   type: "rectangle",
   fill: "coral",
   stroke: "darkred",
@@ -62,7 +62,7 @@ const paddedRect = createViz({
 Relative positioning constraints allow you to position elements in relation to other elements:
 
 ```javascript
-const composedViz = createViz({
+const composedViz = buildViz({
   type: "group",
   children: [
     {
@@ -112,7 +112,7 @@ In this example:
 Size constraints allow you to define relationships between the dimensions of elements:
 
 ```javascript
-const sizeConstrainedViz = createViz({
+const sizeConstrainedViz = buildViz({
   type: "group",
   children: [
     {
@@ -170,7 +170,7 @@ const data = [
   { category: "E", value: 12 }
 ];
 
-const distributedBars = createViz({
+const distributedBars = buildViz({
   type: "group",
   constraints: [
     { type: "fitToContainer", padding: 20 }
@@ -229,7 +229,7 @@ Now that we understand basic constraints, let's explore how to compose visualiza
 The `group` type in Devize allows you to create hierarchical structures of visualizations:
 
 ```javascript
-const dashboard = createViz({
+const dashboard = buildViz({
   type: "group",
   constraints: [
     { type: "fitToContainer" }

@@ -21,7 +21,7 @@ test.describe('Rendering System', () => {
 
     // Create and render a simple rectangle
     await page.evaluate(() => {
-      const viz = window.Devize.createViz({
+      const viz = window.Devize.buildViz({
         type: 'rectangle',
         x: 50,
         y: 50,
@@ -59,7 +59,7 @@ test.describe('Rendering System', () => {
 
     // Create and render a circle
     await page.evaluate(() => {
-      const viz = window.Devize.createViz({
+      const viz = window.Devize.buildViz({
         type: 'circle',
         cx: 150,
         cy: 100,
@@ -95,7 +95,7 @@ test.describe('Rendering System', () => {
 
     // Create and render a group with multiple elements
     await page.evaluate(() => {
-      const viz = window.Devize.createViz({
+      const viz = window.Devize.buildViz({
         type: 'group',
         children: [
           {
@@ -154,7 +154,7 @@ test.describe('Rendering System', () => {
 
     // Create and render a rectangle to canvas
     await page.evaluate(() => {
-      const viz = window.Devize.createViz({
+      const viz = window.Devize.buildViz({
         type: 'rectangle',
         x: 50,
         y: 50,
@@ -190,7 +190,7 @@ test.describe('Rendering System', () => {
 
     await page.evaluate(() => {
       try {
-        const viz = window.Devize.createViz({
+        const viz = window.Devize.buildViz({
           type: 'nonexistentType',
           x: 50,
           y: 50
@@ -212,7 +212,7 @@ test.describe('Rendering System', () => {
 
     // Create and render a simple visualization
     await page.evaluate(() => {
-      const viz = window.Devize.createViz({
+      const viz = window.Devize.buildViz({
         type: 'circle',
         cx: 100,
         cy: 100,

@@ -13,7 +13,7 @@ Interactive visualizations allow users to explore data, discover insights, and e
 Tooltips are one of the simplest and most useful interactions. They provide additional information when users hover over elements:
 
 ```javascript
-const barChartWithTooltips = createViz({
+const barChartWithTooltips = buildViz({
   type: "barChart",
   data: salesData,
   x: { field: "product" },
@@ -37,7 +37,7 @@ const barChartWithTooltips = createViz({
 Highlighting elements on hover or click helps users focus on specific data points:
 
 ```javascript
-const interactiveScatterPlot = createViz({
+const interactiveScatterPlot = buildViz({
   type: "scatterPlot",
   data: populationData,
   x: { field: "income" },
@@ -64,7 +64,7 @@ const interactiveScatterPlot = createViz({
 For more complex interactions, Devize uses a state-based approach:
 
 ```javascript
-const selectableBarChart = createViz({
+const selectableBarChart = buildViz({
   type: "barChart",
   data: salesData,
   x: { field: "product" },
@@ -113,7 +113,7 @@ const sharedState = createStateManager({
 });
 
 // Create a line chart with brushing
-const timeSeriesChart = createViz({
+const timeSeriesChart = buildViz({
   type: "lineChart",
   data: timeSeriesData,
   x: { field: "date" },
@@ -129,7 +129,7 @@ const timeSeriesChart = createViz({
 }, timeSeriesContainer);
 
 // Create a bar chart that responds to the brush
-const filteredBarChart = createViz({
+const filteredBarChart = buildViz({
   type: "barChart",
   data: {
     type: "reference",
@@ -158,7 +158,7 @@ const filteredBarChart = createViz({
 Animate changes when data updates:
 
 ```javascript
-const animatedChart = createViz({
+const animatedChart = buildViz({
   type: "barChart",
   data: initialData,
   x: { field: "category" },
@@ -183,7 +183,7 @@ updateViz(animatedChart, {
 Create sequences of animations:
 
 ```javascript
-const sequencedChart = createViz({
+const sequencedChart = buildViz({
   type: "barChart",
   data: salesData,
   x: { field: "product" },
@@ -219,7 +219,7 @@ const sequencedChart = createViz({
 Make visualizations accessible to screen readers:
 
 ```javascript
-const accessibleChart = createViz({
+const accessibleChart = buildViz({
   type: "barChart",
   data: salesData,
   x: { field: "product" },
@@ -245,7 +245,7 @@ const accessibleChart = createViz({
 Enable keyboard navigation for interactive elements:
 
 ```javascript
-const keyboardNavigableChart = createViz({
+const keyboardNavigableChart = buildViz({
   type: "scatterPlot",
   data: populationData,
   x: { field: "income" },
@@ -275,7 +275,7 @@ const keyboardNavigableChart = createViz({
 Enable zooming and panning for large datasets:
 
 ```javascript
-const zoomableChart = createViz({
+const zoomableChart = buildViz({
   type: "scatterPlot",
   data: largeDataset,
   x: { field: "x" },
@@ -302,7 +302,7 @@ const zoomableChart = createViz({
 Enable exploring hierarchical data:
 
 ```javascript
-const drillDownChart = createViz({
+const drillDownChart = buildViz({
   type: "barChart",
   data: hierarchicalData,
   x: { field: "category" },

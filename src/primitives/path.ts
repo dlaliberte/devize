@@ -8,14 +8,14 @@
  */
 
 import { registerDefineType } from '../core/define';
-import { createViz } from '../core/creator';
+import { buildViz } from '../core/creator';
 import { createSVGElement, applyAttributes } from '../renderers/svgUtils';
 
 // Make sure define type is registered
 registerDefineType();
 
 // Define path primitive
-createViz({
+buildViz({
   type: "define",
   name: "path",
   properties: {

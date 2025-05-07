@@ -6,7 +6,7 @@ import { VizSpec, VizInstance } from './types';
  * @param container The container element
  * @returns The visualization instance
  */
-export declare function createViz(spec: VizSpec, container: HTMLElement): VizInstance;
+export declare function buildViz(spec: VizSpec, container: HTMLElement): VizInstance;
 /**
  * Update a visualization
  * @param vizInstance The visualization instance to update

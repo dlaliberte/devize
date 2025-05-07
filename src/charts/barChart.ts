@@ -1,5 +1,5 @@
 // Bar chart implementation using scales
-import { createViz } from '../core/devize';
+import { buildViz } from '../core/devize';
 import { VizSpec, VizInstance, DataField } from '../core/types';
 import { createScale } from '../components/scales/scale';
 
@@ -12,7 +12,7 @@ import '../components/legend'; // For legend component
 import '../components/scales/scale'; // For scaling
 
 // Define the barChart visualization type using the define type
-createViz({
+buildViz({
   type: "define",
   name: "barChart",
   properties: {
@@ -173,7 +173,7 @@ createViz({
  */
 export function createBarChart(spec: VizSpec): VizInstance {
   // Create the visualization using the registered type
-  return createViz({
+  return buildViz({
     ...spec,
     type: 'barChart'
   });

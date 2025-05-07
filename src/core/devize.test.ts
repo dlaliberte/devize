@@ -118,7 +118,7 @@ describe('Devize Core Module', () => {
       }).toThrow('Invalid visualization instance');
     });
 
-    // Note: Testing the actual update functionality would require integration with createViz,
+    // Note: Testing the actual update functionality would require integration with buildViz,
     // which we're trying to avoid mocking. We'll test this in integration tests.
   });
 

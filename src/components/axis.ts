@@ -1,8 +1,8 @@
-import { createViz } from '../core/devize';
+import { buildViz } from '../core/devize';
 import { createScale, Scale } from './scales/scale';
 
 // Define the axis component
-createViz({
+buildViz({
   type: "define",
   name: "axis",
   properties: {

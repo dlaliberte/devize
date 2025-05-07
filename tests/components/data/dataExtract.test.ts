@@ -1,4 +1,4 @@
-import { createViz } from '../../../src/core/devize';
+import { buildViz } from '../../../src/core/devize';
 import '../../../src/components/data/dataExtract';
 
 describe('dataExtract Component', () => {
@@ -9,7 +9,7 @@ describe('dataExtract Component', () => {
       { id: 3, name: 'Item 3', value: 300 }
     ];
 
-    const result = createViz({
+    const result = buildViz({
       type: 'dataExtract',
       data: testData,
       field: 'value',
@@ -29,7 +29,7 @@ describe('dataExtract Component', () => {
       { id: 2, name: 'Item 2', value: 200 }
     ];
 
-    const result = createViz({
+    const result = buildViz({
       type: 'dataExtract',
       data: testData,
       field: 'name'
@@ -43,7 +43,7 @@ describe('dataExtract Component', () => {
   });
 
   test('should handle empty data array', () => {
-    const result = createViz({
+    const result = buildViz({
       type: 'dataExtract',
       data: [],
       field: 'value'
@@ -55,7 +55,7 @@ describe('dataExtract Component', () => {
   });
 
   test('should handle non-array data', () => {
-    const result = createViz({
+    const result = buildViz({
       type: 'dataExtract',
       data: null,
       field: 'value'

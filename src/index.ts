@@ -9,7 +9,7 @@ import './components/data/dataExtract';
 import './charts/barChart';
 import './charts/scatterPlot';
 
-import { createViz, updateViz } from './core/devize';
+import { buildViz, updateViz } from './core/devize';
 
 // Note: We don't need to explicitly import the primitives here
 // because they are imported by the chart modules
@@ -30,14 +30,14 @@ console.log('Test type registered');
 
 // Export public API
 export {
-  createViz,
+  buildViz,
   updateViz
 };
 
 // If you want to expose the library globally (for script tags)
 if (typeof window !== 'undefined') {
   (window as any).Devize = {
-    createViz,
+    buildViz,
     updateViz,
     // Add other functions you want to expose
   };

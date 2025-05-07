@@ -1,11 +1,11 @@
-import { createViz } from '../../core/creator';
+import { buildViz } from '../../core/creator';
 import { registerDefineType } from '../../core/define';
 
 // Make sure define type is registered
 registerDefineType();
 
 // Define a linear scale component
-createViz({
+buildViz({
   type: "define",
   name: "linearScale",
   properties: {

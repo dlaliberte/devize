@@ -7,7 +7,7 @@ The `define` visualization type is a core component of Devise that allows you to
 ## Basic Usage
 
 ```javascript
-createViz({
+buildViz({
   type: "define",
   name: "labeledCircle",
   properties: {
@@ -50,7 +50,7 @@ createViz({
 Once defined, the new visualization type can be used like any built-in type:
 
 ```javascript
-createViz({
+buildViz({
   type: "labeledCircle",
   cx: 100,
   cy: 100,
@@ -175,7 +175,7 @@ This approach provides better type checking and parameter documentation in IDEs.
 You can extend an existing visualization type to inherit its properties and behavior:
 
 ```javascript
-createViz({
+buildViz({
   type: "define",
   name: "horizontalBarChart",
   extend: "barChart",
@@ -193,7 +193,7 @@ createViz({
 To create a data transformation visualization that doesn't render to the DOM:
 
 ```javascript
-createViz({
+buildViz({
   type: "define",
   name: "dataFilter",
   properties: {
@@ -284,7 +284,7 @@ Visualization types defined with `define` are automatically registered with the 
 ### Declarative with Template Notation
 
 ```javascript
-createViz({
+buildViz({
   type: "define",
   name: "customAxis",
   properties: {
@@ -322,7 +322,7 @@ createViz({
 ### Structured Functional Implementation
 
 ```javascript
-createViz({
+buildViz({
   type: "define",
   name: "customAxis",
   properties: {
@@ -403,7 +403,7 @@ The `define` visualization type works by:
 1. Registering the new visualization type in the Devise registry
 2. Processing property definitions to establish required properties and defaults
 3. Creating a type handler that validates properties and processes the implementation
-4. Making the new type available for use with `createViz`
+4. Making the new type available for use with `buildViz`
 
 This mechanism is the foundation of Devise's extensibility, allowing the library to grow with custom visualizations while maintaining a consistent interface.
 
@@ -411,7 +411,7 @@ The `define` type itself is a special case in the Devize system. While it appear
 
 ```javascript
 // In src/core/define.ts
-createViz({
+buildViz({
   type: "define",
   name: "define",
   properties: {
@@ -429,26 +429,26 @@ This creates a metacircular definition where the `define` type is defined using 
 
 This self-definition approach demonstrates the power of the system - even its core components can be expressed using the same declarative syntax that users employ to create custom visualizations.
 
-Looking at the code, we can see that the `define` type is indeed being defined using `createViz` with `type: "define"`. This creates a circular reference where the `define` type is defined using itself.
+Looking at the code, we can see that the `define` type is indeed being defined using `buildViz` with `type: "define"`. This creates a circular reference where the `define` type is defined using itself.
 
 This is a classic bootstrapping problem in language and system design. Here's what's happening:
 
 1. The `define` type is implemented directly in `src/core/define.ts`
-2. It uses `createViz` to register itself as a visualization type
+2. It uses `buildViz` to register itself as a visualization type
 3. This creates a situation where the `define` type is defined using itself
 
 This approach has some implications:
 
 ### Bootstrapping Process
 
-For this to work, there must be a special case in the core `createViz` function that recognizes and handles the `"define"` type before the type is formally registered. Otherwise, we'd have a chicken-and-egg problem.
+For this to work, there must be a special case in the core `buildViz` function that recognizes and handles the `"define"` type before the type is formally registered. Otherwise, we'd have a chicken-and-egg problem.
 
 ### Recursive Definition
 
 Yes, the implementation of `define` is used when processing uses of `define`. When you call:
 
 ```javascript
-createViz({
+buildViz({
   type: "define",
   name: "myCustomType",
   // ...

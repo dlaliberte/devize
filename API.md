@@ -7,7 +7,7 @@ This document outlines the public API for the Devize library, with a focus on da
 ### 1.1 Creating Visualizations
 
 ```typescript
-function createViz(
+function buildViz(
   spec: VisualizationSpec,
   container: HTMLElement
 ): Visualization;
@@ -17,7 +17,7 @@ Creates a visualization from a specification and renders it to the specified con
 
 **Example:**
 ```typescript
-const barChart = createViz({
+const barChart = buildViz({
   type: "barChart",
   data: salesData,
   x: { field: "product" },
@@ -55,7 +55,7 @@ Devize supports multiple types of data sources:
 Data directly embedded in the visualization specification.
 
 ```typescript
-const vizWithInlineData = createViz({
+const vizWithInlineData = buildViz({
   type: "barChart",
   data: {
     type: "inline",
@@ -83,7 +83,7 @@ registerData("salesData", [
 ]);
 
 // Create visualization with referenced data
-const vizWithReferencedData = createViz({
+const vizWithReferencedData = buildViz({
   type: "barChart",
   data: {
     type: "reference",
@@ -99,7 +99,7 @@ const vizWithReferencedData = createViz({
 Data fetched from a URL.
 
 ```typescript
-const vizWithUrlData = createViz({
+const vizWithUrlData = buildViz({
   type: "barChart",
   data: {
     type: "url",
@@ -116,7 +116,7 @@ const vizWithUrlData = createViz({
 Data derived from another source with transformations applied.
 
 ```typescript
-const vizWithTransformedData = createViz({
+const vizWithTransformedData = buildViz({
   type: "barChart",
   data: {
     type: "transform",
@@ -177,7 +177,7 @@ Binds data to a visualization template, creating a fully realized visualization.
 **Example:**
 ```typescript
 // Create a template
-const barChartTemplate = createVizTemplate({
+const barChartTemplate = buildVizTemplate({
   type: "barChart",
   data: {
     type: "reference",
@@ -201,7 +201,7 @@ renderViz(barChart, container);
 ### 3.1 Creating Templates
 
 ```typescript
-function createVizTemplate(
+function buildVizTemplate(
   spec: VisualizationSpec
 ): VisualizationTemplate;
 ```
@@ -210,7 +210,7 @@ Creates a reusable visualization template that can be bound to different data so
 
 **Example:**
 ```typescript
-const barChartTemplate = createVizTemplate({
+const barChartTemplate = buildVizTemplate({
   type: "barChart",
   data: {
     type: "reference",
@@ -322,7 +322,7 @@ extendType("barChart", {
 ### 4.3 Extending Visualization Specifications
 
 ```typescript
-function createVizFromBase(
+function buildVizFromBase(
   baseSpec: VisualizationSpec,
   extension: Partial<VisualizationSpec>
 ): VisualizationSpec;
@@ -342,13 +342,13 @@ const baseChartSpec = {
 };
 
 // Create variations by extending the base
-const redChart = createViz(
-  createVizFromBase(baseChartSpec, { color: "#CC3366" }),
+const redChart = buildViz(
+  buildVizFromBase(baseChartSpec, { color: "#CC3366" }),
   document.getElementById("red-chart")
 );
 
-const filteredChart = createViz(
-  createVizFromBase(baseChartSpec, {
+const filteredChart = buildViz(
+  buildVizFromBase(baseChartSpec, {
     data: {
       type: "transform",
       source: salesData,
@@ -383,7 +383,7 @@ registerConstraint({
 ### 5.1 Composition
 
 ```typescript
-const compositeViz = createViz({
+const compositeViz = buildViz({
   type: "group",
   children: [
     {
@@ -438,7 +438,7 @@ extendType("barChart", {
 });
 
 // Then use it in a composition
-const dashboard = createViz({
+const dashboard = buildViz({
   type: "dashboard",
   layout: { type: "grid", columns: 2 },
   views: [
@@ -464,7 +464,7 @@ const dashboard = createViz({
 ### 5.3 Interactivity
 
 ```typescript
-const interactiveViz = createViz({
+const interactiveViz = buildViz({
   type: "barChart",
   data: { type: "reference", name: "salesData" },
   x: { field: "product" },
@@ -490,7 +490,7 @@ const interactiveViz = createViz({
 ### 5.4 Animation
 
 ```typescript
-const animatedViz = createViz({
+const animatedViz = buildViz({
   type: "barChart",
   data: { type: "reference", name: "salesData" },
   x: { field: "product" },

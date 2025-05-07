@@ -1,4 +1,4 @@
-import { createViz } from '../../src/core/devize';
+import { buildViz } from '../../src/core/devize';
 import '../../src/components/legend';
 import '../../src/primitives/shapes';
 import '../../src/primitives/containers';
@@ -29,7 +29,7 @@ describe('Legend Component', () => {
 
     // This shouldn't throw an error
     expect(() => {
-      createViz({
+      buildViz({
         type: 'group',
         children: [legendSpec],
         container
@@ -70,7 +70,7 @@ describe('Legend Component', () => {
 
     // This shouldn't throw an error
     expect(() => {
-      createViz({
+      buildViz({
         type: 'group',
         children: [
           {

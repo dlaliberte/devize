@@ -13,7 +13,7 @@ Data binding is the process of connecting your data to visual properties. In Dev
 ### Simple Data Binding
 
 ```javascript
-import { createViz } from 'devize';
+import { buildViz } from 'devize';
 
 // Sample data
 const data = [
@@ -25,7 +25,7 @@ const data = [
 ];
 
 // Create a simple bar chart with data binding
-const barChart = createViz({
+const barChart = buildViz({
   type: "group",
   children: data.map((item, index) => ({
     type: "rectangle",
@@ -43,7 +43,7 @@ const barChart = createViz({
 For more complex visualizations, Devize uses field specifications to bind data to visual properties:
 
 ```javascript
-const scatterPlot = createViz({
+const scatterPlot = buildViz({
   type: "scatterPlot",
   data: populationData,
   x: { field: "income", type: "quantitative" },
@@ -65,7 +65,7 @@ Field specifications can include:
 For more control over how data is mapped to visual elements, you can use the `dataMap` type:
 
 ```javascript
-const customBarChart = createViz({
+const customBarChart = buildViz({
   type: "group",
   constraints: [
     { type: "fitToContainer", padding: 20 }
@@ -95,7 +95,7 @@ Devize supports multiple types of data sources:
 ### Inline Data
 
 ```javascript
-const vizWithInlineData = createViz({
+const vizWithInlineData = buildViz({
   type: "barChart",
   data: {
     type: "inline",
@@ -121,7 +121,7 @@ registerData("salesData", [
 ]);
 
 // Create visualization with referenced data
-const vizWithReferencedData = createViz({
+const vizWithReferencedData = buildViz({
   type: "barChart",
   data: {
     type: "reference",
@@ -135,7 +135,7 @@ const vizWithReferencedData = createViz({
 ### URL Data
 
 ```javascript
-const vizWithUrlData = createViz({
+const vizWithUrlData = buildViz({
   type: "barChart",
   data: {
     type: "url",
@@ -154,7 +154,7 @@ Devize provides several built-in transformations for common operations:
 ### Filtering
 
 ```javascript
-const filteredViz = createViz({
+const filteredViz = buildViz({
   type: "barChart",
   data: salesData,
   transforms: [
@@ -168,7 +168,7 @@ const filteredViz = createViz({
 ### Aggregation
 
 ```javascript
-const aggregatedViz = createViz({
+const aggregatedViz = buildViz({
   type: "barChart",
   data: salesByRegion,
   transforms: [
@@ -187,7 +187,7 @@ const aggregatedViz = createViz({
 ### Sorting
 
 ```javascript
-const sortedViz = createViz({
+const sortedViz = buildViz({
   type: "barChart",
   data: salesData,
   transforms: [
@@ -201,7 +201,7 @@ const sortedViz = createViz({
 ### Binning
 
 ```javascript
-const histogramViz = createViz({
+const histogramViz = buildViz({
   type: "barChart",
   data: measurementData,
   transforms: [
@@ -220,7 +220,7 @@ const histogramViz = createViz({
 ### Joining Data
 
 ```javascript
-const joinedViz = createViz({
+const joinedViz = buildViz({
   type: "scatterPlot",
   data: {
     type: "inline",
@@ -249,7 +249,7 @@ const joinedViz = createViz({
 You can create new fields derived from existing ones:
 
 ```javascript
-const derivedFieldViz = createViz({
+const derivedFieldViz = buildViz({
   type: "barChart",
   data: salesData,
   transforms: [
@@ -279,7 +279,7 @@ Devize makes it easy to update visualizations when data changes:
 // Initial visualization
 registerData("salesData", initialSalesData);
 
-const salesViz = createViz({
+const salesViz = buildViz({
   type: "barChart",
   data: {
     type: "reference",
@@ -298,7 +298,7 @@ updateData("salesData", newSalesData);
 
 ```javascript
 // Initial visualization
-const stockViz = createViz({
+const stockViz = buildViz({
   type: "lineChart",
   data: initialStockData,
   x: { field: "date" },
@@ -318,7 +318,7 @@ updateViz(stockViz, {
 You can use expressions to conditionally bind data to visual properties:
 
 ```javascript
-const conditionalViz = createViz({
+const conditionalViz = buildViz({
   type: "scatterPlot",
   data: salesData,
   x: { field: "revenue" },
@@ -337,7 +337,7 @@ const conditionalViz = createViz({
 For multi-series data, you can use the `series` field specification:
 
 ```javascript
-const multiSeriesViz = createViz({
+const multiSeriesViz = buildViz({
   type: "lineChart",
   data: timeSeriesData,
   x: { field: "date" },
@@ -352,7 +352,7 @@ const multiSeriesViz = createViz({
 Devize can handle nested data structures:
 
 ```javascript
-const nestedDataViz = createViz({
+const nestedDataViz = buildViz({
   type: "treemap",
   data: hierarchicalData,
   size: { field: "value" },

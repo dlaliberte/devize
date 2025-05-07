@@ -1,4 +1,4 @@
-import { createViz } from '../../core/creator';
+import { buildViz } from '../../core/creator';
 
 import { registerDefineType } from '../../core/define';
 
@@ -6,7 +6,7 @@ import { registerDefineType } from '../../core/define';
 registerDefineType();
 
 // Define a band scale component (useful for bar charts)
-createViz({
+buildViz({
   type: "define",
   name: "bandScale",
   properties: {

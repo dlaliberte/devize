@@ -1,13 +1,13 @@
-# createViz Function
+# buildViz Function
 
 ## Overview
 
-`createViz` is the core function of the Devize library that creates visualizations from declarative specifications. It takes a visualization specification and returns a visualization instance.
+`buildViz` is the core function of the Devize library that creates visualizations from declarative specifications. It takes a visualization specification and returns a visualization instance.
 
 ## Function Signature
 
 ```typescript
-function createViz(spec: VizSpec): VizInstance
+function buildViz(spec: VizSpec): VizInstance
 ```
 
 ### Parameters
@@ -32,7 +32,7 @@ Devize supports two primary types of visualizations:
 These visualizations produce visual output and require a container element:
 
 ```javascript
-const myViz = createViz({
+const myViz = buildViz({
   type: "rectangle",
   x: 50,
   y: 50,
@@ -59,7 +59,7 @@ const salesData = [
 ];
 
 // Extract product names from data
-const extractedData = createViz({
+const extractedData = buildViz({
   type: "dataExtract",
   data: salesData,
   field: "product",
@@ -67,7 +67,7 @@ const extractedData = createViz({
 });
 
 // Use the extracted data in a rendering visualization
-const axisViz = createViz({
+const axisViz = buildViz({
   type: "axis",
   orientation: "bottom",
   length: 500,
@@ -83,7 +83,7 @@ When possible, visualizations should be designed with a functional approach:
 
 ```javascript
 // Transform data
-const transformedData = createViz({
+const transformedData = buildViz({
   type: "dataTransform",
   data: rawData,
   operations: [
@@ -93,7 +93,7 @@ const transformedData = createViz({
 });
 
 // Use transformed data in visualization
-const barChart = createViz({
+const barChart = buildViz({
   type: "barChart",
   data: transformedData.data,
   x: { field: "category" },
@@ -108,7 +108,7 @@ Visualizations can be composed together:
 
 ```javascript
 // Create a complete visualization pipeline
-const dashboard = createViz({
+const dashboard = buildViz({
   type: "group",
   children: [
     {
@@ -136,11 +136,11 @@ const dashboard = createViz({
 
 ## Error Handling
 
-The `createViz` function performs validation on the provided specification and will throw errors for:
+The `buildViz` function performs validation on the provided specification and will throw errors for:
 
 - Missing type property
 - Unknown visualization types
 - Missing required properties for a specific type
 - Missing container for rendering visualizations
 
-Always wrap your `createViz` calls in try-catch blocks in production code to handle potential errors gracefully.
+Always wrap your `buildViz` calls in try-catch blocks in production code to handle potential errors gracefully.
