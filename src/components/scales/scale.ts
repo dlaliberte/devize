@@ -1,11 +1,18 @@
 // Base scale functionality
-import { createViz } from '../../core/devize';
+import { createViz } from '../../core/creator';
+import './linearScale'; // Import to ensure the visualization types are registered
+import './bandScale';   // Import to ensure the visualization types are registered
+
+import { registerDefineType } from '../../core/define';
+
+// Make sure define type is registered
+registerDefineType();
 
 // Define a generic scale interface
 export interface Scale {
   domain: [number, number] | string[];
   range: [number, number];
-  scale: (value: any) => number;
+  scale: (value: any) => number | any;
   invert?: (value: number) => any;
   ticks?: (count?: number) => any[];
   bandwidth?: () => number;
@@ -13,118 +20,85 @@ export interface Scale {
 
 // Create a scale factory function that can be used directly in code
 export function createScale(type: string, options: any): Scale {
+  // Create the appropriate scale visualization based on type
+  let scaleViz;
+
   switch (type) {
     case 'linear':
-      return createLinearScale(options);
+      scaleViz = createViz({
+        type: 'linearScale',
+        domain: options.domain,
+        range: options.range,
+        padding: options.padding || 0,
+        clamp: options.clamp || false,
+        nice: options.nice || false
+      });
+      break;
+
     case 'band':
-      return createBandScale(options);
+      scaleViz = createViz({
+        type: 'bandScale',
+        domain: options.domain,
+        range: options.range,
+        padding: options.padding || 0.1,
+        paddingInner: options.paddingInner,
+        paddingOuter: options.paddingOuter,
+        align: options.align || 0.5
+      });
+      break;
+
     case 'ordinal':
+      // Implement ordinal scale
       return createOrdinalScale(options);
+
     case 'log':
-      return createLogScale(options);
+      // For now, use linear scale as placeholder
+      // TODO: Implement proper log scale
+      console.warn('Log scale is not fully implemented yet, using linear scale as fallback');
+      scaleViz = createViz({
+        type: 'linearScale',
+        domain: options.domain,
+        range: options.range,
+        clamp: options.clamp || false
+      });
+      break;
+
     case 'time':
-      return createTimeScale(options);
+      // For now, use linear scale as placeholder
+      // TODO: Implement proper time scale
+      console.warn('Time scale is not fully implemented yet, using linear scale as fallback');
+      scaleViz = createViz({
+        type: 'linearScale',
+        domain: options.domain,
+        range: options.range,
+        clamp: options.clamp || false
+      });
+      break;
+
     default:
       throw new Error(`Unknown scale type: ${type}`);
   }
+
+  // For ordinal scale which is implemented directly
+  if (type === 'ordinal') {
+    return scaleViz; // Already returned above
+  }
+
+  // For other scales, return the scale object from the visualization
+  return scaleViz;
 }
 
-// Linear scale implementation
-function createLinearScale(options: {
-  domain: [number, number];
-  range: [number, number];
-  clamp?: boolean;
-}): Scale {
-  const { domain, range, clamp = false } = options;
-
-  const scale = (value: number): number => {
-    // Simple linear interpolation
-    const domainExtent = domain[1] - domain[0];
-    const rangeExtent = range[1] - range[0];
-
-    let normalizedValue = (value - domain[0]) / domainExtent;
-
-    if (clamp) {
-      normalizedValue = Math.max(0, Math.min(1, normalizedValue));
-    }
-
-    return range[0] + normalizedValue * rangeExtent;
-  };
-
-  const invert = (value: number): number => {
-    const domainExtent = domain[1] - domain[0];
-    const rangeExtent = range[1] - range[0];
-
-    const normalizedValue = (value - range[0]) / rangeExtent;
-    return domain[0] + normalizedValue * domainExtent;
-  };
-
-  const ticks = (count = 5): number[] => {
-    const step = (domain[1] - domain[0]) / (count - 1);
-    return Array.from({ length: count }, (_, i) => domain[0] + i * step);
-  };
-
-  return { domain, range, scale, invert, ticks };
-}
-
-// Band scale implementation
-function createBandScale(options: {
-  domain: string[];
-  range: [number, number];
-  padding?: number;
-  paddingInner?: number;
-  paddingOuter?: number;
-  align?: number;
-}): Scale & { bandwidth: () => number } {
-  const {
-    domain,
-    range,
-    padding = 0.1,
-    paddingInner = padding,
-    paddingOuter = padding,
-    align = 0.5
-  } = options;
-
-  const n = domain.length;
-  const [start, stop] = range;
-  const width = stop - start;
-
-  // Calculate band width and step
-  const totalPadding = (n - 1) * paddingInner + 2 * paddingOuter;
-  const step = width / Math.max(1, n - paddingInner + 2 * paddingOuter);
-  const bandWidth = step * (1 - paddingInner);
-
-  const scale = (value: string): number => {
-    const index = domain.indexOf(value);
-    if (index === -1) return NaN;
-
-    return start + (paddingOuter * step) + (index * step);
-  };
-
-  // Additional methods specific to band scales
-  const bandwidth = (): number => bandWidth;
-
-  const ticks = (): string[] => domain;
-
-  return {
-    domain,
-    range,
-    scale,
-    ticks,
-    bandwidth
-  };
-}
-
-// Ordinal scale implementation (simplified)
+// Ordinal scale implementation (not yet defined as a visualization type)
 function createOrdinalScale(options: {
   domain: string[];
   range: any[];
+  unknown?: any;
 }): Scale {
-  const { domain, range } = options;
+  const { domain, range, unknown = range[0] } = options;
 
   const scale = (value: string): any => {
     const index = domain.indexOf(value);
-    if (index === -1) return range[0]; // Default to first range value
+    if (index === -1) return unknown; // Return unknown value for values not in domain
     return range[index % range.length];
   };
 
@@ -133,19 +107,7 @@ function createOrdinalScale(options: {
   return { domain, range, scale, ticks };
 }
 
-// Log scale implementation (placeholder)
-function createLogScale(options: any): Scale {
-  // Simple implementation for now
-  return createLinearScale(options);
-}
-
-// Time scale implementation (placeholder)
-function createTimeScale(options: any): Scale {
-  // Simple implementation for now
-  return createLinearScale(options);
-}
-
-// Export the scale component for use in visualizations
+// Export a unified scale component that can create any type of scale
 createViz({
   type: "define",
   name: "scale",
@@ -158,10 +120,12 @@ createViz({
     paddingOuter: { default: null },
     align: { default: 0.5 },
     clamp: { default: false },
+    nice: { default: false },
+    unknown: { default: null },
     as: { default: 'scale' }
   },
-
   implementation: props => {
+    // Create the scale using our factory function
     const scale = createScale(props.type, {
       domain: props.domain,
       range: props.range,
@@ -169,11 +133,12 @@ createViz({
       paddingInner: props.paddingInner !== null ? props.paddingInner : props.padding,
       paddingOuter: props.paddingOuter !== null ? props.paddingOuter : props.padding,
       align: props.align,
-      clamp: props.clamp
+      clamp: props.clamp,
+      nice: props.nice,
+      unknown: props.unknown
     });
 
-    return {
-      [props.as]: scale
-    };
+    // Return the scale object
+    return scale;
   }
 });
