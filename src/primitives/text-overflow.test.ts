@@ -257,7 +257,7 @@ describe('Text Overflow', () => {
     });
 
     // Call the SVG rendering function
-    impl.renderSVG(mockContainer);
+    impl.renderToSvg(mockContainer);
 
     // Should have appended to container
     expect(mockContainer.appendChild).toHaveBeenCalledWith(mockTextElement);
@@ -357,7 +357,7 @@ describe('Text Overflow', () => {
     });
 
     // Call the SVG rendering function
-    impl.renderSVG(mockContainer);
+    impl.renderToSvg(mockContainer);
 
     // Should have appended to container
     expect(mockContainer.appendChild).toHaveBeenCalledWith(mockTextElement);

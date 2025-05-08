@@ -161,10 +161,10 @@ buildViz({
       orientation,
       position,
 
-      // SVG rendering function - delegates to the group's renderSVG
-      renderSVG: (container) => {
-        if (renderableGroup && renderableGroup.renderSVG) {
-          return renderableGroup.renderSVG(container);
+      // SVG rendering function - delegates to the group's renderToSvg
+      renderToSvg: (container) => {
+        if (renderableGroup && renderableGroup.renderToSvg) {
+          return renderableGroup.renderToSvg(container);
         }
         return null;
       },

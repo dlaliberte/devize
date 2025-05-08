@@ -51,7 +51,7 @@ export const textTypeDefinition = {
       content: props.text,  // Text content
 
       // Rendering functions for different backends
-      renderSVG: (container) => {
+      renderToSvg: (container) => {
         const element = createSVGElement('text');
         applyAttributes(element, attributes);
         element.textContent = props.text;

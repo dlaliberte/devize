@@ -172,18 +172,18 @@ buildViz({
       length,
       transform,
 
-      // SVG rendering function - delegates to the group's renderSVG
-      renderSVG: (container) => {
-        if (renderableGroup && renderableGroup.renderSVG) {
-          return renderableGroup.renderSVG(container);
+      // SVG rendering function - delegates to the group's renderToSvg
+      renderToSvg: (container) => {
+        if (renderableGroup && renderableGroup.renderToSvg) {
+          return renderableGroup.renderToSvg(container);
         }
         return null;
       },
 
-      // Canvas rendering function - delegates to the group's renderCanvas
-      renderCanvas: (ctx) => {
-        if (renderableGroup && renderableGroup.renderCanvas) {
-          return renderableGroup.renderCanvas(ctx);
+      // Canvas rendering function - delegates to the group's renderToCanvas
+      renderToCanvas: (ctx) => {
+        if (renderableGroup && renderableGroup.renderToCanvas) {
+          return renderableGroup.renderToCanvas(ctx);
         }
         return false;
       }

@@ -91,7 +91,7 @@ describe('Text Primitive', () => {
     const impl = textTypeDefinition.implementation(result.spec);
 
     // Call the SVG rendering function directly
-    impl.renderSVG(container);
+    impl.renderToSvg(container);
 
     // Should have created a text element
     expect(createSVGElement).toHaveBeenCalledWith('text');

@@ -101,7 +101,7 @@ describe('Text Styling', () => {
       fontWeight: 'bold'
     }, {});
 
-    result?.renderSVG({} as any);
+    result?.renderToSvg({} as any);
 
     expect(mockElement.setAttribute).toHaveBeenCalledWith('font-size', '24');
     expect(mockElement.setAttribute).toHaveBeenCalledWith('font-family', 'Arial');
@@ -127,7 +127,7 @@ describe('Text Styling', () => {
       fill: 'blue'
     }, {});
 
-    result?.renderSVG({} as any);
+    result?.renderToSvg({} as any);
 
     expect(mockElement.setAttribute).toHaveBeenCalledWith('fill', 'blue');
   });
@@ -151,7 +151,7 @@ describe('Text Styling', () => {
       opacity: 0.5
     }, {});
 
-    result?.renderSVG({} as any);
+    result?.renderToSvg({} as any);
 
     expect(mockElement.setAttribute).toHaveBeenCalledWith('opacity', '0.5');
   });

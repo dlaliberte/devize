@@ -99,7 +99,7 @@ buildViz({
   implementation: props => {
     // Return rendering functions
     return {
-      renderSVG: container => {
+      renderToSvg: container => {
         const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
         // Set attributes from props
         container.appendChild(rect);
@@ -219,11 +219,16 @@ console.log(implementation.type); // "group"
 
 ## Lazy vs. Eager Evaluation
 
-There are two possible approaches to processing the implementation result:
+There are three possible approaches to processing the implementation result:
+
+### 0.  No Processing (Unprocessed)
+
+The specification is returned as is, after validating args.
+
 
 ### 1. Lazy Evaluation (Deferred Processing)
 
-The implementation result is stored as a specification and only processed when rendering is requested:
+The specification is processed one level by taking the implementation property value, or if the values is a function, calling the implementation function non-recursively, and this result is returned from buildViz.  This mode requires that the result is another spec.  Later, when rendering is requested renderViz with this result, the spec is recursively processed to primitives, and the attributes that represent the primitives are accumulated back to the top level of renderViz where the resulting object is rendered to the appropriate media:
 
 ```mermaid
 graph TD
@@ -235,7 +240,7 @@ graph TD
 
 ### 2. Eager Evaluation (Immediate Processing)
 
-The implementation result is immediately processed into a renderable form:
+The implementation result is immediately recursively processed into a renderable form:
 
 ```mermaid
 graph TD
@@ -287,7 +292,7 @@ Primitives that return only rendering functions are indeed a special case:
 ```javascript
 implementation: props => {
   return {
-    renderSVG: container => { /* SVG rendering */ },
+    renderToSvg: container => { /* SVG rendering */ },
     renderCanvas: ctx => { /* Canvas rendering */ }
   };
 }
@@ -312,7 +317,7 @@ interface RenderableResult {
   [key: string]: any;
 
   // If it's rendering functions
-  renderSVG?: (container: SVGElement) => SVGElement;
+  renderToSvg?: (container: SVGElement) => SVGElement;
   renderCanvas?: (ctx: CanvasRenderingContext2D) => void;
 }
 ```

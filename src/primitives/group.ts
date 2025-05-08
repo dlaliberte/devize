@@ -58,7 +58,7 @@ export const groupTypeDefinition = {
       children: processedChildren,
 
       // SVG rendering function
-      renderSVG: (container) => {
+      renderToSvg: (container) => {
         // Create a group element
         const groupElement = createSVGElement('g');
 
@@ -71,8 +71,8 @@ export const groupTypeDefinition = {
 
         // Render all children into this group
         processedChildren.forEach(child => {
-          if (child.renderSVG) {
-            child.renderSVG(groupElement);
+          if (child.renderToSvg) {
+            child.renderToSvg(groupElement);
           }
         });
 

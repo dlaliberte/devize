@@ -68,7 +68,7 @@ export function registerLayerType() {
         },
         children: processedChildren,
 
-        renderSVG: container => {
+        renderToSvg: container => {
           const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
           // Apply attributes
@@ -85,8 +85,8 @@ export function registerLayerType() {
 
           // Render children
           processedChildren.forEach(child => {
-            if (child && typeof child === 'object' && 'renderSVG' in child) {
-              child.renderSVG(group);
+            if (child && typeof child === 'object' && 'renderToSvg' in child) {
+              child.renderToSvg(group);
             }
           });
 

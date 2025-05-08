@@ -82,7 +82,7 @@ beforeEach(() => {
         attributes: attributes,
 
         // Rendering functions for different backends
-        renderSVG: (container) => {
+        renderToSvg: (container) => {
           const element = document.createElementNS('http://www.w3.org/2000/svg', 'line');
           for (const [key, value] of Object.entries(attributes)) {
             if (value !== undefined && value !== null) {
@@ -185,13 +185,13 @@ describe('Line Primitive', () => {
       y2: 200
     }, {});
 
-    expect(result?.renderSVG).toBeTypeOf('function');
+    expect(result?.renderToSvg).toBeTypeOf('function');
 
     // Create a mock container
     const container = { appendChild: vi.fn() };
 
     // Call the SVG rendering function
-    const svgElement = result?.renderSVG(container);
+    const svgElement = result?.renderToSvg(container);
 
     // Verify the SVG element was created correctly
     expect(svgElement).toBeDefined();

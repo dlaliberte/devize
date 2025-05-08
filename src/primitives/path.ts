@@ -43,7 +43,7 @@ buildViz({
       attributes: attributes,
 
       // Rendering functions for different backends
-      renderSVG: (container) => {
+      renderToSvg: (container) => {
         const element = createSVGElement('path');
         applyAttributes(element, attributes);
         if (container) container.appendChild(element);

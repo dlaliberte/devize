@@ -48,7 +48,7 @@ export const polygonTypeDefinition = {
       attributes: attributes,
 
       // Rendering functions for different backends
-      renderSVG: (container) => {
+      renderToSvg: (container) => {
         const element = createSVGElement('polygon');
         applyAttributes(element, attributes);
         if (container) container.appendChild(element);

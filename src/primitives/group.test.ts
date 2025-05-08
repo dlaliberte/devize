@@ -160,7 +160,7 @@ describe('Group Primitive', () => {
     const impl = groupTypeDefinition.implementation(result.spec);
 
     // Call the SVG rendering function directly
-    impl.renderSVG(container);
+    impl.renderToSvg(container);
 
     // Should have set transform attribute
     expect(mockGroupElement.setAttribute).toHaveBeenCalledWith('transform', 'translate(10, 20)');
@@ -254,6 +254,59 @@ describe('Group Primitive', () => {
     // Compare with the registered type
     const registeredType = getType('group');
     expect(registeredType?.properties).toEqual(groupTypeDefinition.properties);
+  });
+});
+
+
+describe('Recursive Building', () => {
+  test('should handle nested visualizations', () => {
+    // Register necessary types
+    registerTestType('group', [], { children: [] });
+    registerTestType('rectangle', ['width', 'height'], { fill: 'black' });
+    registerTestType('circle', ['cx', 'cy', 'r'], { fill: 'red' });
+
+    // Create a group with nested visualizations
+    const spec: VisualizationSpec = {
+      type: 'group',
+      children: [
+        {
+          type: 'rectangle',
+          width: 100,
+          height: 50,
+          fill: 'blue'
+        },
+        {
+          type: 'circle',
+          cx: 150,
+          cy: 75,
+          r: 25
+        }
+      ]
+    };
+
+    // This is mostly a smoke test to ensure it doesn't throw
+    const result = buildViz(spec);
+    expect(result).toBeDefined();
+    expect(result.type).toBe('group');
+
+    // Check that children were processed
+    const children = result.getProperty('children');
+    expect(Array.isArray(children)).toBe(true);
+    expect(children.length).toBe(2);
+
+    // Check first child
+    const rectangle = children[0];
+    expect(rectangle.type).toBe('rectangle');
+    expect(rectangle.getProperty('width')).toBe(100);
+    expect(rectangle.getProperty('height')).toBe(50);
+    expect(rectangle.getProperty('fill')).toBe('blue');
+
+    // Check second child
+    const circle = children[1];
+    expect(circle.type).toBe('circle');
+    expect(circle.getProperty('cx')).toBe(150);
+    expect(circle.getProperty('cy')).toBe(75);
+    expect(circle.getProperty('r')).toBe(25);
   });
 });
 

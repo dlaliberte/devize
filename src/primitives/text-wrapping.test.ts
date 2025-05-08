@@ -59,7 +59,7 @@ beforeEach(() => {
           return true;
         },
 
-        renderSVG: (container) => {
+        renderToSvg: (container) => {
           const element = document.createElementNS('http://www.w3.org/2000/svg', 'text');
 
           // Set attributes
@@ -190,7 +190,7 @@ beforeEach(() => {
           return true;
         },
 
-        renderSVG: (container) => {
+        renderToSvg: (container) => {
           // For SVG, we need to create multiple text elements, one for each line
           const svgGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 
@@ -391,7 +391,7 @@ describe('Text Wrapping', () => {
     const container = { appendChild: vi.fn() };
 
     // Call the SVG rendering function
-    result.renderSVG(container);
+    result.renderToSvg(container);
 
     // Should have appended the group to the container
     expect(container.appendChild).toHaveBeenCalledWith(mockGroup);

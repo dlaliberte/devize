@@ -99,7 +99,7 @@ beforeEach(() => {
           return true;
         },
 
-        renderSVG: (container) => {
+        renderToSvg: (container) => {
           const element = {
             setAttribute: vi.fn(),
             textContent: props.text
@@ -176,7 +176,7 @@ describe('Text Transformations', () => {
               return true;
             },
 
-            renderSVG: (container) => {
+            renderToSvg: (container) => {
               const element = {
                 setAttribute: vi.fn(),
                 textContent: spec.text
@@ -264,9 +264,9 @@ describe('Text Transformations', () => {
       appendChild: vi.fn()
     };
 
-    // Call decompose and then renderSVG
+    // Call decompose and then renderToSvg
     const translateResult = textType?.decompose(translateSpec, {});
-    const translateElement = translateResult.renderSVG(container);
+    const translateElement = translateResult.renderToSvg(container);
 
     // Verify transform attribute was set correctly
     expect(translateElement.setAttribute).toHaveBeenCalledWith('transform', 'translate(50,30)');
@@ -277,9 +277,9 @@ describe('Text Transformations', () => {
       transform: 'rotate(45)'
     };
 
-    // Call decompose and then renderSVG
+    // Call decompose and then renderToSvg
     const rotateResult = textType?.decompose(rotateSpec, {});
-    const rotateElement = rotateResult.renderSVG(container);
+    const rotateElement = rotateResult.renderToSvg(container);
 
     // Verify transform attribute was set correctly
     expect(rotateElement.setAttribute).toHaveBeenCalledWith('transform', 'rotate(45)');

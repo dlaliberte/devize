@@ -70,6 +70,16 @@ if (typeof window !== 'undefined') {
   initializeLibrary();
 }
 
+// renderer defines renderViz.
+// // Render a visualization to a container
+// export function renderViz(spec: VisualizationSpec | RenderableVisualization, container: HTMLElement): RenderedResult {
+//   // If it's a specification, build it first
+//   const viz = isVisualizationSpec(spec) ? buildViz(spec) : spec;
+
+//   // Render to the container
+//   return viz.render(container);
+// }
+
 // Export core functions
 export {
   buildViz,

@@ -147,7 +147,7 @@ describe('Polygon Primitive', () => {
     });
 
     const implementation = polygon.spec;
-    expect(typeof implementation.renderSVG).toBe('function');
+    expect(typeof implementation.renderToSvg).toBe('function');
     expect(typeof implementation.renderCanvas).toBe('function');
   });
 });

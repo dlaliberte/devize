@@ -49,8 +49,9 @@ export const rectangleTypeDefinition = {
       _renderType: "rect",  // Internal rendering type
       attributes: attributes,
 
+
       // Rendering functions for different backends
-      renderSVG: (container) => {
+      renderToSvg: (container) => {
         const element = createSVGElement('rect');
         applyAttributes(element, attributes);
         if (container) container.appendChild(element);

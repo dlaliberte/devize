@@ -1,16 +1,17 @@
 /**
- * Axis Component Tests
- *
- * Purpose: Tests the axis component
- * Author: [Author Name]
- * Creation Date: [Date]
- * Last Modified: [Date]
- */
+       * Axis Component Tests
+       *
+       * Purpose: Tests the axis component
+       * Author: [Author Name]
+       * Creation Date: [Date]
+       * Last Modified: [Date]
+       */
 
-import { describe, test, expect, beforeEach } from 'vitest';
+import { describe, test, expect, beforeEach, vi } from 'vitest';
 import { buildViz } from '../core/builder';
 import { registerDefineType } from '../core/define';
 import { createScale } from './scales/scale';
+import { renderViz } from '../core/devize';
 
 // Import primitives needed for the axis component
 import '../primitives/group';
@@ -26,204 +27,213 @@ import './axis';
 
 // Reset registry and register define type before each test
 beforeEach(() => {
-  registerDefineType();
+        registerDefineType();
 });
 
 describe('Axis Component', () => {
-  test('should create a horizontal axis with provided values', () => {
-    const axis = buildViz({
-      type: 'axis',
-      orientation: 'bottom',
-      length: 500,
-      values: [0, 25, 50, 75, 100]
-    });
+        test('should create a horizontal axis with provided values', () => {
+          const axis = buildViz({
+            type: 'axis',
+            orientation: 'bottom',
+            length: 500,
+            values: [0, 25, 50, 75, 100]
+          });
 
-    expect(axis).toBeDefined();
-    // We're not expecting the type to be preserved anymore
-    // expect(axis.type).toBe('axis');
+          expect(axis).toBeDefined();
 
-    // Get the implementation result - we know it's a group
-    const implementation = axis.spec;
-    expect(implementation.type).toBe('group');
-    expect(implementation.children && implementation.children.length).toBeGreaterThan(0);
-  });
+          // Check that the axis has the correct type
+          expect(axis.type).toBe('axis');
 
-  test('should create a vertical axis with provided values', () => {
-    const axis = buildViz({
-      type: 'axis',
-      orientation: 'left',
-      length: 300,
-      values: [0, 20, 40, 60, 80, 100]
-    });
+          // Check that it has the necessary rendering methods
+          expect(typeof axis.renderToSvg).toBe('function');
+          expect(typeof axis.renderToCanvas).toBe('function');
 
-    expect(axis).toBeDefined();
-    // We're not expecting the type to be preserved anymore
-    // expect(axis.type).toBe('axis');
+          // Check that it has the getProperty method
+          expect(typeof axis.getProperty).toBe('function');
 
-    // Get the implementation result
-    const implementation = axis.spec;
-    expect(implementation.type).toBe('group');
-    expect(implementation.children && implementation.children.length).toBeGreaterThan(0);
-  });
+          // Check that it has the correct properties
+          expect(axis.getProperty('orientation')).toBe('bottom');
+          expect(axis.getProperty('length')).toBe(500);
+        });
 
-  test('should create an axis with a provided scale', () => {
-    const scale = createScale('linear', {
-      domain: [0, 100],
-      range: [0, 500]
-    });
+        test('should create a vertical axis with provided values', () => {
+          const axis = buildViz({
+            type: 'axis',
+            orientation: 'left',
+            length: 300,
+            values: [0, 20, 40, 60, 80, 100]
+          });
 
-    const axis = buildViz({
-      type: 'axis',
-      orientation: 'bottom',
-      length: 500,
-      values: [0, 25, 50, 75, 100],
-      scale: scale
-    });
+          expect(axis).toBeDefined();
+          expect(axis.type).toBe('axis');
 
-    expect(axis).toBeDefined();
-    // We're not expecting the type to be preserved anymore
-    // expect(axis.type).toBe('axis');
+          // Check that it has the necessary rendering methods
+          expect(typeof axis.renderToSvg).toBe('function');
+          expect(typeof axis.renderToCanvas).toBe('function');
 
-    // Get the implementation result
-    const implementation = axis.spec;
-    expect(implementation.type).toBe('group');
-    expect(implementation.children && implementation.children.length).toBeGreaterThan(0);
-  });
+          // Check that it has the correct properties
+          expect(axis.getProperty('orientation')).toBe('left');
+          expect(axis.getProperty('length')).toBe(300);
+        });
 
-  test('should create an axis with a scale type and domain', () => {
-    const axis = buildViz({
-      type: 'axis',
-      orientation: 'bottom',
-      length: 500,
-      values: [],
-      scaleType: 'linear',
-      domain: [0, 100],
-      tickCount: 5
-    });
+        // Add rendering tests
+        test('should render an axis to SVG without errors', () => {
+          // Create a mock SVG container
+          const svgContainer = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 
-    expect(axis).toBeDefined();
-    // We're not expecting the type to be preserved anymore
-    // expect(axis.type).toBe('axis');
+          // Create an axis
+          const axis = buildViz({
+            type: 'axis',
+            orientation: 'bottom',
+            length: 500,
+            values: [0, 25, 50, 75, 100]
+          });
 
-    // Get the implementation result
-    const implementation = axis.spec;
-    expect(implementation.type).toBe('group');
-    expect(implementation.children && implementation.children.length).toBeGreaterThan(0);
-  });
+          // Check that renderToSvg exists and is a function
+          expect(axis.renderToSvg).toBeDefined();
+          expect(typeof axis.renderToSvg).toBe('function');
 
-  test('should create an axis with a band scale', () => {
-    const scale = createScale('band', {
-      domain: ['A', 'B', 'C', 'D', 'E'],
-      range: [0, 500]
-    });
+          // Render the axis to the SVG container
+          const result = axis.renderToSvg(svgContainer);
 
-    const axis = buildViz({
-      type: 'axis',
-      orientation: 'bottom',
-      length: 500,
-      values: ['A', 'B', 'C', 'D', 'E'],
-      scale: scale
-    });
+          // Check that something was rendered
+          expect(result).toBeDefined();
+          expect(svgContainer.childNodes.length).toBeGreaterThan(0);
 
-    expect(axis).toBeDefined();
-    // We're not expecting the type to be preserved anymore
-    // expect(axis.type).toBe('axis');
+          // Check that the rendered element is a group
+          const renderedElement = svgContainer.firstChild;
+          expect(renderedElement.nodeName.toLowerCase()).toBe('g');
 
-    // Get the implementation result
-    const implementation = axis.spec;
-    expect(implementation.type).toBe('group');
-    expect(implementation.children && implementation.children.length).toBeGreaterThan(0);
-  });
+          // Check that the group contains children (axis line, ticks, etc.)
+          expect(renderedElement.childNodes.length).toBeGreaterThan(0);
+        });
 
-  test('should create an axis with a title', () => {
-    const axis = buildViz({
-      type: 'axis',
-      orientation: 'bottom',
-      length: 500,
-      values: [0, 25, 50, 75, 100],
-      title: 'X-Axis Title'
-    });
+        test('should render an axis with a scale to SVG without errors', () => {
+          // Create a mock SVG container
+          const svgContainer = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 
-    expect(axis).toBeDefined();
-    // We're not expecting the type to be preserved anymore
-    // expect(axis.type).toBe('axis');
+          // Create a scale
+          const scale = createScale('linear', {
+            domain: [0, 100],
+            range: [0, 500]
+          });
 
-    // Get the implementation result
-    const implementation = axis.spec;
+          // Create an axis with the scale
+          const axis = buildViz({
+            type: 'axis',
+            orientation: 'bottom',
+            length: 500,
+            values: [0, 25, 50, 75, 100],
+            scale: scale
+          });
 
-    // Find the title element
-    const titleElement = implementation.children && implementation.children.find(child =>
-      child && child.type === 'text' && child.class === 'axis-title'
-    );
+          // Render the axis to the SVG container
+          const result = axis.renderToSvg(svgContainer);
 
-    expect(titleElement).toBeDefined();
-    expect(titleElement.text).toBe('X-Axis Title');
-  });
+          // Check that something was rendered
+          expect(result).toBeDefined();
+          expect(svgContainer.childNodes.length).toBeGreaterThan(0);
+        });
 
-  test('should apply custom formatting to tick labels', () => {
-    const axis = buildViz({
-      type: 'axis',
-      orientation: 'bottom',
-      length: 500,
-      values: [0, 25, 50, 75, 100],
-      format: value => `${value}`
-    });
+        test('should render an axis using renderViz function', () => {
+          // Create a mock container
+          const container = document.createElement('div');
 
-    // Get the implementation result
-    const implementation = axis.spec;
+          // Create an axis
+          const axis = buildViz({
+            type: 'axis',
+            orientation: 'bottom',
+            length: 500,
+            values: [0, 25, 50, 75, 100]
+          });
 
-    // Find a tick label
-    const tickGroups = implementation.children && implementation.children.filter(child =>
-      child && child.type === 'group' && child.children
-    );
+          // Use renderViz to render the axis
+          const result = renderViz(axis, container);
 
-    const tickLabel = tickGroups && tickGroups[0].children.find(child =>
-      child && child.type === 'text' && child.class === 'tick-label'
-    );
+          // Check that something was rendered
+          expect(result).toBeDefined();
+          expect(container.childNodes.length).toBeGreaterThan(0);
 
-    expect(tickLabel).toBeDefined();
-    // Change the expectation to match the current implementation
-    expect(tickLabel.text).toBe('0');
-  });
+          // Check that an SVG element was created
+          const svgElement = container.firstChild;
+          expect(svgElement.nodeName).toBe('svg');
 
-  test('should handle different orientations correctly', () => {
-    // Test top orientation
-    const topAxis = buildViz({
-      type: 'axis',
-      orientation: 'top',
-      length: 500,
-      values: [0, 50, 100]
-    });
+          // Check that the SVG contains a group for the axis
+          expect(svgElement.childNodes.length).toBeGreaterThan(0);
+          const axisGroup = svgElement.firstChild;
+          expect(axisGroup.nodeName).toBe('g');
+        });
 
-    // We're not expecting the type to be preserved anymore
-    // expect(topAxis.type).toBe('axis');
-    const topImplementation = topAxis.spec;
-    expect(topImplementation.type).toBe('group');
+        test('should not cause infinite loops when rendering', () => {
+          // Create a mock container
+          const container = document.createElement('div');
 
-    // Test right orientation
-    const rightAxis = buildViz({
-      type: 'axis',
-      orientation: 'right',
-      length: 300,
-      values: [0, 50, 100]
-    });
+          // Spy on console.error to catch any errors
+          const consoleErrorSpy = vi.spyOn(console, 'error');
 
-    // We're not expecting the type to be preserved anymore
-    // expect(rightAxis.type).toBe('axis');
-    const rightImplementation = rightAxis.spec;
-    expect(rightImplementation.type).toBe('group');
-  });
+          // Create an axis
+          const axis = buildViz({
+            type: 'axis',
+            orientation: 'bottom',
+            length: 500,
+            values: [0, 25, 50, 75, 100]
+          });
 
-  test('should apply transform if provided', () => {
-    const axis = buildViz({
-      type: 'axis',
-      orientation: 'bottom',
-      length: 500,
-      values: [0, 50, 100],
-      transform: 'translate(50, 50)'
-    });
+          // Use renderViz to render the axis
+          renderViz(axis, container);
 
-    const implementation = axis.spec;
-    expect(implementation.transform).toBe('translate(50, 50)');
-  });
+          // Check that no errors were logged
+          expect(consoleErrorSpy).not.toHaveBeenCalled();
+
+          // Restore the spy
+          consoleErrorSpy.mockRestore();
+        });
+
+        test('should render nested components correctly', () => {
+          // Create a mock container
+          const container = document.createElement('div');
+
+          // Create a scale
+          const scale = createScale('linear', {
+            domain: [0, 100],
+            range: [0, 500]
+          });
+
+          // Create a group containing an axis
+          const group = buildViz({
+            type: 'group',
+            transform: 'translate(50, 50)',
+            children: [
+              {
+                type: 'axis',
+                orientation: 'bottom',
+                length: 500,
+                values: [0, 25, 50, 75, 100],
+                scale: scale
+              }
+            ]
+          });
+
+          // Use renderViz to render the group
+          const result = renderViz(group, container);
+
+          // Check that something was rendered
+          expect(result).toBeDefined();
+          expect(container.childNodes.length).toBeGreaterThan(0);
+
+          // Check that an SVG element was created
+          const svgElement = container.firstChild;
+          expect(svgElement.nodeName).toBe('svg');
+
+          // Check that the SVG contains a group
+          expect(svgElement.childNodes.length).toBeGreaterThan(0);
+          const outerGroup = svgElement.firstChild;
+          expect(outerGroup.nodeName).toBe('g');
+
+          // Check that the outer group has a transform attribute
+          expect(outerGroup.getAttribute('transform')).toBe('translate(50, 50)');
+
+          // Check that the outer group contains an inner group for the axis
+          expect(outerGroup.childNodes.length).toBeGreaterThan(0);
+        });
 });

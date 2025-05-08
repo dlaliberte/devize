@@ -116,8 +116,8 @@ export function updateViz(
  */
 function renderToSVG(processed, container) {
   // Check if the processed object has an SVG rendering function
-  if (processed.renderSVG) {
-    return processed.renderSVG(container);
+  if (processed.renderToSvg) {
+    return processed.renderToSvg(container);
   } else {
     console.error('No SVG rendering function available for:', processed);
     return null;

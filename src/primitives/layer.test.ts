@@ -87,7 +87,7 @@ describe('Layer Primitive', () => {
               width: spec.width,
               height: spec.height
             },
-            renderSVG: vi.fn(),
+            renderToSvg: vi.fn(),
             renderCanvas: vi.fn()
           })
         };
@@ -120,7 +120,7 @@ describe('Layer Primitive', () => {
           decompose: () => ({
             _renderType: 'rectangle',
             attributes: {},
-            renderSVG: vi.fn(),
+            renderToSvg: vi.fn(),
             renderCanvas: vi.fn()
           })
         };
@@ -152,7 +152,7 @@ describe('Layer Primitive', () => {
     document.createElementNS = vi.fn(() => mockGroupElement) as any;
 
     // Call the SVG rendering function
-    result.renderSVG(container);
+    result.renderToSvg(container);
 
     // Should have set transform attribute
     expect(mockGroupElement.setAttribute).toHaveBeenCalledWith('transform', 'translate(10, 20)');
@@ -178,7 +178,7 @@ describe('Layer Primitive', () => {
           decompose: () => ({
             _renderType: 'rectangle',
             attributes: {},
-            renderSVG: vi.fn(),
+            renderToSvg: vi.fn(),
             renderCanvas: vi.fn()
           })
         };

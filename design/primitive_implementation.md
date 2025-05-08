@@ -113,7 +113,7 @@ const attributes = {
 
 ```javascript
 // SVG rendering function
-renderSVG: (container) => {
+renderToSvg: (container) => {
         const element = createSVGElement('elementType');
         applyAttributes(element, attributes);
         if (container) container.appendChild(element);

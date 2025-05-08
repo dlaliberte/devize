@@ -7,7 +7,7 @@ import { registry } from './registry';
 function isRenderableVisualization(obj: any): boolean {
   return obj &&
          typeof obj === 'object' &&
-         obj.spec &&
+         typeof obj.renderableType === 'string' &&
          typeof obj.render === 'function' &&
          typeof obj.renderToSvg === 'function' &&
          typeof obj.renderToCanvas === 'function';
@@ -53,7 +53,7 @@ function createRenderableVisualization(spec: VisualizationSpec): RenderableVisua
 
   // Create the renderable object
   const renderable: RenderableVisualization = {
-    spec,
+    spec,  // Used for rendering.
     type,
 
     // Render to a DOM container
@@ -87,27 +87,20 @@ function createRenderableVisualization(spec: VisualizationSpec): RenderableVisua
 
     // Render to an SVG element
     renderToSvg: (svg: SVGElement) => {
-      // Implementation depends on the type
-      // For now, we'll create a placeholder
-      const element = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      svg.appendChild(element);
+      // For a renderable visualization, we should already have the processed result
+      // and should not need to call the implementation again
 
-      // In a real implementation, we would call the type's rendering function
-      const typeDefinition = registry.getType(type);
-      if (typeDefinition && typeDefinition.implementation) {
-        // Call the implementation
-        const impl = typeDefinition.implementation;
-        if (typeof impl === 'function') {
-          const result = impl(spec);
-          // Process the result recursively
-          if (result && result.type) {
-            const childViz = buildViz(result);
-            return childViz.renderToSvg(svg);
-          }
-        }
+      // Create a group element for this visualization
+      const element = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
+      // If we have specific rendering logic in the implementation result, use it
+      if (spec._renderType && spec.renderToSvg && typeof spec.renderToSvg === 'function') {
+        // Use the custom rendering function from the implementation result
+        return spec.renderToSvg(svg);
       }
 
-      return element;
+      // Add other type-specific rendering logic here
+      throw new Error('we should never get here.  Every viz should have a renderToSvg.');
     },
 
     // Render to a Canvas context
@@ -116,22 +109,14 @@ function createRenderableVisualization(spec: VisualizationSpec): RenderableVisua
       // For now, we'll create a placeholder
       ctx.save();
 
-      // In a real implementation, we would call the type's rendering function
-      const typeDefinition = registry.getType(type);
-      if (typeDefinition && typeDefinition.implementation) {
-        // Call the implementation
-        const impl = typeDefinition.implementation;
-        if (typeof impl === 'function') {
-          const result = impl(spec);
-          // Process the result recursively
-          if (result && result.type) {
-            const childViz = buildViz(result);
-            childViz.renderToCanvas(ctx);
-          }
-        }
+      // If we have specific rendering logic in the implementation result, use it
+      if (spec._renderType && spec.renderCanvas && typeof spec.renderCanvas === 'function') {
+        // Use the custom rendering function from the implementation result
+        return spec.renderCanvas(ctx);
       }
 
       ctx.restore();
+      throw new Error('we should never get here. Every viz should have a renderCanvas.');
     },
 
     // Update with a new specification
@@ -197,20 +182,25 @@ export function buildViz(spec: VisualizationSpec): RenderableVisualization {
   if (spec.type === "define") {
     const impl = typeDefinition.implementation;
     if (typeof impl === 'function') {
-      impl(processedSpec);
+      return impl(processedSpec);
     }
   } else {
     // For other types, call the implementation to validate and process
     const impl = typeDefinition.implementation;
     if (typeof impl === 'function') {
       const result = impl(processedSpec);
-      // If the implementation returns a new spec, process it recursively
-      if (result && result.type && result.type !== spec.type) {
+      // If the implementation returns a spec, process it recursively
+      // For recursive processing, the type must be from the result of
+      // calling the implementation function or using the implementation object.
+      if (result && result.type) {
         return buildViz(result);
       }
+      result.renderableType = typeDefinition.name;
+      return result;
     }
   }
 
   // Create and return a renderable visualization
-  return createRenderableVisualization(processedSpec);
+  // The implementation of each viz should create its own renderable.
+  // return createRenderableVisualization(processedSpec);
 }

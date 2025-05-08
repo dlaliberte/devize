@@ -247,7 +247,7 @@ describe('Text Alignment', () => {
       transform: ''
     });
 
-    startImpl.renderSVG(mockContainer);
+    startImpl.renderToSvg(mockContainer);
     expect(applyAttributes).toHaveBeenCalled();
     expect(mockContainer.appendChild).toHaveBeenCalled();
 
@@ -270,7 +270,7 @@ describe('Text Alignment', () => {
       transform: ''
     });
 
-    middleImpl.renderSVG(mockContainer);
+    middleImpl.renderToSvg(mockContainer);
     expect(applyAttributes).toHaveBeenCalled();
     expect(mockContainer.appendChild).toHaveBeenCalled();
 
@@ -293,7 +293,7 @@ describe('Text Alignment', () => {
       transform: ''
     });
 
-    endImpl.renderSVG(mockContainer);
+    endImpl.renderToSvg(mockContainer);
     expect(applyAttributes).toHaveBeenCalled();
     expect(mockContainer.appendChild).toHaveBeenCalled();
 
@@ -333,7 +333,7 @@ describe('Text Alignment', () => {
       transform: ''
     });
 
-    autoImpl.renderSVG(mockContainer);
+    autoImpl.renderToSvg(mockContainer);
     expect(applyAttributes).toHaveBeenCalled();
     expect(mockContainer.appendChild).toHaveBeenCalled();
 
@@ -356,7 +356,7 @@ describe('Text Alignment', () => {
       transform: ''
     });
 
-    middleImpl.renderSVG(mockContainer);
+    middleImpl.renderToSvg(mockContainer);
     expect(applyAttributes).toHaveBeenCalled();
     expect(mockContainer.appendChild).toHaveBeenCalled();
 
@@ -379,7 +379,7 @@ describe('Text Alignment', () => {
       transform: ''
     });
 
-    hangingImpl.renderSVG(mockContainer);
+    hangingImpl.renderToSvg(mockContainer);
     expect(applyAttributes).toHaveBeenCalled();
     expect(mockContainer.appendChild).toHaveBeenCalled();
 

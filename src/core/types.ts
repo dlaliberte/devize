@@ -11,7 +11,7 @@ export interface VisualizationSpec {
 // Renderable visualization interface
 export interface RenderableVisualization {
   spec: VisualizationSpec;
-  type: string;
+  renderableType: string;
   render: (container: HTMLElement) => RenderedResult;
   renderToSvg: (svg: SVGElement) => SVGElement;
   renderToCanvas: (ctx: CanvasRenderingContext2D) => void;
