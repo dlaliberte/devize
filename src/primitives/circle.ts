@@ -7,11 +7,14 @@
  * Last Modified: [Date]
  */
 
-import { registerDefineType } from '../core/define';
 import { buildViz } from '../core/builder';
-import { createSVGElement, applyAttributes } from '../renderers/svgUtils';
+import { registerDefineType } from '../core/define';
+import { ensureSvg } from '../core/renderer';
 
-// Circle type definition
+// Make sure define type is registered
+registerDefineType();
+
+// Define the circle type definition
 export const circleTypeDefinition = {
   type: "define",
   name: "circle",
@@ -23,58 +26,80 @@ export const circleTypeDefinition = {
     stroke: { default: "black" },
     strokeWidth: { default: 1 }
   },
-  implementation: props => {
-    // Validation
+  implementation: function(props) {
+    // Validate radius is positive
     if (props.r <= 0) {
       throw new Error('Circle radius must be positive');
     }
 
-    // Prepare attributes
-    const attributes = {
-      cx: props.cx,
-      cy: props.cy,
-      r: props.r,
-      fill: props.fill,
-      stroke: props.stroke,
-      'stroke-width': props.strokeWidth
-    };
-
-    // Return a specification with rendering functions
+    // Return a renderable object with SVG rendering functions
     return {
-      _renderType: "circle",  // Internal rendering type
-      attributes: attributes,
+      type: "circle",
+      spec: props,
 
-      // Rendering functions for different backends
-      renderSVG: (container) => {
-        const element = createSVGElement('circle');
-        applyAttributes(element, attributes);
-        if (container) container.appendChild(element);
-        return element;
+      // Render to a container (creates an SVG if needed)
+      render: function(container) {
+        // Ensure there's an SVG element
+        const svg = ensureSvg(container);
+
+        // Render to the SVG
+        const element = this.renderToSvg(svg);
+
+        // Return the result
+        return {
+          element,
+          update: (newSpec) => {
+            // Update the element attributes
+            Object.entries(newSpec).forEach(([key, value]) => {
+              if (key !== 'type') {
+                element.setAttribute(key === 'strokeWidth' ? 'stroke-width' : key, value);
+              }
+            });
+
+            return this;
+          },
+          cleanup: () => {
+            if (element.parentNode) {
+              element.parentNode.removeChild(element);
+            }
+          }
+        };
       },
 
-      renderCanvas: (ctx) => {
-        const { cx, cy, r, fill, stroke, 'stroke-width': strokeWidth } = attributes;
+      // Render to an existing SVG element
+      renderToSvg: function(svg) {
+        // Create a circle element
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
 
+        // Set attributes
+        circle.setAttribute('cx', props.cx);
+        circle.setAttribute('cy', props.cy);
+        circle.setAttribute('r', props.r);
+        circle.setAttribute('fill', props.fill);
+        circle.setAttribute('stroke', props.stroke);
+        circle.setAttribute('stroke-width', props.strokeWidth);
+
+        // Add to the SVG
+        svg.appendChild(circle);
+
+        return circle;
+      },
+
+      // Render to a canvas context
+      renderCanvas: function(ctx) {
         ctx.beginPath();
-        ctx.arc(cx, cy, r, 0, Math.PI * 2);
+        ctx.arc(props.cx, props.cy, props.r, 0, Math.PI * 2);
 
-        if (fill !== 'none') {
-          ctx.fillStyle = fill;
+        if (props.fill !== 'none') {
+          ctx.fillStyle = props.fill;
           ctx.fill();
         }
 
-        if (stroke !== 'none') {
-          ctx.strokeStyle = stroke;
-          ctx.lineWidth = strokeWidth;
+        if (props.stroke !== 'none') {
+          ctx.strokeStyle = props.stroke;
+          ctx.lineWidth = props.strokeWidth;
           ctx.stroke();
         }
-
-        return true; // Indicate successful rendering
-      },
-
-      // WebGL rendering function could be added here
-      renderWebGL: (gl, program) => {
-        // WebGL-specific rendering code
       }
     };
   }
@@ -84,26 +109,10 @@ export const circleTypeDefinition = {
  * Register the circle primitive
  */
 export function registerCirclePrimitive() {
-  // Make sure define type is registered
-  registerDefineType();
-
-  // Define the circle type using buildViz
+  // Register the circle type
   buildViz(circleTypeDefinition);
+  console.log('Circle primitive registered');
 }
 
-// Auto-register when this module is imported
+// Auto-register the circle primitive
 registerCirclePrimitive();
-
-/**
- * References:
- * - Related File: src/core/define.ts
- * - Related File: src/core/registry.ts
- * - Related File: src/core/devize.ts
- * - Related File: src/renderers/svgUtils.js
- * - Related File: src/renderers/canvasUtils.js
- * - Design Document: design/define.md
- * - Design Document: design/primitives.md
- * - Design Document: design/rendering.md
- * - User Documentation: docs/primitives/shapes.md
- * - Test Cases: tests/primitives/circle.test.js
- */

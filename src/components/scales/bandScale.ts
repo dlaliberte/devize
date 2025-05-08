@@ -37,8 +37,20 @@ buildViz({
 
     // Calculate band width and step
     const width = rangeMax - rangeMin;
+    console.log('Band scale calculation:', {
+      domain,
+      rangeMin,
+      rangeMax,
+      width,
+      n,
+      padding,
+      paddingInner,
+      paddingOuter,
+      align
+    });
     const step = n === 0 ? 0 : width / Math.max(1, n - paddingInner + 2 * paddingOuter);
     const bandWidth = step * (1 - paddingInner);
+    console.log('Band scale result:', { step, bandWidth });
 
     // Calculate the start position based on alignment
     const start = rangeMin + align * (width - (n * step - paddingInner * step));

@@ -64,7 +64,6 @@ describe('Visualization Builder', () => {
     test('should return already processed objects unchanged', () => {
       // Create a processed object with rendering functions
       const processedObject = {
-        type: 'rectangle',
         spec: {
           type: 'rectangle',
           width: 100,
@@ -99,7 +98,7 @@ describe('Visualization Builder', () => {
       expect(result.render).toBeDefined();
       expect(result.renderToSvg).toBeDefined();
       expect(result.renderToCanvas).toBeDefined();
-      expect(result.type).toBe('rectangle');
+      expect(result.spec.type).toBe('rectangle');
       expect(result.spec).toEqual(spec);
     });
   });
@@ -334,7 +333,7 @@ describe('Visualization Builder', () => {
       // This is mostly a smoke test to ensure it doesn't throw
       const result = buildViz(spec);
       expect(result).toBeDefined();
-      expect(result.type).toBe('group');
+      expect(result.spec.type).toBe('group');
     });
   });
 });

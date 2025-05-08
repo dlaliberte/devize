@@ -1,4 +1,4 @@
-  /**
+/**
  * Legend Component
  *
  * Purpose: Provides legend visualization for charts
@@ -9,12 +9,19 @@
 
 import { buildViz } from '../core/builder';
 
+// Import required primitives
+import '../primitives/rectangle';
+import '../primitives/circle';
+import '../primitives/polygon';
+import '../primitives/text';
+import '../primitives/group';
+
 // Define the legend component
 buildViz({
   type: "define",
   name: "legend",
   properties: {
-    type: { required: true }, // 'color', 'size', 'symbol'
+    legendType: { required: true }, // Changed from 'type' to 'legendType'
     title: { default: '' },
     items: { required: true }, // Array of {value, label, color/size/symbol}
     orientation: { default: 'vertical' },
@@ -25,7 +32,7 @@ buildViz({
     format: { default: value => value.toString() }
   },
   implementation: function(props) {
-    const { type, title, items, orientation, position, itemSpacing, labelOffset, symbolSize, format } = props;
+    const { legendType, title, items, orientation, position, itemSpacing, labelOffset, symbolSize, format } = props;
 
     const isHorizontal = orientation === 'horizontal';
 
@@ -54,7 +61,7 @@ buildViz({
       // Create the appropriate symbol based on legend type
       let symbol;
 
-      if (type === 'color') {
+      if (legendType === 'color') {
         symbol = {
           type: 'rectangle',
           x: itemX,
@@ -64,7 +71,7 @@ buildViz({
           fill: item.color || '#ccc',
           class: 'legend-symbol'
         };
-      } else if (type === 'size') {
+      } else if (legendType === 'size') {
         const size = item.size || symbolSize;
         symbol = {
           type: 'circle',
@@ -74,7 +81,7 @@ buildViz({
           fill: '#666',
           class: 'legend-symbol'
         };
-      } else if (type === 'symbol') {
+      } else if (legendType === 'symbol') {
         // Default to a circle if no symbol specified
         const symbolType = item.symbol || 'circle';
 

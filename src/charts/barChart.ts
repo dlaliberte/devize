@@ -1,17 +1,27 @@
-// Bar chart implementation using scales
-import { buildViz } from '../core/devize';
-import { VizSpec, VizInstance, DataField } from '../core/types';
-import { createScale } from '../components/scales/scale';
+/**
+ * Bar Chart Component
+ *
+ * Purpose: Provides a bar chart visualization
+ * Author: [Author Name]
+ * Creation Date: [Date]
+ * Last Modified: [Date]
+ */
 
-// Import direct dependencies only
-import '../primitives/shapes'; // For rectangle, text, etc.
+import { buildViz } from '../core/builder';
+import { registerDefineType } from '../core/define';
+
+// Make sure define type is registered
+registerDefineType();
+
+// Import required components
+import '../primitives/shapes'; // For rectangle
+import '../primitives/text'; // For text
 import '../primitives/containers'; // For group
-import '../core/define'; // For the define component
 import '../components/axis'; // For axis component
 import '../components/legend'; // For legend component
-import '../components/scales/scale'; // For scaling
+import '../components/scales/scale'; // For scale component
 
-// Define the barChart visualization type using the define type
+// Define the barChart visualization type
 buildViz({
   type: "define",
   name: "barChart",
@@ -52,53 +62,55 @@ buildViz({
     const yMax = Math.max(...yValues);
     const yAxisValues = [0, yMax * 0.25, yMax * 0.5, yMax * 0.75, yMax];
 
-    // Create scales
-    const xScale = createScale('band', {
+    // Create scales using the scale component
+    const xScaleSpec = {
+      type: 'scale',
+      scaleType: 'band',
       domain: xValues,
       range: [0, dimensions.chartWidth],
       padding: 0.2
-    });
+    };
 
-    const yScale = createScale('linear', {
+    const yScaleSpec = {
+      type: 'scale',
+      scaleType: 'linear',
       domain: [0, yMax],
       range: [dimensions.chartHeight, 0]
-    });
+    };
 
     // Build the visualization with these scales
     const result = {
       type: 'group',
       transform: `translate(${margin.left}, ${margin.top})`,
       children: [
-        // X-axis using the scale
+        // X-axis
         {
           type: 'axis',
           orientation: 'bottom',
+          scale: xScaleSpec,
           length: dimensions.chartWidth,
-          values: xValues,
-          scale: xScale,
           transform: `translate(0, ${dimensions.chartHeight})`,
           title: x.field
         },
 
-        // Y-axis using the scale
+        // Y-axis
         {
           type: 'axis',
           orientation: 'left',
+          scale: yScaleSpec,
           length: dimensions.chartHeight,
-          values: yAxisValues,
-          scale: yScale,
           transform: 'translate(0, 0)',
           title: y.field,
           format: value => value.toLocaleString()
         },
 
-        // Bars using the scales
+        // Bars
         ...data.map((d, i, array) => {
-          // Get the bar position using the scale
-          const barX = xScale.scale(d[x.field]);
-          const barWidth = xScale.bandwidth();
-          const barY = yScale.scale(d[y.field]);
-          const barHeight = dimensions.chartHeight - barY;
+          // Calculate bar position and dimensions
+          const barX = i * (dimensions.chartWidth / data.length) + (dimensions.chartWidth / data.length * 0.1);
+          const barWidth = dimensions.chartWidth / data.length * 0.8;
+          const barHeight = (d[y.field] / yMax) * dimensions.chartHeight;
+          const barY = dimensions.chartHeight - barHeight;
 
           // Determine bar color
           let barColor;
@@ -144,7 +156,7 @@ buildViz({
         // Legend (conditionally included)
         color && typeof color !== 'string' && color.field ? {
           type: 'legend',
-          orientation: 'vertical',
+          legendType: 'color', // Use legendType instead of type
           transform: `translate(${dimensions.chartWidth - 120}, 0)`,
           items: (() => {
             const colorField = color.field;
@@ -152,7 +164,7 @@ buildViz({
             const colors = ["#3366CC", "#DC3912", "#FF9900", "#109618", "#990099"];
 
             return categories.map((category, i) => ({
-              label: category,
+              value: category,
               color: colors[i % colors.length]
             }));
           })()
@@ -168,10 +180,9 @@ buildViz({
 /**
  * Create a bar chart
  * @param spec The bar chart specification
- * @param container The container element
  * @returns The bar chart instance
  */
-export function createBarChart(spec: VizSpec): VizInstance {
+export function createBarChart(spec) {
   // Create the visualization using the registered type
   return buildViz({
     ...spec,

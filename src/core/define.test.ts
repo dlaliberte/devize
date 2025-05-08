@@ -49,8 +49,7 @@ describe('Define Module', () => {
 
     // Verify the result is a renderable visualization
     expect(result).toBeDefined();
-    expect(result.type).toBe('define');
-
+    expect(result.spec.type).toBe('define');
     // Check if the new type exists
     expect(hasType('testCircle')).toBe(true);
 

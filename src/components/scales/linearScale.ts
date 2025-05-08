@@ -48,7 +48,7 @@ buildViz({
     const paddedDomainSize = paddedDomainMax - paddedDomainMin;
 
     // Create the scale function
-    const scale = (value) => {
+    const scaleFunc = (value) => {
       // Handle edge case of zero domain size
       if (paddedDomainSize === 0) {
         return rangeMin + rangeSize / 2;
@@ -66,7 +66,7 @@ buildViz({
     };
 
     // Create the invert function
-    const invert = (value) => {
+    const invertFunc = (value) => {
       // Handle edge case of zero range size
       if (rangeSize === 0) {
         return paddedDomainMin + paddedDomainSize / 2;
@@ -77,7 +77,7 @@ buildViz({
     };
 
     // Create the ticks function
-    const ticks = (count = 10) => {
+    const ticksFunc = (count = 10) => {
       // Handle edge case of zero domain size
       if (paddedDomainSize === 0) {
         return [paddedDomainMin];
@@ -91,11 +91,18 @@ buildViz({
     const scaleObj: Scale = {
       domain: computedDomain,
       range: props.range,
-      scale,
-      invert,
-      ticks
+      scale: scaleFunc,
+      invert: invertFunc,
+      ticks: ticksFunc
     };
 
-    return scaleObj;
+    console.log('Linear scale object created:', scaleObj);
+    console.log('Scale function type:', typeof scaleObj.scale);
+
+    // Return a visualization spec with the scale object as the implementation result
+    return {
+      type: 'group',
+      _implementationResult: scaleObj
+    };
   }
 });

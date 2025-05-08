@@ -7,18 +7,23 @@
  * Last Modified: [Date]
  */
 
-import { describe, test, expect, beforeEach, vi } from 'vitest';
+import { describe, test, expect, beforeEach } from 'vitest';
 import { registerDefineType } from '../../core/define';
-import { createScale } from './scale';
-import './linearScale'; // Import to ensure the visualization types are registered
-import './bandScale';   // Import to ensure the visualization types are registered
+import { initializeLibrary } from '../../core/devize';
 
-// Reset registry and register define type before each test
-beforeEach(() => {
-  // We don't need to reset the registry anymore as the testing framework handles this
-  // Just ensure the define type is registered
-  registerDefineType();
-});
+// Initialize the library
+initializeLibrary();
+
+// Make sure define type is registered
+registerDefineType();
+
+// Import scale modules to ensure they're registered
+import './linearScale';
+import './bandScale';
+import './ordinalScale';
+
+// Import the createScale function
+import { createScale } from './scale';
 
 describe('Scale Component', () => {
   describe('Linear Scale', () => {
@@ -28,8 +33,6 @@ describe('Scale Component', () => {
         range: [0, 500],
         clamp: true
       });
-
-      console.log('Linear scale:', scale);
 
       expect(scale).toBeDefined();
       expect(scale.domain).toEqual([0, 100]);
@@ -147,12 +150,10 @@ describe('Scale Component', () => {
 
   describe('Scale Factory', () => {
     test('should throw error for unknown scale type', () => {
-      expect(() => {
-        createScale('unknown' as any, {
-          domain: [0, 100],
-          range: [0, 500]
-        });
-      }).toThrow(/Unknown scale type/);
+      expect(() => createScale('unknown', {
+        domain: [0, 100],
+        range: [0, 400]
+      })).toThrow(/Unknown scale type: unknown/);
     });
 
     test('should create log scale (placeholder)', () => {
