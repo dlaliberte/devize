@@ -94,22 +94,26 @@ const salesData = [
   { product: "Product E", revenue: 320, profit: 90, category: "Clothing" }
 ];
 
-// Create a bar chart
-const barChart = Devize.createBarChart({
+// Create a bar chart specification
+const barChartSpec = {
   type: "barChart",
   data: salesData,
   x: { field: "product" },
   y: { field: "revenue" },
   color: { field: "category" },
   title: "Product Revenue by Category"
-}, document.getElementById("visualization-container"));</code></pre>
+};
+
+// Build and render the visualization
+const barChart = Devize.buildViz(barChartSpec);
+Devize.renderViz(barChart, document.getElementById("visualization-container"));</code></pre>
 
     <a href="/examples/" class="back-link">← Back to Examples</a>
   </div>
 
   <script type="module">
-    // Single import for everything we need
-    import * as Devize from '/src/index.ts';
+    // Import Devize library
+    import { buildViz, renderViz, updateViz, registerData } from '/src/index.ts';
 
     // Sample data
     const salesData = [
@@ -120,22 +124,30 @@ const barChart = Devize.createBarChart({
       { product: "Product E", revenue: 320, profit: 90, category: "Clothing" }
     ];
 
+    // Register data for potential reuse
+    registerData('salesData', salesData);
+
     // Function to create the visualization
     function createVisualization(data) {
       // Clear the container
       const container = document.getElementById("visualization-container");
       container.innerHTML = '';
 
-      // Create a bar chart
-      return Devize.buildViz({
+      // Create a bar chart specification
+      const spec = {
         type: "barChart",
         data: data,
         x: { field: "product" },
         y: { field: "revenue" },
         color: { field: "category" },
-        title: "Product Revenue by Category",
-        container: container
-      }, container);
+        title: "Product Revenue by Category"
+      };
+
+      // Build the visualization
+      const viz = buildViz(spec);
+
+      // Render the visualization
+      return renderViz(viz, container);
     }
 
     // Create the initial visualization
@@ -155,5 +167,6 @@ const barChart = Devize.createBarChart({
     document.getElementById('reset-btn').addEventListener('click', () => {
       currentViz = createVisualization(salesData);
     });
-  </script></body>
+  </script>
+</body>
 </html>

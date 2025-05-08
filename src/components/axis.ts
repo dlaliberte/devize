@@ -9,6 +9,7 @@
 
 import { buildViz } from '../core/builder';
 import { createScale, Scale } from './scales/scale';
+import { createSVGElement } from '../renderers/svgUtils';
 
 // Import required primitives
 import '../primitives/group';
@@ -148,8 +149,8 @@ buildViz({
       transform: !isHorizontal ? `rotate(${isRight ? 90 : -90} ${isRight ? 40 : -40} ${length / 2})` : ''
     } : null;
 
-    // Combine all elements
-    return {
+    // Combine all elements into a group
+    const groupSpec = {
       type: 'group',
       transform: transform,
       class: 'axis',
@@ -158,6 +159,34 @@ buildViz({
         ...ticks,
         axisTitle
       ].filter(Boolean)
+    };
+
+    // Process the group specification to create a renderable visualization
+    const renderableGroup = buildViz(groupSpec);
+
+    // Return a specification with rendering functions that delegate to the group
+    return {
+      _renderType: "axis",
+      type: 'axis',
+      orientation,
+      length,
+      transform,
+
+      // SVG rendering function - delegates to the group's renderSVG
+      renderSVG: (container) => {
+        if (renderableGroup && renderableGroup.renderSVG) {
+          return renderableGroup.renderSVG(container);
+        }
+        return null;
+      },
+
+      // Canvas rendering function - delegates to the group's renderCanvas
+      renderCanvas: (ctx) => {
+        if (renderableGroup && renderableGroup.renderCanvas) {
+          return renderableGroup.renderCanvas(ctx);
+        }
+        return false;
+      }
     };
   }
 });

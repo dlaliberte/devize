@@ -139,14 +139,43 @@ buildViz({
       };
     });
 
-    // Combine all elements
-    return {
+    // Combine all elements into a group specification
+    const groupSpec = {
       type: 'group',
       class: 'legend',
       children: [
         legendTitle,
         ...legendItems
-      ].filter(Boolean)
+      ].filter(Boolean) // Remove null items
+    };
+
+    // Process the group specification to create a renderable visualization
+    const renderableGroup = buildViz(groupSpec);
+
+    // Return a specification with rendering functions that delegate to the group
+    return {
+      _renderType: "legend",
+      type: 'legend',
+      legendType,
+      items,
+      orientation,
+      position,
+
+      // SVG rendering function - delegates to the group's renderSVG
+      renderSVG: (container) => {
+        if (renderableGroup && renderableGroup.renderSVG) {
+          return renderableGroup.renderSVG(container);
+        }
+        return null;
+      },
+
+      // Canvas rendering function - delegates to the group's renderCanvas
+      renderCanvas: (ctx) => {
+        if (renderableGroup && renderableGroup.renderCanvas) {
+          return renderableGroup.renderCanvas(ctx);
+        }
+        return false;
+      }
     };
   }
 });

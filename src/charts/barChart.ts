@@ -9,6 +9,7 @@
 
 import { buildViz } from '../core/builder';
 import { registerDefineType } from '../core/define';
+import { createScale } from '../components/scales/scale';
 
 // Make sure define type is registered
 registerDefineType();
@@ -62,24 +63,20 @@ buildViz({
     const yMax = Math.max(...yValues);
     const yAxisValues = [0, yMax * 0.25, yMax * 0.5, yMax * 0.75, yMax];
 
-    // Create scales using the scale component
-    const xScaleSpec = {
-      type: 'scale',
-      scaleType: 'band',
+    // Create scales using the createScale function
+    const xScale = createScale('band', {
       domain: xValues,
       range: [0, dimensions.chartWidth],
       padding: 0.2
-    };
+    });
 
-    const yScaleSpec = {
-      type: 'scale',
-      scaleType: 'linear',
+    const yScale = createScale('linear', {
       domain: [0, yMax],
       range: [dimensions.chartHeight, 0]
-    };
+    });
 
     // Build the visualization with these scales
-    const result = {
+    const groupSpec = {
       type: 'group',
       transform: `translate(${margin.left}, ${margin.top})`,
       children: [
@@ -87,30 +84,32 @@ buildViz({
         {
           type: 'axis',
           orientation: 'bottom',
-          scale: xScaleSpec,
+          scale: xScale,  // Pass the scale object directly
           length: dimensions.chartWidth,
           transform: `translate(0, ${dimensions.chartHeight})`,
-          title: x.field
+          title: x.field,
+          values: xValues  // Add this line to provide the required 'values' property
         },
 
         // Y-axis
         {
           type: 'axis',
           orientation: 'left',
-          scale: yScaleSpec,
+          scale: yScale,  // Pass the scale object directly
           length: dimensions.chartHeight,
           transform: 'translate(0, 0)',
           title: y.field,
-          format: value => value.toLocaleString()
+          format: value => value.toLocaleString(),
+          values: yAxisValues  // Add this line to provide the required 'values' property
         },
 
         // Bars
         ...data.map((d, i, array) => {
-          // Calculate bar position and dimensions
-          const barX = i * (dimensions.chartWidth / data.length) + (dimensions.chartWidth / data.length * 0.1);
-          const barWidth = dimensions.chartWidth / data.length * 0.8;
-          const barHeight = (d[y.field] / yMax) * dimensions.chartHeight;
-          const barY = dimensions.chartHeight - barHeight;
+          // Use the scales to calculate bar position and dimensions
+          const barX = xScale.scale(d[x.field]);
+          const barWidth = xScale.bandwidth ? xScale.bandwidth() : dimensions.chartWidth / data.length * 0.8;
+          const barHeight = dimensions.chartHeight - yScale.scale(d[y.field]);
+          const barY = yScale.scale(d[y.field]);
 
           // Determine bar color
           let barColor;
@@ -170,6 +169,41 @@ buildViz({
           })()
         } : null
       ].filter(Boolean) // Remove null items
+    };
+
+    // Process the group specification to create a renderable visualization
+    const renderableGroup = buildViz(groupSpec);
+
+    // Return a specification with rendering functions that delegate to the group
+    const result = {
+      _renderType: "barChart",
+      type: 'barChart',
+      data,
+      x,
+      y,
+      color,
+      margin,
+      tooltip,
+      title,
+      grid,
+      width,
+      height,
+
+      // SVG rendering function - delegates to the group's renderSVG
+      renderSVG: (container) => {
+        if (renderableGroup && renderableGroup.renderSVG) {
+          return renderableGroup.renderSVG(container);
+        }
+        return null;
+      },
+
+      // Canvas rendering function - delegates to the group's renderCanvas
+      renderCanvas: (ctx) => {
+        if (renderableGroup && renderableGroup.renderCanvas) {
+          return renderableGroup.renderCanvas(ctx);
+        }
+        return false;
+      }
     };
 
     console.log('Bar chart result:', result);

@@ -1,44 +1,67 @@
-// First import the core modules
-console.log('Main module initializing');
+// Initialize core modules first
+console.log('Devize library initializing');
 import './core/registry';
-import './core/devize';
 import './core/define';
 
-// Then import visualization types
+// Import core components
+import {
+  buildViz,
+  renderViz,
+  updateViz,
+  initializeLibrary,
+  registerType,
+  hasType,
+  getType,
+  registerData,
+  getData,
+  ensureSvg
+} from './core/devize';
+
+// Initialize the library
+initializeLibrary();
+
+// Import visualization types
 import './components/data/dataExtract';
 import './charts/barChart';
 import './charts/scatterPlot';
+import './components/axis';
+import './components/legend';
 
-import { buildViz, updateViz } from './core/devize';
+// Note: Commenting out primitive imports until we confirm the correct paths
+// If these files don't exist yet, they should be created according to the architecture
+// or the imports should be adjusted to match the actual file structure
+// import './primitives/shape';
+// import './primitives/text';
+// import './primitives/container';
 
-// Note: We don't need to explicitly import the primitives here
-// because they are imported by the chart modules
 console.log('All modules imported');
-
-import { registerType } from './core/registry';
-
-// Direct registration for testing
-registerType({
-  name: 'testType',
-  requiredProps: [],
-  optionalProps: {},
-  generateConstraints: () => [],
-  decompose: (spec) => spec
-});
-
-console.log('Test type registered');
 
 // Export public API
 export {
   buildViz,
-  updateViz
+  renderViz,
+  updateViz,
+  registerType,
+  hasType,
+  getType,
+  registerData,
+  getData,
+  ensureSvg
 };
 
 // If you want to expose the library globally (for script tags)
 if (typeof window !== 'undefined') {
   (window as any).Devize = {
     buildViz,
+    renderViz,
     updateViz,
-    // Add other functions you want to expose
+    registerType,
+    hasType,
+    getType,
+    registerData,
+    getData,
+    ensureSvg
   };
 }
+
+console.log('Devize library initialization complete');

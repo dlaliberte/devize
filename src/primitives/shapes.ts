@@ -9,6 +9,8 @@ import './rectangle';
 import './circle';
 import './line';
 import './path';
+import './polygon';
+import './text';
 
 // Re-export any utility functions if needed
 // export { someUtilityFunction } from './shapeUtils';
