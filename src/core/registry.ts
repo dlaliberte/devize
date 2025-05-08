@@ -42,8 +42,8 @@ export class TypeRegistry implements Registry {
 // Singleton instance
 export const registry = new TypeRegistry();
 
-// Export for convenience
-export const registerType = registry.registerType.bind(registry);
-export const hasType = registry.hasType.bind(registry);
-export const getType = registry.getType.bind(registry);
-export const getAllTypes = registry.getAllTypes.bind(registry);
+// Export convenience functions
+export const registerType = (type: TypeDefinition): void => registry.registerType(type);
+export const hasType = (name: string): boolean => registry.hasType(name);
+export const getType = (name: string): TypeDefinition | undefined => registry.getType(name);
+export const getAllTypes = (): Record<string, TypeDefinition> => registry.getAllTypes();

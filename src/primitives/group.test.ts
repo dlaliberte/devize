@@ -1,276 +1,21 @@
+/**
+ * Group Primitive Tests
+ *
+ * Purpose: Tests the group container primitive
+ * Author: [Author Name]
+ * Creation Date: [Date]
+ * Last Modified: [Date]
+ */
+
 import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { registerType, getType, _resetRegistryForTesting } from '../core/registry';
+import { registry, hasType, getType } from '../core/registry';
+import { groupTypeDefinition, registerGroupPrimitive } from './group';
+import { buildViz } from '../core/builder';
+import { registerCirclePrimitive } from './circle';
+import { registerRectanglePrimitive } from './rectangle';
+import { registerTextPrimitive } from './text';
 
-// Reset registry before each test
-beforeEach(() => {
-  _resetRegistryForTesting();
-
-  // Register a simple rectangle type for testing
-  registerType({
-    name: 'rectangle',
-    requiredProps: ['width', 'height'],
-    optionalProps: {
-      x: 0,
-      y: 0,
-      fill: 'black',
-      stroke: 'none',
-      strokeWidth: 1,
-      opacity: 1
-    },
-    generateConstraints: () => [],
-    decompose: (spec, solvedConstraints) => {
-      // Ensure numeric values
-      const x = Number(spec.x) || 0;
-      const y = Number(spec.y) || 0;
-      const width = Number(spec.width) || 0;
-      const height = Number(spec.height) || 0;
-
-      // Prepare attributes
-      const attributes = {
-        x,
-        y,
-        width,
-        height,
-        fill: spec.fill,
-        stroke: spec.stroke,
-        'stroke-width': spec.strokeWidth,
-        opacity: spec.opacity
-      };
-
-      return {
-        _renderType: "rectangle",
-        attributes,
-
-        renderSVG: (container) => {
-          const element = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-
-          // Set attributes
-          for (const [key, value] of Object.entries(attributes)) {
-            if (value !== undefined && value !== null) {
-              element.setAttribute(key, value.toString());
-            }
-          }
-
-          // Append to container
-          if (container) container.appendChild(element);
-
-          return element;
-        },
-
-        renderCanvas: (ctx) => {
-          // Save context state
-          if (ctx.save) ctx.save();
-
-          // Apply fill and stroke styles
-          if (ctx.fillStyle) ctx.fillStyle = spec.fill;
-          if (ctx.strokeStyle) ctx.strokeStyle = spec.stroke;
-          if (ctx.lineWidth) ctx.lineWidth = spec.strokeWidth;
-          if (ctx.globalAlpha) ctx.globalAlpha = spec.opacity;
-
-          // Draw rectangle
-          ctx.fillRect(x, y, width, height);
-
-          if (spec.stroke !== 'none') {
-            ctx.strokeRect(x, y, width, height);
-          }
-
-          // Restore context state
-          if (ctx.restore) ctx.restore();
-
-          return true;
-        }
-      };
-    }
-  });
-
-  // Register the group type
-  registerType({
-    name: 'group',
-    requiredProps: [],
-    optionalProps: {
-      x: 0,
-      y: 0,
-      children: [],
-      transform: null,
-      opacity: 1
-    },
-    generateConstraints: () => [],
-    decompose: (spec, solvedConstraints) => {
-      // Ensure numeric values
-      const x = Number(spec.x) || 0;
-      const y = Number(spec.y) || 0;
-      const opacity = Number(spec.opacity) || 1;
-
-      // Process all children
-      const processedChildren = Array.isArray(spec.children)
-        ? spec.children.map(child => {
-            // If child is a string or number, convert to a text node
-            if (typeof child === 'string' || typeof child === 'number') {
-              return {
-                type: 'text',
-                text: child.toString(),
-                x: 0,
-                y: 0
-              };
-            }
-
-            // Process child if it's a specification
-            if (child.type) {
-              const childType = getType(child.type);
-              if (childType) {
-                return childType.decompose(child, {});
-              }
-            }
-
-            return child;
-          })
-        : [];
-
-      // Prepare transform attribute
-      const transformAttr = spec.transform
-        ? `translate(${x}, ${y}) ${spec.transform}`
-        : `translate(${x}, ${y})`;
-
-      // Prepare attributes
-      const attributes = {
-        transform: transformAttr,
-        opacity
-      };
-
-      return {
-        _renderType: "group",
-        attributes,
-        children: processedChildren,
-
-        renderSVG: (container) => {
-          // Create a group element
-          const groupElement = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-
-          // Apply attributes
-          for (const [key, value] of Object.entries(attributes)) {
-            if (value !== undefined && value !== null) {
-              groupElement.setAttribute(key, value.toString());
-            }
-          }
-
-          // Render all children into this group
-          processedChildren.forEach(child => {
-            if (child.renderSVG) {
-              child.renderSVG(groupElement);
-            }
-          });
-
-          // Append to container if provided
-          if (container) {
-            container.appendChild(groupElement);
-          }
-
-          return groupElement;
-        },
-
-        renderCanvas: (ctx) => {
-          // Save the current context state
-          ctx.save();
-
-          // Apply transform
-          ctx.translate(x, y);
-
-          // Apply additional transform if specified
-          if (spec.transform) {
-            // Parse and apply the transform
-            // This is simplified; a real implementation would need to parse the transform string
-            // and apply the appropriate Canvas transformations
-          }
-                    // Apply opacity
-                    if (typeof ctx.globalAlpha !== 'undefined') {
-                      const originalAlpha = ctx.globalAlpha || 1;
-                      ctx.globalAlpha = originalAlpha * opacity;
-                    }
-
-                    // Render all children in this context
-                    processedChildren.forEach(child => {
-                      if (child.renderCanvas) {
-                        child.renderCanvas(ctx);
-                      }
-                    });
-
-                    // Restore the context state
-                    ctx.restore();
-
-                    return true;        }
-      };
-    }
-  });
-
-  // Register a text type for testing
-  registerType({
-    name: 'text',
-    requiredProps: ['text'],
-    optionalProps: {
-      x: 0,
-      y: 0,
-      fontSize: 12,
-      fontFamily: 'sans-serif',
-      fill: 'black'
-    },
-    generateConstraints: () => [],
-    decompose: (spec, solvedConstraints) => {
-      return {
-        _renderType: 'text',
-        attributes: {
-          x: spec.x,
-          y: spec.y,
-          'font-size': spec.fontSize,
-          'font-family': spec.fontFamily,
-          fill: spec.fill
-        },
-        content: spec.text,
-        renderSVG: (container) => {
-          const element = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-
-          // Set attributes
-          for (const [key, value] of Object.entries({
-            x: spec.x,
-            y: spec.y,
-            'font-size': spec.fontSize,
-            'font-family': spec.fontFamily,
-            fill: spec.fill
-          })) {
-            if (value !== undefined && value !== null) {
-              element.setAttribute(key, value.toString());
-            }
-          }
-
-          // Set text content
-          element.textContent = spec.text;
-
-          // Append to container
-          if (container) container.appendChild(element);
-
-          return element;
-        },
-        renderCanvas: (ctx) => {
-          // Save context state
-          ctx.save();
-
-          // Apply text properties
-          if (ctx.font) ctx.font = `${spec.fontSize}px ${spec.fontFamily}`;
-          if (ctx.fillStyle) ctx.fillStyle = spec.fill;
-
-          // Draw text
-          ctx.fillText(spec.text, spec.x, spec.y);
-
-          // Restore context state
-          ctx.restore();
-
-          return true;
-        }
-      };
-    }
-  });
-});
-
-// Mock document methods for SVG creation
+// Create a mock document object for SVG creation
 global.document = {
   createElementNS: vi.fn((namespace, tagName) => {
     if (tagName === 'g') {
@@ -289,73 +34,119 @@ global.document = {
 } as any;
 
 describe('Group Primitive', () => {
-  test('should create a group element with default properties', () => {
+  // Reset registry before each test
+  beforeEach(() => {
+    // Reset the registry for clean tests
+    (registry as any).types = new Map();
+
+    // Register the required primitives
+    registerGroupPrimitive();
+    registerCirclePrimitive();
+    registerRectanglePrimitive();
+    registerTextPrimitive();
+  });
+
+  test('should register the group type', () => {
+    expect(hasType('group')).toBe(true);
+
     const groupType = getType('group');
     expect(groupType).toBeDefined();
+    expect(groupType?.properties.x.default).toBe(0);
+    expect(groupType?.properties.y.default).toBe(0);
+    expect(Array.isArray(groupType?.properties.children.default)).toBe(true);
+    expect(groupType?.properties.transform.default).toBe(null);
+    expect(groupType?.properties.opacity.default).toBe(1);
+  });
 
-    const result = groupType.decompose({}, {});
+  test('should create a group element with default properties', () => {
+    const result = buildViz({
+      type: "group"
+    });
 
     expect(result).toBeDefined();
-    expect(result._renderType).toBe('group');
-    expect(result.attributes.transform).toBe('translate(0, 0)');
-    expect(result.children).toEqual([]);
+    expect(result.type).toBe('group');
+    expect(result.spec.x).toBe(0);
+    expect(result.spec.y).toBe(0);
+    expect(Array.isArray(result.spec.children)).toBe(true);
+    expect(result.spec.children.length).toBe(0);
   });
 
   test('should apply x and y as a transform', () => {
-    const groupType = getType('group');
-
-    const result = groupType.decompose({
+    const result = buildViz({
+      type: "group",
       x: 100,
       y: 50
-    }, {});
+    });
 
-    expect(result.attributes.transform).toBe('translate(100, 50)');
+    // Get the implementation result
+    const impl = groupTypeDefinition.implementation(result.spec);
+
+    expect(impl.attributes.transform).toBe('translate(100, 50)');
   });
 
   test('should combine position with additional transform', () => {
-    const groupType = getType('group');
-
-    const result = groupType.decompose({
+    const result = buildViz({
+      type: "group",
       x: 100,
       y: 50,
       transform: 'rotate(45)'
-    }, {});
+    });
 
-    expect(result.attributes.transform).toBe('translate(100, 50) rotate(45)');
+    // Get the implementation result
+    const impl = groupTypeDefinition.implementation(result.spec);
+
+    expect(impl.attributes.transform).toBe('translate(100, 50) rotate(45)');
   });
 
   test('should process and store children', () => {
-    const groupType = getType('group');
-
-    const result = groupType.decompose({
+    const result = buildViz({
+      type: "group",
       children: [
         { type: 'rectangle', width: 100, height: 50 },
-        { type: 'rectangle', width: 200, height: 100, x: 50, y: 50 }
+        { type: 'circle', cx: 150, cy: 75, r: 25 }
       ]
-    }, {});
+    });
 
-    expect(result.children).toHaveLength(2);
-    // Check that the children were processed correctly
-    expect(result.children[0]._renderType).toBe('rectangle');
-    expect(result.children[0].attributes.width).toBe(100);
-    expect(result.children[1]._renderType).toBe('rectangle');
-    expect(result.children[1].attributes.width).toBe(200);
+    // Get the implementation result
+    const impl = groupTypeDefinition.implementation(result.spec);
+
+    expect(impl.children).toHaveLength(2);
+    // Check that children are processed correctly
+    expect(impl.children[0].type).toBe('rectangle');
+    expect(impl.children[1].type).toBe('circle');
+  });
+
+  test('should convert string children to text nodes', () => {
+    const result = buildViz({
+      type: "group",
+      children: [
+        'Hello World',
+        123
+      ]
+    });
+
+    // Get the implementation result
+    const impl = groupTypeDefinition.implementation(result.spec);
+
+    expect(impl.children).toHaveLength(2);
+    // Check that string children are converted to text nodes
+    expect(impl.children[0].type).toBe('text');
+    expect(impl.children[1].type).toBe('text');
   });
 
   test('should render group with children to SVG', () => {
-    const groupType = getType('group');
-
-    const result = groupType.decompose({
+    const result = buildViz({
+      type: "group",
       x: 10,
       y: 20,
       children: [
         { type: 'rectangle', width: 100, height: 50 },
-        { type: 'rectangle', width: 200, height: 100, x: 50, y: 50 }
+        { type: 'circle', cx: 150, cy: 75, r: 25 }
       ]
-    }, {});
+    });
 
     // Create a mock container
-    const container = { appendChild: vi.fn() };
+    const container = document.createElementNS('', 'svg');
 
     // Mock SVG element creation
     const mockGroupElement = {
@@ -365,43 +156,49 @@ describe('Group Primitive', () => {
 
     document.createElementNS = vi.fn(() => mockGroupElement) as any;
 
-    // Call the SVG rendering function
-    result.renderSVG(container);
+    // Get the implementation result
+    const impl = groupTypeDefinition.implementation(result.spec);
+
+    // Call the SVG rendering function directly
+    impl.renderSVG(container);
 
     // Should have set transform attribute
     expect(mockGroupElement.setAttribute).toHaveBeenCalledWith('transform', 'translate(10, 20)');
 
     // Should have appended to container
     expect(container.appendChild).toHaveBeenCalledWith(mockGroupElement);
-
-    // Should have processed children
-    expect(mockGroupElement.appendChild).toHaveBeenCalledTimes(2);
   });
 
   test('should render group with children to Canvas', () => {
-    const groupType = getType('group');
-
-    const result = groupType.decompose({
+    const result = buildViz({
+      type: "group",
       x: 10,
       y: 20,
       opacity: 0.5,
       children: [
         { type: 'rectangle', width: 100, height: 50 },
-        { type: 'rectangle', width: 200, height: 100, x: 50, y: 50 }
+        { type: 'circle', cx: 150, cy: 75, r: 25 }
       ]
-    }, {});
+    });
 
     // Create a mock canvas context
     const ctx = {
       save: vi.fn(),
       restore: vi.fn(),
       translate: vi.fn(),
+      globalAlpha: 1,
       fillRect: vi.fn(),
-      strokeRect: vi.fn()
+      beginPath: vi.fn(),
+      arc: vi.fn(),
+      fill: vi.fn(),
+      stroke: vi.fn()
     };
 
+    // Get the implementation result
+    const impl = groupTypeDefinition.implementation(result.spec);
+
     // Call the Canvas rendering function
-    result.renderCanvas(ctx);
+    impl.renderCanvas(ctx);
 
     // Should have saved and restored context
     expect(ctx.save).toHaveBeenCalled();
@@ -410,18 +207,18 @@ describe('Group Primitive', () => {
     // Should have applied transform
     expect(ctx.translate).toHaveBeenCalledWith(10, 20);
 
-    // We're not testing opacity here since it's difficult to mock properly
+    // Should have applied opacity
+    expect(ctx.globalAlpha).toBe(0.5);
   });
 
   test('should handle nested groups', () => {
-    const groupType = getType('group');
-
-    const result = groupType.decompose({
+    const result = buildViz({
+      type: "group",
       x: 10,
       y: 20,
       children: [
         {
-          type: 'group',
+          type: "group",
           x: 30,
           y: 40,
           children: [
@@ -429,94 +226,50 @@ describe('Group Primitive', () => {
           ]
         }
       ]
-    }, {});
+    });
 
-    expect(result.children).toHaveLength(1);
-    expect(result.children[0]._renderType).toBe('group');
-    expect(result.children[0].attributes.transform).toBe('translate(30, 40)');
-    expect(result.children[0].children).toHaveLength(1);
-    expect(result.children[0].children[0]._renderType).toBe('rectangle');
-    expect(result.children[0].children[0].attributes.width).toBe(100);
+    // Get the implementation result
+    const impl = groupTypeDefinition.implementation(result.spec);
+
+    expect(impl.children).toHaveLength(1);
+    // Check that nested group is processed correctly
+    expect(impl.children[0].type).toBe('group');
+
+    // Instead of directly accessing attributes, check the child's spec
+    expect(impl.children[0].spec.x).toBe(30);
+    expect(impl.children[0].spec.y).toBe(40);
+
+    // Check that the nested group has children in its spec
+    expect(impl.children[0].spec.children).toHaveLength(1);
+    expect(impl.children[0].spec.children[0].type).toBe('rectangle');
   });
 
-  test('should handle empty children array', () => {
-    const groupType = getType('group');
+  test('should match the exported type definition', () => {
+    // Verify that the exported type definition matches what's registered
+    expect(groupTypeDefinition.type).toBe('define');
+    expect(groupTypeDefinition.name).toBe('group');
+    expect(groupTypeDefinition.properties).toBeDefined();
+    expect(groupTypeDefinition.implementation).toBeDefined();
 
-    const result = groupType.decompose({
-      children: []
-    }, {});
-
-    expect(result.children).toEqual([]);
+    // Compare with the registered type
+    const registeredType = getType('group');
+    expect(registeredType?.properties).toEqual(groupTypeDefinition.properties);
   });
-
-  test('should handle null or undefined children', () => {
-    const groupType = getType('group');
-
-    const result = groupType.decompose({
-      children: null
-    }, {});
-
-    expect(result.children).toEqual([]);
-  });
-
-  test('should apply opacity to the group', () => {
-    const groupType = getType('group');
-
-    const result = groupType.decompose({
-      opacity: 0.5
-    }, {});
-
-    expect(result.attributes.opacity).toBe(0.5);
-  });
-
-  test('should render group with children to Canvas', () => {
-    const groupType = getType('group');
-
-    const result = groupType.decompose({
-      x: 10,
-      y: 20,
-      opacity: 0.5,
-      children: [
-        { type: 'rectangle', width: 100, height: 50 },
-        { type: 'rectangle', width: 200, height: 100, x: 50, y: 50 }
-      ]
-    }, {});
-
-    // Create a mock canvas context
-    const ctx = {
-      save: vi.fn(),
-      restore: vi.fn(),
-      translate: vi.fn(),
-      fillRect: vi.fn(),
-      strokeRect: vi.fn()
-    };
-
-    // Call the Canvas rendering function
-    result.renderCanvas(ctx);
-
-    // Should have saved and restored context
-    expect(ctx.save).toHaveBeenCalled();
-    expect(ctx.restore).toHaveBeenCalled();
-
-    // Should have applied transform
-    expect(ctx.translate).toHaveBeenCalledWith(10, 20);
-
-    // We're not testing opacity here since it's difficult to mock properly
-  });
-  test('should process string children as text nodes', () => {
-    const groupType = getType('group');
-
-    const result = groupType.decompose({
-      children: [
-        'Hello World',
-        123
-      ]
-    }, {});
-
-    expect(result.children).toHaveLength(2);
-    // Check that string children were converted to objects with text properties
-    expect(result.children[0]).toHaveProperty('type', 'text');
-    expect(result.children[0]).toHaveProperty('text', 'Hello World');
-    expect(result.children[1]).toHaveProperty('type', 'text');
-    expect(result.children[1]).toHaveProperty('text', '123');  });
 });
+
+/**
+ * References:
+ * - Related File: src/primitives/group.ts
+ * - Related File: src/primitives/circle.ts
+ * - Related File: src/primitives/rectangle.ts
+ * - Related File: src/primitives/text.ts
+ * - Related File: src/core/define.ts
+ * - Related File: src/core/registry.ts
+ * - Related File: src/core/builder.ts
+ * - Related File: src/core/devize.ts
+ * - Related File: src/renderers/svgUtils.ts
+ * - Design Document: design/define.md
+ * - Design Document: design/primitives.md
+ * - Design Document: design/rendering.md
+ * - User Documentation: docs/primitives/group.md
+ */

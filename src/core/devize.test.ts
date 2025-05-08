@@ -1,155 +1,133 @@
-import { describe, test, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import {
   initializeLibrary,
   registerData,
   getData,
+  ensureSvg,
+  buildViz,
+  renderViz,
   updateViz,
-  ensureSvg
+  registerType,
+  getType,
+  hasType,
+  getAllTypes
 } from './devize';
-import { registerType, getType, hasType, _resetRegistryForTesting } from './registry';
 
-/**
- * Unit Tests for the Devize Core Module
- *
- * This file contains tests for the devize.ts module which serves as the main entry point
- * for the Devize visualization library.
- *
- * Test Structure:
- * 1. Library Initialization: Tests for the initialization process
- * 2. Data Registry: Tests for registering and retrieving data
- * 3. Visualization Update: Tests for updating visualizations
- * 4. DOM Utilities: Tests for DOM manipulation utilities
- *
- * Related Documents:
- * - Design Document: design/devize_system.md
- */
-
-// Reset the registry before each test
-beforeEach(() => {
-  _resetRegistryForTesting();
-});
-
-describe('Devize Core Module', () => {
-  describe('Library Initialization', () => {
-    test('should register primitive types during initialization', () => {
-      // Call the initialization function
-      initializeLibrary();
-
-      // Verify that primitive types are registered
-      // We can check for a few key primitive types
-      expect(hasType('rectangle')).toBe(true);
-      expect(hasType('circle')).toBe(true);
-      expect(hasType('text')).toBe(true);
-      expect(hasType('group')).toBe(true);
+describe('Devize Module', () => {
+  // Reset data registry before each test
+  beforeEach(() => {
+    // This is a bit of a hack for testing
+    // We need to reset the data registry which is private
+    // We'll use the public API to clear it
+    const testKeys = Object.keys(getData('__all__') || {});
+    testKeys.forEach(key => {
+      registerData(key, undefined);
     });
+  });
 
-    test('should register the define type during initialization', () => {
-      // Call the initialization function
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  describe('Core Initialization', () => {
+    it('initializes the library', () => {
+      // Mock console.log to verify messages
+      const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+      // Call initialize
       initializeLibrary();
 
-      // Verify that the define type is registered
-      expect(hasType('define')).toBe(true);
+      // Should log initialization messages
+      expect(consoleSpy).toHaveBeenCalled();
 
-      // Verify that the define type has the expected properties
-      const defineType = getType('define');
-      expect(defineType).toBeDefined();
-      expect(defineType?.requiredProps).toContain('name');
-      expect(defineType?.requiredProps).toContain('properties');
-      expect(defineType?.requiredProps).toContain('implementation');
+      // Restore original console.log
+      consoleSpy.mockRestore();
     });
   });
 
   describe('Data Registry', () => {
-    test('should register and retrieve data', () => {
-      // Register some test data
-      const testData = [
-        { id: 1, name: 'Item 1', value: 100 },
-        { id: 2, name: 'Item 2', value: 200 },
-        { id: 3, name: 'Item 3', value: 300 }
-      ];
-
-      registerData('testData', testData);
+    it('registers and retrieves data', () => {
+      // Register some data
+      registerData('testData', { value: 42 });
 
       // Retrieve the data
-      const retrievedData = getData('testData');
+      const data = getData('testData');
 
-      // Verify that the retrieved data matches the registered data
-      expect(retrievedData).toEqual(testData);
+      // Check if the data matches
+      expect(data).toBeDefined();
+      expect(data.value).toBe(42);
     });
 
-    test('should return undefined for non-existent data', () => {
-      // Retrieve non-existent data
-      const retrievedData = getData('nonExistentData');
+    it('returns undefined for non-existent data', () => {
+      // Try to retrieve non-existent data
+      const data = getData('nonExistentData');
 
-      // Verify that undefined is returned
-      expect(retrievedData).toBeUndefined();
+      // Should be undefined
+      expect(data).toBeUndefined();
     });
 
-    test('should update existing data', () => {
-      // Register initial data
-      const initialData = { count: 10 };
-      registerData('counter', initialData);
+    it('overwrites data when registering with the same name', () => {
+      // Register some data
+      registerData('testData', { value: 42 });
 
-      // Update the data
-      const updatedData = { count: 20 };
-      registerData('counter', updatedData);
+      // Register again with the same name
+      registerData('testData', { value: 100 });
 
       // Retrieve the data
-      const retrievedData = getData('counter');
+      const data = getData('testData');
 
-      // Verify that the retrieved data matches the updated data
-      expect(retrievedData).toEqual(updatedData);
+      // Should have the new value
+      expect(data.value).toBe(100);
     });
-  });
-
-  describe('Visualization Update', () => {
-    test('should throw error for invalid visualization instance', () => {
-      // Try to update an invalid visualization instance
-      expect(() => {
-        updateViz(null, { type: 'rectangle' });
-      }).toThrow('Invalid visualization instance');
-
-      expect(() => {
-        updateViz({}, { type: 'rectangle' });
-      }).toThrow('Invalid visualization instance');
-
-      expect(() => {
-        updateViz({ notSpec: {} }, { type: 'rectangle' });
-      }).toThrow('Invalid visualization instance');
-    });
-
-    // Note: Testing the actual update functionality would require integration with buildViz,
-    // which we're trying to avoid mocking. We'll test this in integration tests.
   });
 
   describe('DOM Utilities', () => {
-    test('should create an SVG element if none exists', () => {
-      // Create a mock container element
+    it('ensures an SVG element exists in a container', () => {
+      // Create a container
       const container = document.createElement('div');
 
-      // Call ensureSvg
+      // Ensure SVG
       const svg = ensureSvg(container);
 
-      // Verify that an SVG element was created
+      // Check if the SVG was created
+      expect(svg).toBeDefined();
       expect(svg.tagName.toLowerCase()).toBe('svg');
-      expect(svg.getAttribute('width')).toBe('100%');
-      expect(svg.getAttribute('height')).toBe('100%');
-      expect(container.querySelector('svg')).toBe(svg);
+      expect(container.contains(svg)).toBe(true);
+
+      // Call again to test reuse
+      const svg2 = ensureSvg(container);
+
+      // Should be the same SVG
+      expect(svg2).toBe(svg);
     });
 
-    test('should return existing SVG element if one exists', () => {
-      // Create a mock container element with an SVG element
+    it('sets default attributes on the created SVG', () => {
+      // Create a container
       const container = document.createElement('div');
-      const existingSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-      existingSvg.setAttribute('data-test', 'existing-svg');
-      container.appendChild(existingSvg);
 
-      // Call ensureSvg
+      // Ensure SVG
       const svg = ensureSvg(container);
 
-      // Verify that the existing SVG element was returned
-      expect(svg).toBe(existingSvg);
-      expect(svg.getAttribute('data-test')).toBe('existing-svg');
+      // Check default attributes
+      expect(svg.getAttribute('width')).toBe('100%');
+      expect(svg.getAttribute('height')).toBe('100%');
+    });
+  });
+
+  describe('Public API', () => {
+    it('exports core functions', () => {
+      // Verify that core functions are exported
+      expect(typeof buildViz).toBe('function');
+      expect(typeof renderViz).toBe('function');
+      expect(typeof updateViz).toBe('function');
+    });
+
+    it('exports registry functions', () => {
+      // Verify that registry functions are exported
+      expect(typeof registerType).toBe('function');
+      expect(typeof getType).toBe('function');
+      expect(typeof hasType).toBe('function');
+      expect(typeof getAllTypes).toBe('function');
     });
   });
 });

@@ -261,7 +261,7 @@ For performance, `buildViz` could be enhanced with:
 
 ## References
 
-- Related File: [src/core/creator.ts](../src/core/creator.ts)
+- Related File: [src/core/builder.ts](../src/core/builder.ts)
 - Related File: [src/core/renderer.ts](../src/core/renderer.ts)
 - Related File: [src/core/registry.ts](../src/core/registry.ts)
 - Related File: [src/core/define.ts](../src/core/define.ts)

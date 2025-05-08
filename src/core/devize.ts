@@ -38,20 +38,31 @@ let initialized = false;
  * Initialize the library
  */
 export function initializeLibrary() {
-  if (initialized) return;
+  if (initialized) {
+    console.log('Library already initialized, skipping');
+    return;
+  }
+
+  console.log('Starting library initialization');
 
   // Import core components
-  import('./define').then(() => {
-    console.log('Define module loaded');
+  try {
+    import('./define').then(() => {
+      console.log('Define module loaded successfully');
 
-    // Load primitive types
-    import('../primitives/shapes').then(() => console.log('Shape primitives loaded'));
-    import('../primitives/text').then(() => console.log('Text primitives loaded'));
-    import('../primitives/containers').then(() => console.log('Container primitives loaded'));
+      // Load primitive types
+      import('../primitives/shapes').then(() => console.log('Shape primitives loaded'));
+      import('../primitives/text').then(() => console.log('Text primitives loaded'));
+      import('../primitives/containers').then(() => console.log('Container primitives loaded'));
 
-    initialized = true;
-    console.log('Library initialization complete');
-  });
+      initialized = true;
+      console.log('Library initialization complete');
+    }).catch(err => {
+      console.error('Error loading define module:', err);
+    });
+  } catch (err) {
+    console.error('Error during library initialization:', err);
+  }
 }
 
 // Auto-initialize when imported in browser context

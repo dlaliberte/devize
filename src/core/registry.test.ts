@@ -1,267 +1,178 @@
-import { describe, test, expect, beforeEach, vi, afterEach } from 'vitest';
-import { registerType, getType, hasType, getAllTypes, removeType } from './registry';
-import { _resetRegistryForTesting } from './registry';
-import { VisualizationType } from './types';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { TypeRegistry, registry, registerType, hasType, getType, getAllTypes } from './registry';
+import { TypeDefinition } from './types';
 
-/**
- * Unit Tests for the Type Registry Module
- *
- * This file contains tests for the registry.ts module which is responsible for
- * managing visualization type definitions in the Devize system.
- *
- * Test Structure:
- * 1. Setup and Teardown: Reset registry state between tests
- * 2. Basic Registry Operations: Tests for core registry functions
- * 3. Integration with define.ts: Tests simulating how define.ts uses the registry
- * 4. Error Handling: Tests for handling invalid inputs
- *
- * Related Documents:
- * - Design Document: design/define.md
- * - Design Document: design/devize_system.md
- * - Implementation: src/core/registry.ts
- * - Implementation: src/core/define.ts
- */
+describe('TypeRegistry', () => {
+  let testRegistry: TypeRegistry;
 
-// Add this function to registry.ts for testing purposes
-// export function _resetRegistryForTesting(): void {
-//   Object.keys(typeRegistry).forEach(key => {
-//     delete typeRegistry[key];
-//   });
-// }
+  beforeEach(() => {
+    // Create a fresh registry for each test
+    testRegistry = new TypeRegistry();
+  });
 
-// Reset the registry before each test
-beforeEach(() => {
-  // Since the registry uses a module-level variable, we need to reset it
-  _resetRegistryForTesting();
+  it('registers a type definition', () => {
+    // Create a simple type definition
+    const typeDef: TypeDefinition = {
+      name: 'testType',
+      properties: {
+        prop1: { required: true },
+        prop2: { default: 'default value' }
+      },
+      implementation: () => ({ type: 'group', children: [] })
+    };
+
+    // Register the type
+    testRegistry.registerType(typeDef);
+
+    // Check if the type exists
+    expect(testRegistry.hasType('testType')).toBe(true);
+  });
+
+  it('retrieves a registered type definition', () => {
+    // Create a simple type definition
+    const typeDef: TypeDefinition = {
+      name: 'testType',
+      properties: {
+        prop1: { required: true },
+        prop2: { default: 'default value' }
+      },
+      implementation: () => ({ type: 'group', children: [] })
+    };
+
+    // Register the type
+    testRegistry.registerType(typeDef);
+
+    // Retrieve the type
+    const retrievedType = testRegistry.getType('testType');
+
+    // Check if the retrieved type matches the original
+    expect(retrievedType).toBeDefined();
+    expect(retrievedType?.name).toBe('testType');
+    expect(retrievedType?.properties).toEqual(typeDef.properties);
+    expect(typeof retrievedType?.implementation).toBe('function');
+  });
+
+  it('returns undefined for non-existent types', () => {
+    // Try to get a type that doesn't exist
+    const nonExistentType = testRegistry.getType('nonExistentType');
+
+    // Should be undefined
+    expect(nonExistentType).toBeUndefined();
+  });
+
+  it('checks if a type exists', () => {
+    // Create and register a type
+    const typeDef: TypeDefinition = {
+      name: 'testType',
+      properties: {},
+      implementation: () => ({ type: 'group', children: [] })
+    };
+    testRegistry.registerType(typeDef);
+
+    // Check existing type
+    expect(testRegistry.hasType('testType')).toBe(true);
+
+    // Check non-existent type
+    expect(testRegistry.hasType('nonExistentType')).toBe(false);
+  });
+
+  it('registers a type directly for bootstrapping', () => {
+    // Create a spec for direct registration
+    const spec = {
+      name: 'bootstrapType',
+      properties: {
+        prop1: { required: true }
+      },
+      implementation: () => ({ type: 'group', children: [] })
+    };
+
+    // Register directly
+    testRegistry.registerTypeDirectly(spec);
+
+    // Check if the type exists
+    expect(testRegistry.hasType('bootstrapType')).toBe(true);
+
+    // Retrieve and check the type
+    const retrievedType = testRegistry.getType('bootstrapType');
+    expect(retrievedType).toBeDefined();
+    expect(retrievedType?.name).toBe('bootstrapType');
+    expect(retrievedType?.properties).toEqual(spec.properties);
+  });
+
+  it('gets all registered types', () => {
+    // Register multiple types
+    const type1: TypeDefinition = {
+      name: 'type1',
+      properties: {},
+      implementation: () => ({})
+    };
+
+    const type2: TypeDefinition = {
+      name: 'type2',
+      properties: {},
+      implementation: () => ({})
+    };
+
+    testRegistry.registerType(type1);
+    testRegistry.registerType(type2);
+
+    // Get all types
+    const allTypes = testRegistry.getAllTypes();
+
+    // Check if all types are included
+    expect(Object.keys(allTypes).length).toBe(2);
+    expect(allTypes.type1).toBeDefined();
+    expect(allTypes.type2).toBeDefined();
+    expect(allTypes.type1.name).toBe('type1');
+    expect(allTypes.type2.name).toBe('type2');
+  });
+
+  it('overwrites a type when registering with the same name', () => {
+    // Register a type
+    const originalType: TypeDefinition = {
+      name: 'testType',
+      properties: { prop1: { default: 'original' } },
+      implementation: () => ({ original: true })
+    };
+    testRegistry.registerType(originalType);
+
+    // Register a different type with the same name
+    const newType: TypeDefinition = {
+      name: 'testType',
+      properties: { prop1: { default: 'new' } },
+      implementation: () => ({ new: true })
+    };
+    testRegistry.registerType(newType);
+
+    // Get the type
+    const retrievedType = testRegistry.getType('testType');
+
+    // Should have the new properties
+    expect(retrievedType?.properties.prop1.default).toBe('new');
+  });
 });
 
-// Clean up after tests
-afterEach(() => {
-  vi.restoreAllMocks();
-});
-
-describe('Type Registry', () => {
-  // Sample visualization type for testing
-  const sampleType: VisualizationType = {
-    name: 'testType',
-    requiredProps: ['prop1', 'prop2'],
-    optionalProps: { prop3: 'default3', prop4: 10 },
-    decompose: vi.fn((spec) => ({ type: 'basic', ...spec }))
-  };
-
-  describe('registerType', () => {
-    test('should register a new visualization type', () => {
-      registerType(sampleType);
-      expect(hasType('testType')).toBe(true);
-      expect(getType('testType')).toBe(sampleType);
-    });
-
-    test('should overwrite existing type with warning', () => {
-      // Spy on console.warn
-      const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-
-      registerType(sampleType);
-
-      const updatedType: VisualizationType = {
-        ...sampleType,
-        requiredProps: ['updatedProp']
-      };
-
-      registerType(updatedType);
-
-      expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining("'testType' is already registered")
-      );
-      expect(getType('testType')).toBe(updatedType);
-    });
-
-    test('should log registration information', () => {
-      // Spy on console.log
-      const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
-
-      registerType(sampleType);
-
-      expect(logSpy).toHaveBeenCalledWith(
-        expect.stringContaining(`Registering visualization type: ${sampleType.name}`)
-      );
-      expect(logSpy).toHaveBeenCalledWith(
-        expect.stringContaining(`Current registry contains:`)
-      );
-    });
+// Test the singleton instance and convenience functions
+describe('Registry Singleton', () => {
+  it('singleton instance exists', () => {
+    expect(registry).toBeDefined();
+    expect(registry instanceof TypeRegistry).toBe(true);
   });
 
-  describe('getType', () => {
-    test('should return the registered type', () => {
-      registerType(sampleType);
-      const retrievedType = getType('testType');
-      expect(retrievedType).toBe(sampleType);
-    });
+  it('convenience functions work with the singleton', () => {
+    // Create a test type
+    const typeDef: TypeDefinition = {
+      name: 'convenienceTest',
+      properties: {},
+      implementation: () => ({})
+    };
 
-    test('should return undefined for non-existent type', () => {
-      const retrievedType = getType('nonExistentType');
-      expect(retrievedType).toBeUndefined();
-    });
-  });
+    // Use convenience function to register
+    registerType(typeDef);
 
-  describe('hasType', () => {
-    test('should return true for registered type', () => {
-      registerType(sampleType);
-      expect(hasType('testType')).toBe(true);
-    });
-
-    test('should return false for non-existent type', () => {
-      expect(hasType('nonExistentType')).toBe(false);
-    });
-  });
-
-  describe('getAllTypes', () => {
-    test('should return all registered types', () => {
-      const type1: VisualizationType = {
-        ...sampleType,
-        name: 'type1'
-      };
-
-      const type2: VisualizationType = {
-        ...sampleType,
-        name: 'type2'
-      };
-
-      registerType(type1);
-      registerType(type2);
-
-      const allTypes = getAllTypes();
-      expect(allTypes).toHaveLength(2);
-      expect(allTypes).toContain(type1);
-      expect(allTypes).toContain(type2);
-    });
-
-    test('should return empty array when no types are registered', () => {
-      const allTypes = getAllTypes();
-      expect(allTypes).toHaveLength(0);
-    });
-  });
-
-  describe('removeType', () => {
-    test('should remove a registered type', () => {
-      registerType(sampleType);
-      expect(hasType('testType')).toBe(true);
-
-      const result = removeType('testType');
-
-      expect(result).toBe(true);
-      expect(hasType('testType')).toBe(false);
-    });
-
-    test('should return false when removing non-existent type', () => {
-      const result = removeType('nonExistentType');
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('Integration with define.ts', () => {
-    test('should support registering types defined by define visualization', () => {
-      // This simulates what define.ts would do
-      const circleType: VisualizationType = {
-        name: 'circle',
-        requiredProps: ['cx', 'cy', 'r'],
-        optionalProps: {
-          fill: 'black',
-          stroke: 'none',
-          strokeWidth: 1
-        },
-        decompose: vi.fn((spec) => ({
-          type: 'primitive',
-          shape: 'circle',
-          ...spec
-        }))
-      };
-
-      registerType(circleType);
-
-      expect(hasType('circle')).toBe(true);
-      const retrievedType = getType('circle');
-      expect(retrievedType?.requiredProps).toEqual(['cx', 'cy', 'r']);
-      expect(retrievedType?.optionalProps).toEqual({
-        fill: 'black',
-        stroke: 'none',
-        strokeWidth: 1
-      });
-    });
-
-    test('should support type extension as described in design docs', () => {
-      // Register base type
-      const baseType: VisualizationType = {
-        name: 'baseChart',
-        requiredProps: ['data'],
-        optionalProps: {
-          width: 400,
-          height: 300,
-          margin: { top: 20, right: 20, bottom: 30, left: 40 }
-        },
-        decompose: vi.fn((spec) => ({
-          type: 'group',
-          children: [
-            { type: 'rect', width: spec.width, height: spec.height, fill: 'white' }
-          ]
-        }))
-      };
-
-      registerType(baseType);
-
-      // Register extended type (simulating what define.ts would do with extend)
-      const extendedType: VisualizationType = {
-        name: 'barChart',
-        requiredProps: ['data', 'x', 'y'], // Added x, y to required props
-        optionalProps: {
-          ...baseType.optionalProps,
-          barColor: 'steelblue' // Added new prop
-        },
-        decompose: vi.fn((spec) => {
-          // In real code, this would call baseType.decompose and extend the result
-          return {
-            type: 'group',
-            children: [
-              { type: 'rect', width: spec.width, height: spec.height, fill: 'white' },
-              { type: 'text', text: 'Bar Chart', x: 10, y: 20 }
-            ]
-          };
-        })
-      };
-
-      registerType(extendedType);
-
-      expect(hasType('barChart')).toBe(true);
-      const retrievedType = getType('barChart');
-      expect(retrievedType?.requiredProps).toContain('data');
-      expect(retrievedType?.requiredProps).toContain('x');
-      expect(retrievedType?.requiredProps).toContain('y');
-      expect(retrievedType?.optionalProps).toHaveProperty('barColor', 'steelblue');
-      expect(retrievedType?.optionalProps).toHaveProperty('width', 400);
-    });
-  });
-
-  describe('Error handling', () => {
-    test('should handle registration of invalid types gracefully', () => {
-      // @ts-ignore - Testing runtime behavior with invalid input
-      const result = registerType(null);
-
-      // Should not throw, but the type shouldn't be registered
-      expect(result).toBeUndefined();
-      expect(getAllTypes()).toHaveLength(0);
-    });
-
-    test('should handle registration of types with missing required fields', () => {
-      // @ts-ignore - Testing runtime behavior with invalid input
-      const invalidType = { name: 'invalidType' };
-
-      // Should log an error but not crash
-      const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
-      // @ts-ignore - Testing runtime behavior with invalid input
-      registerType(invalidType);
-
-      expect(errorSpy).toHaveBeenCalled();
-      expect(hasType('invalidType')).toBe(false);
-    });
+    // Check with other convenience functions
+    expect(hasType('convenienceTest')).toBe(true);
+    expect(getType('convenienceTest')).toBeDefined();
+    expect(getAllTypes().convenienceTest).toBeDefined();
   });
 });

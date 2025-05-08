@@ -1,5 +1,15 @@
-import { buildViz } from '../../core/creator';
+/**
+ * Linear Scale Component
+ *
+ * Purpose: Provides linear scale functionality for continuous data
+ * Author: [Author Name]
+ * Creation Date: [Date]
+ * Last Modified: [Date]
+ */
+
+import { buildViz } from '../../core/builder';
 import { registerDefineType } from '../../core/define';
+import { Scale } from './scale';
 
 // Make sure define type is registered
 registerDefineType();
@@ -39,6 +49,11 @@ buildViz({
 
     // Create the scale function
     const scale = (value) => {
+      // Handle edge case of zero domain size
+      if (paddedDomainSize === 0) {
+        return rangeMin + rangeSize / 2;
+      }
+
       // Calculate the scaled value
       let scaled = rangeMin + ((value - paddedDomainMin) / paddedDomainSize) * rangeSize;
 
@@ -52,23 +67,35 @@ buildViz({
 
     // Create the invert function
     const invert = (value) => {
+      // Handle edge case of zero range size
+      if (rangeSize === 0) {
+        return paddedDomainMin + paddedDomainSize / 2;
+      }
+
       const normalizedValue = (value - rangeMin) / rangeSize;
       return paddedDomainMin + normalizedValue * paddedDomainSize;
     };
 
     // Create the ticks function
     const ticks = (count = 10) => {
-      const step = (paddedDomainMax - paddedDomainMin) / (count - 1);
+      // Handle edge case of zero domain size
+      if (paddedDomainSize === 0) {
+        return [paddedDomainMin];
+      }
+
+      const step = paddedDomainSize / Math.max(1, count - 1);
       return Array.from({ length: count }, (_, i) => paddedDomainMin + i * step);
     };
 
-    // Return the scale object
-    return {
+    // Return the scale object directly
+    const scaleObj: Scale = {
       domain: computedDomain,
       range: props.range,
       scale,
       invert,
       ticks
     };
+
+    return scaleObj;
   }
 });

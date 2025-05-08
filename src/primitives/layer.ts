@@ -7,7 +7,7 @@
  * Last Modified: [Date]
  */
 
-import { buildViz } from '../core/creator';
+import { buildViz } from '../core/builder';
 import { registerDefineType } from '../core/define';
 import { getType } from '../core/registry';
 

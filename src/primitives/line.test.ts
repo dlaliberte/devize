@@ -1,7 +1,7 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { registerType, getType, hasType, _resetRegistryForTesting } from '../core/registry';
 import { registerDefineType } from '../core/define';
-import { buildViz } from '../core/creator';
+import { buildViz } from '../core/builder';
 
 // Create a mock document object for SVG creation
 global.document = {
@@ -13,7 +13,7 @@ global.document = {
 } as any;
 
 // Mock buildViz to capture calls
-vi.mock('../core/creator', () => ({
+vi.mock('../core/builder', () => ({
   buildViz: vi.fn((spec) => {
     // If this is the define type for line, manually register it
     if (spec.type === 'define' && spec.name === 'line') {

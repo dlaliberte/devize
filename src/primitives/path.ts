@@ -8,7 +8,7 @@
  */
 
 import { registerDefineType } from '../core/define';
-import { buildViz } from '../core/creator';
+import { buildViz } from '../core/builder';
 import { createSVGElement, applyAttributes } from '../renderers/svgUtils';
 
 // Make sure define type is registered

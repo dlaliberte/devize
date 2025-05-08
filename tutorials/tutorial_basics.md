@@ -416,7 +416,7 @@ In the next tutorial, we'll introduce the constraint system, which is one of the
 ## References
 
 - Related File: [src/core/devize.ts](../src/core/devize.ts)
-- Related File: [src/core/creator.ts](../src/core/creator.ts)
+- Related File: [src/core/builder.ts](../src/core/builder.ts)
 - Related File: [src/core/renderer.ts](../src/core/renderer.ts)
 - Related File: [src/primitives/rectangle.ts](../src/primitives/rectangle.ts)
 - Related File: [src/primitives/circle.ts](../src/primitives/circle.ts)

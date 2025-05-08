@@ -7,24 +7,37 @@
  * Last Modified: [Date]
  */
 
-import { buildViz } from '../core/devize';
+import { registerDefineType } from '../core/define';
+import { buildViz } from '../core/builder';
 import { createSVGElement } from '../renderers/svgUtils';
-import { processVisualization } from '../core/processor';
 
-// Define the group type
-buildViz({
+
+// Group type definition
+export const groupTypeDefinition = {
   type: "define",
   name: "group",
   properties: {
     x: { default: 0 },
     y: { default: 0 },
     children: { default: [] },
-    transform: { default: null }
+    transform: { default: null },
+    opacity: { default: 1 }
   },
   implementation: props => {
     // Process all children
     const processedChildren = Array.isArray(props.children)
-      ? props.children.map(child => processVisualization(child))
+      ? props.children.map(child => {
+          // If child is a string or number, convert to a text node
+          if (typeof child === 'string' || typeof child === 'number') {
+            return buildViz({
+              type: 'text',
+              text: child.toString(),
+              x: 0,
+              y: 0
+            });
+          }
+          return buildViz(child);
+        })
       : [];
 
     // Prepare transform attribute
@@ -34,7 +47,8 @@ buildViz({
 
     // Prepare attributes
     const attributes = {
-      transform: transformAttr
+      transform: transformAttr,
+      opacity: props.opacity
     };
 
     // Return a specification with rendering functions
@@ -48,9 +62,11 @@ buildViz({
         // Create a group element
         const groupElement = createSVGElement('g');
 
-        // Apply transform
-        if (attributes.transform) {
-          groupElement.setAttribute('transform', attributes.transform);
+        // Apply attributes
+        for (const [key, value] of Object.entries(attributes)) {
+          if (value !== undefined && value !== null) {
+            groupElement.setAttribute(key, value.toString());
+          }
         }
 
         // Render all children into this group
@@ -83,6 +99,12 @@ buildViz({
           // and apply the appropriate Canvas transformations
         }
 
+        // Apply opacity
+        if (typeof ctx.globalAlpha !== 'undefined') {
+          const originalAlpha = ctx.globalAlpha || 1;
+          ctx.globalAlpha = originalAlpha * props.opacity;
+        }
+
         // Render all children in this context
         processedChildren.forEach(child => {
           if (child.renderCanvas) {
@@ -93,21 +115,39 @@ buildViz({
         // Restore the context state
         ctx.restore();
 
-        return true;
+        return true; // Indicate successful rendering
       }
     };
   }
-});
+};
+
+/**
+ * Register the group primitive
+ */
+export function registerGroupPrimitive() {
+  // Make sure define type is registered
+  registerDefineType();
+
+  // Define the group type using buildViz
+  buildViz(groupTypeDefinition);
+}
+
+// Auto-register when this module is imported
+registerGroupPrimitive();
 
 /**
  * References:
  * - Related File: src/core/define.ts
  * - Related File: src/core/registry.ts
- * - Related File: src/core/processor.ts
- * - Related File: src/core/renderer.ts
- * - Related File: src/renderers/svgUtils.js
+ * - Related File: src/core/builder.ts
+ * - Related File: src/core/devize.ts
+ * - Related File: src/renderers/svgUtils.ts
+ * - Related File: src/primitives/circle.ts
+ * - Related File: src/primitives/rectangle.ts
+ * - Related File: src/primitives/text.ts
+ * - Design Document: design/define.md
+ * - Design Document: design/primitives.md
  * - Design Document: design/rendering.md
- * - Design Document: design/primitive_implementation.md
  * - User Documentation: docs/primitives/group.md
- * - Test Cases: tests/primitives/group.test.js
+ * - Test Cases: src/primitives/group.test.ts
  */

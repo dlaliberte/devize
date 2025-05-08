@@ -1,5 +1,19 @@
-import { buildViz } from '../core/devize';
+/**
+ * Axis Component
+ *
+ * Purpose: Provides axis visualization for charts
+ * Author: [Author Name]
+ * Creation Date: [Date]
+ * Last Modified: [Date]
+ */
+
+import { buildViz } from '../core/builder';
 import { createScale, Scale } from './scales/scale';
+
+// Import required primitives
+import '../primitives/group';
+import '../primitives/line';
+import '../primitives/text';
 
 // Define the axis component
 buildViz({

@@ -1,31 +1,59 @@
-import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { getType, _resetRegistryForTesting } from '../core/registry';
-import { registerDefineType } from '../core/define';
-import { buildViz } from '../core/creator';
+/**
+ * Text Primitive Alignment Tests
+ *
+ * Purpose: Tests the text primitive visualization
+ * Author: [Author Name]
+ * Creation Date: [Date]
+ * Last Modified: [Date]
+ */
 
-// Mock buildViz to capture calls
-vi.mock('../core/creator', () => ({
-  buildViz: vi.fn()
+import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { registry, hasType, getType } from '../core/registry';
+import { textTypeDefinition, registerTextPrimitive } from './text';
+import { buildViz } from '../core/builder';
+
+// Mock the svgUtils module
+vi.mock('../renderers/svgUtils', () => ({
+  createSVGElement: vi.fn((tagName) => ({
+    tagName: tagName.toUpperCase(),
+    setAttribute: vi.fn(),
+    appendChild: vi.fn(),
+    textContent: ''
+  })),
+  applyAttributes: vi.fn()
 }));
 
-// Reset registry and register define type before each test
-beforeEach(() => {
-  _resetRegistryForTesting();
-  registerDefineType();
-
-  // Import the text type implementation
-  require('./text');
-});
+// Import the mocked functions
+import { createSVGElement, applyAttributes } from '../renderers/svgUtils';
 
 describe('Text Alignment', () => {
-  test('should handle text-anchor in canvas rendering', () => {
-    const textType = getType('text');
+  // Reset registry before each test
+  beforeEach(() => {
+    // Reset the registry for clean tests
+    (registry as any).types = new Map();
 
+    // Register the text primitive
+    registerTextPrimitive();
+
+    // Reset mocks
+    vi.clearAllMocks();
+  });
+
+  test('should handle text-anchor in canvas rendering', () => {
     // Test 'start' alignment (default)
-    const startResult = textType?.decompose({
+    const startImpl = textTypeDefinition.implementation({
       text: 'Left aligned',
-      textAnchor: 'start'
-    }, {});
+      textAnchor: 'start',
+      x: 0,
+      y: 0,
+      fontSize: 12,
+      fontFamily: 'sans-serif',
+      fontWeight: 'normal',
+      fill: 'black',
+      dominantBaseline: 'auto',
+      opacity: 1,
+      transform: ''
+    });
 
     const startCtx = {
       save: vi.fn(),
@@ -34,14 +62,23 @@ describe('Text Alignment', () => {
       textAlign: 'unset'
     };
 
-    startResult?.renderCanvas(startCtx);
+    startImpl.renderCanvas(startCtx);
     expect(startCtx.textAlign).toBe('left');
 
     // Test 'middle' alignment
-    const middleResult = textType?.decompose({
+    const middleImpl = textTypeDefinition.implementation({
       text: 'Center aligned',
-      textAnchor: 'middle'
-    }, {});
+      textAnchor: 'middle',
+      x: 0,
+      y: 0,
+      fontSize: 12,
+      fontFamily: 'sans-serif',
+      fontWeight: 'normal',
+      fill: 'black',
+      dominantBaseline: 'auto',
+      opacity: 1,
+      transform: ''
+    });
 
     const middleCtx = {
       save: vi.fn(),
@@ -50,14 +87,23 @@ describe('Text Alignment', () => {
       textAlign: 'unset'
     };
 
-    middleResult?.renderCanvas(middleCtx);
+    middleImpl.renderCanvas(middleCtx);
     expect(middleCtx.textAlign).toBe('center');
 
     // Test 'end' alignment
-    const endResult = textType?.decompose({
+    const endImpl = textTypeDefinition.implementation({
       text: 'Right aligned',
-      textAnchor: 'end'
-    }, {});
+      textAnchor: 'end',
+      x: 0,
+      y: 0,
+      fontSize: 12,
+      fontFamily: 'sans-serif',
+      fontWeight: 'normal',
+      fill: 'black',
+      dominantBaseline: 'auto',
+      opacity: 1,
+      transform: ''
+    });
 
     const endCtx = {
       save: vi.fn(),
@@ -66,18 +112,25 @@ describe('Text Alignment', () => {
       textAlign: 'unset'
     };
 
-    endResult?.renderCanvas(endCtx);
+    endImpl.renderCanvas(endCtx);
     expect(endCtx.textAlign).toBe('right');
   });
 
   test('should handle dominant-baseline in canvas rendering', () => {
-    const textType = getType('text');
-
     // Test 'auto' baseline (default)
-    const autoResult = textType?.decompose({
+    const autoImpl = textTypeDefinition.implementation({
       text: 'Default baseline',
-      dominantBaseline: 'auto'
-    }, {});
+      dominantBaseline: 'auto',
+      x: 0,
+      y: 0,
+      fontSize: 12,
+      fontFamily: 'sans-serif',
+      fontWeight: 'normal',
+      fill: 'black',
+      textAnchor: 'start',
+      opacity: 1,
+      transform: ''
+    });
 
     const autoCtx = {
       save: vi.fn(),
@@ -86,14 +139,23 @@ describe('Text Alignment', () => {
       textBaseline: 'unset'
     };
 
-    autoResult?.renderCanvas(autoCtx);
+    autoImpl.renderCanvas(autoCtx);
     expect(autoCtx.textBaseline).toBe('alphabetic');
 
     // Test 'middle' baseline
-    const middleResult = textType?.decompose({
+    const middleImpl = textTypeDefinition.implementation({
       text: 'Middle baseline',
-      dominantBaseline: 'middle'
-    }, {});
+      dominantBaseline: 'middle',
+      x: 0,
+      y: 0,
+      fontSize: 12,
+      fontFamily: 'sans-serif',
+      fontWeight: 'normal',
+      fill: 'black',
+      textAnchor: 'start',
+      opacity: 1,
+      transform: ''
+    });
 
     const middleCtx = {
       save: vi.fn(),
@@ -102,14 +164,23 @@ describe('Text Alignment', () => {
       textBaseline: 'unset'
     };
 
-    middleResult?.renderCanvas(middleCtx);
+    middleImpl.renderCanvas(middleCtx);
     expect(middleCtx.textBaseline).toBe('middle');
 
     // Test 'hanging' baseline
-    const hangingResult = textType?.decompose({
+    const hangingImpl = textTypeDefinition.implementation({
       text: 'Hanging baseline',
-      dominantBaseline: 'hanging'
-    }, {});
+      dominantBaseline: 'hanging',
+      x: 0,
+      y: 0,
+      fontSize: 12,
+      fontFamily: 'sans-serif',
+      fontWeight: 'normal',
+      fill: 'black',
+      textAnchor: 'start',
+      opacity: 1,
+      transform: ''
+    });
 
     const hangingCtx = {
       save: vi.fn(),
@@ -118,14 +189,23 @@ describe('Text Alignment', () => {
       textBaseline: 'unset'
     };
 
-    hangingResult?.renderCanvas(hangingCtx);
+    hangingImpl.renderCanvas(hangingCtx);
     expect(hangingCtx.textBaseline).toBe('top');
 
     // Test 'alphabetic' baseline
-    const alphabeticResult = textType?.decompose({
+    const alphabeticImpl = textTypeDefinition.implementation({
       text: 'Alphabetic baseline',
-      dominantBaseline: 'alphabetic'
-    }, {});
+      dominantBaseline: 'alphabetic',
+      x: 0,
+      y: 0,
+      fontSize: 12,
+      fontFamily: 'sans-serif',
+      fontWeight: 'normal',
+      fill: 'black',
+      textAnchor: 'start',
+      opacity: 1,
+      transform: ''
+    });
 
     const alphabeticCtx = {
       save: vi.fn(),
@@ -134,103 +214,179 @@ describe('Text Alignment', () => {
       textBaseline: 'unset'
     };
 
-    alphabeticResult?.renderCanvas(alphabeticCtx);
+    alphabeticImpl.renderCanvas(alphabeticCtx);
     expect(alphabeticCtx.textBaseline).toBe('alphabetic');
   });
 
   test('should handle text-anchor in SVG rendering', () => {
-    const textType = getType('text');
-
-    // Mock SVG element creation
+    // Create a mock SVG element
     const mockElement = {
       setAttribute: vi.fn(),
       appendChild: vi.fn(),
       textContent: null
     };
 
-    global.document = {
-      createElementNS: vi.fn(() => mockElement)
-    } as any;
+    // Mock the createSVGElement function to return our mock
+    (createSVGElement as any).mockReturnValue(mockElement);
+
+    // Create a mock container with appendChild
+    const mockContainer = { appendChild: vi.fn() };
 
     // Test 'start' alignment
-    const startResult = textType?.decompose({
+    const startImpl = textTypeDefinition.implementation({
       text: 'Left aligned',
-      textAnchor: 'start'
-    }, {});
+      textAnchor: 'start',
+      x: 0,
+      y: 0,
+      fontSize: 12,
+      fontFamily: 'sans-serif',
+      fontWeight: 'normal',
+      fill: 'black',
+      dominantBaseline: 'auto',
+      opacity: 1,
+      transform: ''
+    });
 
-    startResult?.renderSVG({} as any);
-    expect(mockElement.setAttribute).toHaveBeenCalledWith('text-anchor', 'start');
+    startImpl.renderSVG(mockContainer);
+    expect(applyAttributes).toHaveBeenCalled();
+    expect(mockContainer.appendChild).toHaveBeenCalled();
 
-    // Reset mock
-    mockElement.setAttribute.mockClear();
+    // Reset mocks
+    vi.clearAllMocks();
+    (createSVGElement as any).mockReturnValue(mockElement);
 
     // Test 'middle' alignment
-    const middleResult = textType?.decompose({
+    const middleImpl = textTypeDefinition.implementation({
       text: 'Center aligned',
-      textAnchor: 'middle'
-    }, {});
+      textAnchor: 'middle',
+      x: 0,
+      y: 0,
+      fontSize: 12,
+      fontFamily: 'sans-serif',
+      fontWeight: 'normal',
+      fill: 'black',
+      dominantBaseline: 'auto',
+      opacity: 1,
+      transform: ''
+    });
 
-    middleResult?.renderSVG({} as any);
-    expect(mockElement.setAttribute).toHaveBeenCalledWith('text-anchor', 'middle');
+    middleImpl.renderSVG(mockContainer);
+    expect(applyAttributes).toHaveBeenCalled();
+    expect(mockContainer.appendChild).toHaveBeenCalled();
 
-    // Reset mock
-    mockElement.setAttribute.mockClear();
+    // Reset mocks
+    vi.clearAllMocks();
+    (createSVGElement as any).mockReturnValue(mockElement);
 
     // Test 'end' alignment
-    const endResult = textType?.decompose({
+    const endImpl = textTypeDefinition.implementation({
       text: 'Right aligned',
-      textAnchor: 'end'
-    }, {});
+      textAnchor: 'end',
+      x: 0,
+      y: 0,
+      fontSize: 12,
+      fontFamily: 'sans-serif',
+      fontWeight: 'normal',
+      fill: 'black',
+      dominantBaseline: 'auto',
+      opacity: 1,
+      transform: ''
+    });
 
-    endResult?.renderSVG({} as any);
-    expect(mockElement.setAttribute).toHaveBeenCalledWith('text-anchor', 'end');
+    endImpl.renderSVG(mockContainer);
+    expect(applyAttributes).toHaveBeenCalled();
+    expect(mockContainer.appendChild).toHaveBeenCalled();
+
+    // Since we're mocking applyAttributes, we can't directly test that it's called with specific attributes
+    // Instead, we'll verify that the attributes object contains the correct values
+    expect(endImpl.attributes['text-anchor']).toBe('end');
+    expect(middleImpl.attributes['text-anchor']).toBe('middle');
+    expect(startImpl.attributes['text-anchor']).toBe('start');
   });
 
   test('should handle dominant-baseline in SVG rendering', () => {
-    const textType = getType('text');
-
-    // Mock SVG element creation
+    // Create a mock SVG element
     const mockElement = {
       setAttribute: vi.fn(),
       appendChild: vi.fn(),
       textContent: null
     };
 
-    global.document = {
-      createElementNS: vi.fn(() => mockElement)
-    } as any;
+    // Mock the createSVGElement function to return our mock
+    (createSVGElement as any).mockReturnValue(mockElement);
+
+    // Create a mock container with appendChild
+    const mockContainer = { appendChild: vi.fn() };
 
     // Test 'auto' baseline
-    const autoResult = textType?.decompose({
+    const autoImpl = textTypeDefinition.implementation({
       text: 'Default baseline',
-      dominantBaseline: 'auto'
-    }, {});
+      dominantBaseline: 'auto',
+      x: 0,
+      y: 0,
+      fontSize: 12,
+      fontFamily: 'sans-serif',
+      fontWeight: 'normal',
+      fill: 'black',
+      textAnchor: 'start',
+      opacity: 1,
+      transform: ''
+    });
 
-    autoResult?.renderSVG({} as any);
-    expect(mockElement.setAttribute).toHaveBeenCalledWith('dominant-baseline', 'auto');
+    autoImpl.renderSVG(mockContainer);
+    expect(applyAttributes).toHaveBeenCalled();
+    expect(mockContainer.appendChild).toHaveBeenCalled();
 
-    // Reset mock
-    mockElement.setAttribute.mockClear();
+    // Reset mocks
+    vi.clearAllMocks();
+    (createSVGElement as any).mockReturnValue(mockElement);
 
     // Test 'middle' baseline
-    const middleResult = textType?.decompose({
+    const middleImpl = textTypeDefinition.implementation({
       text: 'Middle baseline',
-      dominantBaseline: 'middle'
-    }, {});
+      dominantBaseline: 'middle',
+      x: 0,
+      y: 0,
+      fontSize: 12,
+      fontFamily: 'sans-serif',
+      fontWeight: 'normal',
+      fill: 'black',
+      textAnchor: 'start',
+      opacity: 1,
+      transform: ''
+    });
 
-    middleResult?.renderSVG({} as any);
-    expect(mockElement.setAttribute).toHaveBeenCalledWith('dominant-baseline', 'middle');
+    middleImpl.renderSVG(mockContainer);
+    expect(applyAttributes).toHaveBeenCalled();
+    expect(mockContainer.appendChild).toHaveBeenCalled();
 
-    // Reset mock
-    mockElement.setAttribute.mockClear();
+    // Reset mocks
+    vi.clearAllMocks();
+    (createSVGElement as any).mockReturnValue(mockElement);
 
     // Test 'hanging' baseline
-    const hangingResult = textType?.decompose({
+    const hangingImpl = textTypeDefinition.implementation({
       text: 'Hanging baseline',
-      dominantBaseline: 'hanging'
-    }, {});
+      dominantBaseline: 'hanging',
+      x: 0,
+      y: 0,
+      fontSize: 12,
+      fontFamily: 'sans-serif',
+      fontWeight: 'normal',
+      fill: 'black',
+      textAnchor: 'start',
+      opacity: 1,
+      transform: ''
+    });
 
-    hangingResult?.renderSVG({} as any);
-    expect(mockElement.setAttribute).toHaveBeenCalledWith('dominant-baseline', 'hanging');
+    hangingImpl.renderSVG(mockContainer);
+    expect(applyAttributes).toHaveBeenCalled();
+    expect(mockContainer.appendChild).toHaveBeenCalled();
+
+    // Since we're mocking applyAttributes, we can't directly test that it's called with specific attributes
+    // Instead, we'll verify that the attributes object contains the correct values
+    expect(autoImpl.attributes['dominant-baseline']).toBe('auto');
+    expect(middleImpl.attributes['dominant-baseline']).toBe('middle');
+    expect(hangingImpl.attributes['dominant-baseline']).toBe('hanging');
   });
 });

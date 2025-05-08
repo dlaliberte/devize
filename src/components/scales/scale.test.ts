@@ -1,71 +1,22 @@
+/**
+ * Scale Component Tests
+ *
+ * Purpose: Tests the scale components
+ * Author: [Author Name]
+ * Creation Date: [Date]
+ * Last Modified: [Date]
+ */
+
 import { describe, test, expect, beforeEach, vi } from 'vitest';
-import { _resetRegistryForTesting } from '../../core/registry';
 import { registerDefineType } from '../../core/define';
 import { createScale } from './scale';
 import './linearScale'; // Import to ensure the visualization types are registered
 import './bandScale';   // Import to ensure the visualization types are registered
 
-// Mock buildViz to avoid actual rendering
-vi.mock('../../core/creator', () => ({
-    buildViz: vi.fn((spec) => {
-      // For linearScale
-      if (spec.type === 'linearScale') {
-        const [domainMin, domainMax] = spec.domain;
-        const [rangeMin, rangeMax] = spec.range;
-        const domainSize = domainMax - domainMin;
-        const rangeSize = rangeMax - rangeMin;
-
-        return {
-          domain: spec.domain,
-          range: spec.range,
-          scale: (value) => {
-            let normalized = (value - domainMin) / domainSize;
-            if (spec.clamp) {
-              normalized = Math.max(0, Math.min(1, normalized));
-            }
-            return rangeMin + normalized * rangeSize;
-          },
-          invert: (value) => {
-            const normalized = (value - rangeMin) / rangeSize;
-            return domainMin + normalized * domainSize;
-          },
-          ticks: (count = 10) => {
-            const step = domainSize / (count - 1);
-            return Array.from({ length: count }, (_, i) => domainMin + i * step);
-          }
-        };
-      }
-
-      // For bandScale
-      if (spec.type === 'bandScale') {
-        const domain = spec.domain;
-        const [rangeMin, rangeMax] = spec.range;
-        const n = domain.length;
-        const padding = spec.padding || 0.1;
-        const step = (rangeMax - rangeMin) / Math.max(1, n);
-        const bandWidth = step * (1 - padding);
-
-        return {
-          domain,
-          range: spec.range,
-          scale: (value) => {
-            const index = domain.indexOf(value);
-            if (index === -1) return NaN;
-            return rangeMin + index * step;
-          },
-          bandwidth: () => bandWidth,
-          ticks: () => domain
-        };
-      }
-
-      // Return the original spec for other types
-      return spec;
-    })
-}));
-
 // Reset registry and register define type before each test
 beforeEach(() => {
-  _resetRegistryForTesting();
+  // We don't need to reset the registry anymore as the testing framework handles this
+  // Just ensure the define type is registered
   registerDefineType();
 });
 
@@ -78,10 +29,24 @@ describe('Scale Component', () => {
         clamp: true
       });
 
+      console.log('Linear scale:', scale);
+
+      expect(scale).toBeDefined();
       expect(scale.domain).toEqual([0, 100]);
       expect(scale.range).toEqual([0, 500]);
       expect(typeof scale.scale).toBe('function');
       expect(typeof scale.invert).toBe('function');
+    });
+
+    test('should map values from domain to range', () => {
+      const scale = createScale('linear', {
+        domain: [0, 100],
+        range: [0, 500]
+      });
+
+      expect(scale.scale(0)).toBeCloseTo(0);
+      expect(scale.scale(50)).toBeCloseTo(250);
+      expect(scale.scale(100)).toBeCloseTo(500);
     });
 
     test('should support invert function', () => {
@@ -90,8 +55,8 @@ describe('Scale Component', () => {
         range: [0, 500]
       });
 
-      // Test that the function exists
       expect(typeof scale.invert).toBe('function');
+      expect(scale.invert(250)).toBeCloseTo(50);
     });
 
     test('should generate ticks', () => {
@@ -102,6 +67,7 @@ describe('Scale Component', () => {
 
       const ticks = scale.ticks ? scale.ticks(5) : [];
       expect(Array.isArray(ticks)).toBe(true);
+      expect(ticks.length).toBe(5);
     });
   });
 
@@ -127,6 +93,7 @@ describe('Scale Component', () => {
       });
 
       expect(typeof scale.bandwidth).toBe('function');
+      expect(scale.bandwidth()).toBeGreaterThan(0);
     });
 
     test('should return domain values as ticks', () => {
@@ -138,6 +105,7 @@ describe('Scale Component', () => {
 
       const ticks = scale.ticks ? scale.ticks() : [];
       expect(Array.isArray(ticks)).toBe(true);
+      expect(ticks).toEqual(domain);
     });
   });
 
@@ -161,8 +129,8 @@ describe('Scale Component', () => {
         range: ['#3366CC', '#FF9900', '#DC3912']
       });
 
-      // Just test that the function exists
-      expect(typeof scale.scale).toBe('function');
+      expect(scale.scale('Low')).toBe('#3366CC');
+      expect(scale.scale('Unknown')).toBe('#3366CC'); // Default unknown value is first range item
     });
 
     test('should support custom unknown value', () => {
@@ -172,8 +140,8 @@ describe('Scale Component', () => {
         unknown: 'gray'
       });
 
-      // Just test that the function exists
-      expect(typeof scale.scale).toBe('function');
+      expect(scale.scale('Low')).toBe('#3366CC');
+      expect(scale.scale('Unknown')).toBe('gray');
     });
   });
 

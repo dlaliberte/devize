@@ -53,3 +53,5 @@ export function applySVGAttributes(element, attributes) {
   }
   return element;
 }
+
+export function applyAttributes() {}

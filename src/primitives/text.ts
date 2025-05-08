@@ -8,14 +8,11 @@
  */
 
 import { registerDefineType } from '../core/define';
-import { buildViz } from '../core/creator';
+import { buildViz } from '../core/builder';
 import { createSVGElement, applyAttributes } from '../renderers/svgUtils';
 
-// Make sure define type is registered
-registerDefineType();
-
-// Define the text type
-buildViz({
+// Text type definition
+export const textTypeDefinition = {
   type: "define",
   name: "text",
   properties: {
@@ -49,6 +46,7 @@ buildViz({
     // Return a specification with rendering functions
     return {
       _renderType: "text",  // Internal rendering type
+      type: "text",         // Public type
       attributes: attributes,
       content: props.text,  // Text content
 
@@ -71,7 +69,7 @@ buildViz({
         // Apply opacity
         ctx.globalAlpha = opacity;
 
-        // Set font
+        // Set font - ensure fontWeight is included
         ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
         ctx.fillStyle = fill;
 
@@ -132,18 +130,35 @@ buildViz({
       }
     };
   }
-});
+};
+
+/**
+ * Register the text primitive
+ */
+export function registerTextPrimitive() {
+  // Make sure define type is registered
+  registerDefineType();
+
+  // Define the text type using buildViz
+  buildViz(textTypeDefinition);
+}
+
+// Auto-register when this module is imported
+registerTextPrimitive();
 
 /**
  * References:
  * - Related File: src/core/define.ts
  * - Related File: src/core/registry.ts
+ * - Related File: src/core/builder.ts
  * - Related File: src/core/devize.ts
- * - Related File: src/renderers/svgUtils.js
- * - Related File: src/renderers/canvasUtils.js
+ * - Related File: src/renderers/svgUtils.ts
+ * - Related File: src/primitives/circle.ts
+ * - Related File: src/primitives/rectangle.ts
+ * - Related File: src/primitives/group.ts
  * - Design Document: design/define.md
  * - Design Document: design/primitives.md
  * - Design Document: design/rendering.md
  * - User Documentation: docs/primitives/shapes.md
- * - Test Cases: tests/primitives/text.test.js
+ * - Test Cases: src/primitives/text.test.ts
  */

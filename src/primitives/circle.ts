@@ -8,14 +8,11 @@
  */
 
 import { registerDefineType } from '../core/define';
-import { buildViz } from '../core/creator';
+import { buildViz } from '../core/builder';
 import { createSVGElement, applyAttributes } from '../renderers/svgUtils';
 
-// Make sure define type is registered
-registerDefineType();
-
-// Define the circle type using buildViz
-buildViz({
+// Circle type definition
+export const circleTypeDefinition = {
   type: "define",
   name: "circle",
   properties: {
@@ -81,7 +78,21 @@ buildViz({
       }
     };
   }
-});
+};
+
+/**
+ * Register the circle primitive
+ */
+export function registerCirclePrimitive() {
+  // Make sure define type is registered
+  registerDefineType();
+
+  // Define the circle type using buildViz
+  buildViz(circleTypeDefinition);
+}
+
+// Auto-register when this module is imported
+registerCirclePrimitive();
 
 /**
  * References:

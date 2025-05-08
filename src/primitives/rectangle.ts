@@ -7,11 +7,12 @@
  * Last Modified: [Date]
  */
 
-import { buildViz } from '../core/devize.js';
-import { createSVGElement, applyAttributes } from '../renderers/svgUtils.js';
+import { registerDefineType } from '../core/define';
+import { buildViz } from '../core/builder';
+import { createSVGElement, applyAttributes } from '../renderers/svgUtils';
 
-// Define the rectangle type
-buildViz({
+// Rectangle type definition
+export const rectangleTypeDefinition = {
   type: "define",
   name: "rectangle",
   properties: {
@@ -97,18 +98,33 @@ buildViz({
       }
     };
   }
-});
+};
+
+/**
+ * Register the rectangle primitive
+ */
+export function registerRectanglePrimitive() {
+  // Make sure define type is registered
+  registerDefineType();
+
+  // Define the rectangle type using buildViz
+  buildViz(rectangleTypeDefinition);
+}
+
+// Auto-register when this module is imported
+registerRectanglePrimitive();
 
 /**
  * References:
  * - Related File: src/core/define.ts
  * - Related File: src/core/registry.ts
+ * - Related File: src/core/builder.ts
  * - Related File: src/core/devize.ts
- * - Related File: src/renderers/svgUtils.js
- * - Related File: src/renderers/canvasUtils.js
+ * - Related File: src/renderers/svgUtils.ts
+ * - Related File: src/primitives/circle.ts
  * - Design Document: design/define.md
  * - Design Document: design/primitives.md
  * - Design Document: design/rendering.md
  * - User Documentation: docs/primitives/shapes.md
- * - Test Cases: tests/primitives/rectangle.test.js
+ * - Test Cases: src/primitives/rectangle.test.ts
  */

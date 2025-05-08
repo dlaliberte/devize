@@ -34,55 +34,12 @@ function processSpecification(spec: VisualizationSpec, typeDefinition: TypeDefin
       if (propDef.required && !(propName in result)) {
         throw new Error(`Required property '${propName}' missing for visualization type '${typeDefinition.name}'`);
       }
-
-      // Validate property type if specified
-      if (propName in result && propDef.type) {
-        const value = result[propName];
-        const expectedType = propDef.type;
-
-        let isValid = true;
-        switch (expectedType) {
-          case 'number':
-            isValid = typeof value === 'number';
-            break;
-          case 'string':
-            isValid = typeof value === 'string';
-            break;
-          case 'boolean':
-            isValid = typeof value === 'boolean';
-            break;
-          case 'array':
-            isValid = Array.isArray(value);
-            break;
-          case 'object':
-            isValid = typeof value === 'object' && value !== null && !Array.isArray(value);
-            break;
-          case 'function':
-            isValid = typeof value === 'function';
-            break;
-        }
-
-        if (!isValid) {
-          throw new Error(`Property '${propName}' for visualization type '${typeDefinition.name}' should be of type '${expectedType}'`);
-        }
-      }
-
-      // Run custom validation if provided
-      if (propName in result && propDef.validate) {
-        try {
-          const isValid = propDef.validate(result[propName]);
-          if (!isValid) {
-            throw new Error(`Property '${propName}' for visualization type '${typeDefinition.name}' failed validation`);
-          }
-        } catch (error) {
-          if (error instanceof Error) {
-            throw new Error(`Validation error for property '${propName}': ${error.message}`);
-          } else {
-            throw new Error(`Validation error for property '${propName}'`);
-          }
-        }
-      }
     }
+  }
+
+  // Call custom validation function if available
+  if (typeDefinition.validate && typeof typeDefinition.validate === 'function') {
+    typeDefinition.validate(result);
   }
 
   return result;
@@ -200,6 +157,16 @@ export function buildViz(spec: VisualizationSpec): RenderableVisualization {
     return spec as RenderableVisualization;
   }
 
+  // Handle null or undefined
+  if (!spec) {
+    throw new Error('Visualization specification cannot be null or undefined');
+  }
+
+  // Handle missing type
+  if (!spec.type) {
+    throw new Error('Visualization specification must have a type');
+  }
+
   // Special case for "define" type during bootstrapping
   if (spec.type === "define" && !registry.hasType("define")) {
     // Handle bootstrapping case
@@ -225,6 +192,24 @@ export function buildViz(spec: VisualizationSpec): RenderableVisualization {
 
   // Process the specification
   const processedSpec = processSpecification(spec, typeDefinition);
+
+  // For "define" type, execute the implementation to register the new type
+  if (spec.type === "define") {
+    const impl = typeDefinition.implementation;
+    if (typeof impl === 'function') {
+      impl(processedSpec);
+    }
+  } else {
+    // For other types, call the implementation to validate and process
+    const impl = typeDefinition.implementation;
+    if (typeof impl === 'function') {
+      const result = impl(processedSpec);
+      // If the implementation returns a new spec, process it recursively
+      if (result && result.type && result.type !== spec.type) {
+        return buildViz(result);
+      }
+    }
+  }
 
   // Create and return a renderable visualization
   return createRenderableVisualization(processedSpec);

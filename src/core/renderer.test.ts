@@ -1,11 +1,28 @@
-import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import { renderViz } from './renderer';
-import { buildViz } from './creator';
-import { isSVGContainer, isCanvasContainer } from './utils';
+import { describe, it, expect, beforeEach } from 'vitest';
+import { renderViz, updateViz, ensureSvg } from './renderer';
+import { buildViz } from './builder';
+import { registerType } from './registry';
+import { TypeDefinition } from './types';
 
-// Skip these tests for now - we'll use Playwright instead
-describe.skip('Renderer Module', () => {
-  test('placeholder', () => {
-    expect(true).toBe(true);
+describe('Renderer', () => {
+  let container: HTMLElement;
+
+  beforeEach(() => {
+    // Create a fresh container for each test
+    container = document.createElement('div');
+    document.body.appendChild(container);
+
+    // Register a simple rectangle type for testing
+    const rectType: TypeDefinition = {
+      name: 'rectangle',
+      properties: {
+        x: { required: true },
+        y: { required: true },
+        width: { required: true },
+        height: { required: true },
+        fill: { default: 'black' }
+      }
+    };
+    registerType(rectType);
   });
 });

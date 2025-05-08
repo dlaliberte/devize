@@ -30,12 +30,5 @@ export default defineConfig({
   },
   server: {
     open: '/examples/'  // Open the examples index page
-  },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    coverage: {
-      reporter: ['text', 'json', 'html']
-    }
   }
 });

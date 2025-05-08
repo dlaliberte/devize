@@ -1,10 +1,10 @@
 import { describe, test, expect, vi, beforeEach } from 'vitest';
 import { registerType, getType, hasType, _resetRegistryForTesting } from '../core/registry';
 import { registerDefineType } from '../core/define';
-import { buildViz } from '../core/creator';
+import { buildViz } from '../core/builder';
 
 // Mock buildViz to capture calls and execute define implementations
-vi.mock('../core/creator', () => ({
+vi.mock('../core/builder', () => ({
   buildViz: vi.fn((spec) => {
     console.log('Mock buildViz called with type:', spec.type);
 

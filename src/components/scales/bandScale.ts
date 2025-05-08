@@ -1,6 +1,15 @@
-import { buildViz } from '../../core/creator';
+/**
+ * Band Scale Component
+ *
+ * Purpose: Provides band scale functionality for categorical data
+ * Author: [Author Name]
+ * Creation Date: [Date]
+ * Last Modified: [Date]
+ */
 
+import { buildViz } from '../../core/builder';
 import { registerDefineType } from '../../core/define';
+import { Scale } from './scale';
 
 // Make sure define type is registered
 registerDefineType();
@@ -28,8 +37,7 @@ buildViz({
 
     // Calculate band width and step
     const width = rangeMax - rangeMin;
-    const totalPadding = (n - 1) * paddingInner + 2 * paddingOuter;
-    const step = width / Math.max(1, n - paddingInner + 2 * paddingOuter);
+    const step = n === 0 ? 0 : width / Math.max(1, n - paddingInner + 2 * paddingOuter);
     const bandWidth = step * (1 - paddingInner);
 
     // Calculate the start position based on alignment
@@ -48,13 +56,15 @@ buildViz({
     // Create the ticks function
     const ticks = () => domain;
 
-    // Return the scale object
-    return {
+    // Return the scale object directly
+    const scaleObj: Scale = {
       domain,
       range: props.range,
       scale,
       bandwidth,
       ticks
     };
+
+    return scaleObj;
   }
 });

@@ -1,9 +1,12 @@
-import { initializeLibrary } from '../core/devize';
+import { vi } from 'vitest';
 
-// Set up JSDOM for SVG support
+// Mock document.createElementNS for SVG support
 document.createElementNS = (namespaceURI, qualifiedName) => {
   return document.createElement(qualifiedName);
 };
 
-// Initialize the library
-initializeLibrary();
+// Initialize the library (commented out for now to isolate the issue)
+// import { initializeLibrary } from '../core/devize';
+// initializeLibrary();
+
+console.log('Vitest setup complete');
