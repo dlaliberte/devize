@@ -9,7 +9,7 @@
 
 import { buildViz } from '../../core/builder';
 import { registerDefineType } from '../../core/define';
-import { Scale } from './scale';
+import { Scale } from './scale-interface';
 
 // Make sure define type is registered
 registerDefineType();
@@ -61,4 +61,24 @@ export function createOrdinalScale(domain: string[], range: any[], unknown?: any
     range,
     unknown
   }) as Scale;
+}// Minimal ordinal scale implementation
+export function createMinimalOrdinalScale(options: {
+  domain: string[];
+  range: any[];
+  unknown?: any;
+}): Scale {
+  const { domain, range, unknown = range[0] } = options;
+
+  const scale: Scale = {
+    domain,
+    range,
+    scale: (value) => {
+      const index = domain.indexOf(value);
+      if (index === -1) return unknown;
+      return range[index % range.length];
+    },
+    ticks: () => domain
+  };
+
+  return scale;
 }

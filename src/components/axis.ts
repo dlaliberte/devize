@@ -8,7 +8,8 @@
  */
 
 import { buildViz } from '../core/builder';
-import { createScale, Scale } from './scales/scale';
+import { createScale } from './scales/scale';
+import { Scale } from './scales/scale-interface';
 import { createSVGElement } from '../renderers/svgUtils';
 
 // Import required primitives

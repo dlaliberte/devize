@@ -17,16 +17,10 @@ registerDefineType();
 import './linearScale';
 import './bandScale';
 import './ordinalScale';
-
-// Define a generic scale interface
-export interface Scale {
-  domain: any[];
-  range: any[];
-  scale: (value: any) => any;
-  invert?: (value: number) => any;
-  ticks?: (count?: number) => any[];
-  bandwidth?: () => number;
-}
+import { Scale } from './scale-interface';
+import { createMinimalLinearScale } from './linearScale';
+import { createMinimalBandScale } from './bandScale';
+import { createMinimalOrdinalScale } from './ordinalScale';
 
 /**
  * Create a scale factory function that can be used directly in code
@@ -141,109 +135,6 @@ export function createScale(type: string, options: any): Scale {
     range: options.range,
     scale: (value) => options.range[0]
   };
-}
-
-// Minimal linear scale implementation
-function createMinimalLinearScale(options: {
-  domain: [number, number];
-  range: [number, number];
-  clamp?: boolean;
-}): Scale {
-  const { domain, range, clamp = false } = options;
-
-  const scale: Scale = {
-    domain,
-    range,
-    scale: (value) => {
-      // Simple linear mapping
-      const [d0, d1] = domain;
-      const [r0, r1] = range;
-      let t = (value - d0) / (d1 - d0);
-
-      // Apply clamping if needed
-      if (clamp) {
-        t = Math.max(0, Math.min(1, t));
-      }
-
-      return r0 + t * (r1 - r0);
-    },
-    invert: (value) => {
-      // Simple inverse mapping
-      const [d0, d1] = domain;
-      const [r0, r1] = range;
-      const t = (value - r0) / (r1 - r0);
-      return d0 + t * (d1 - d0);
-    },
-    ticks: (count = 10) => {
-      // Simple ticks implementation
-      const [d0, d1] = domain;
-      const step = (d1 - d0) / Math.max(1, count - 1);
-      return Array.from({ length: count }, (_, i) => d0 + i * step);
-    }
-  };
-
-  return scale;
-}
-
-// Minimal band scale implementation
-function createMinimalBandScale(options: {
-  domain: string[];
-  range: [number, number];
-  padding?: number;
-  paddingInner?: number;
-  paddingOuter?: number;
-  align?: number;
-}): Scale {
-  const {
-    domain,
-    range,
-    padding = 0.1,
-    paddingInner = padding,
-    paddingOuter = padding,
-    align = 0.5
-  } = options;
-
-  const [r0, r1] = range;
-  const n = domain.length;
-  const step = n ? (r1 - r0) / (n - paddingInner + paddingOuter * 2) : 0;
-  const bandWidth = step * (1 - paddingInner);
-  const start = r0 + (r1 - r0 - step * (n - paddingInner)) * align;
-
-  const scale: Scale = {
-    domain,
-    range,
-    scale: (value) => {
-      const index = domain.indexOf(value);
-      if (index === -1) return NaN;
-      return start + paddingOuter * step + index * step;
-    },
-    bandwidth: () => bandWidth,
-    ticks: () => domain
-  };
-
-  return scale;
-}
-
-// Minimal ordinal scale implementation
-function createMinimalOrdinalScale(options: {
-  domain: string[];
-  range: any[];
-  unknown?: any;
-}): Scale {
-  const { domain, range, unknown = range[0] } = options;
-
-  const scale: Scale = {
-    domain,
-    range,
-    scale: (value) => {
-      const index = domain.indexOf(value);
-      if (index === -1) return unknown;
-      return range[index % range.length];
-    },
-    ticks: () => domain
-  };
-
-  return scale;
 }
 
 // Export a unified scale component that can create any type of scale

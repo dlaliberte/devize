@@ -11,7 +11,7 @@ import { describe, test, expect, beforeEach } from 'vitest';
 import { registry, hasType } from '../../core/registry';
 import { buildViz } from '../../core/builder';
 import { registerDefineType } from '../../core/define';
-import { Scale } from './scale';
+import { Scale } from './scale-interface';
 
 // Import the ordinal scale module
 import { ordinalScaleDefinition, createOrdinalScale } from './ordinalScale';

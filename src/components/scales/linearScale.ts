@@ -9,7 +9,7 @@
 
 import { buildViz } from '../../core/builder';
 import { registerDefineType } from '../../core/define';
-import { Scale } from './scale';
+import { Scale } from './scale-interface';
 
 // Make sure define type is registered
 registerDefineType();
@@ -121,4 +121,47 @@ export function createLinearScale(
     clamp: options?.clamp ?? false,
     nice: options?.nice ?? false
   }) as Scale;
+}
+
+
+// Minimal linear scale implementation
+export function createMinimalLinearScale(options: {
+  domain: [number, number];
+  range: [number, number];
+  clamp?: boolean;
+}): Scale {
+  const { domain, range, clamp = false } = options;
+
+  const scale: Scale = {
+    domain,
+    range,
+    scale: (value) => {
+      // Simple linear mapping
+      const [d0, d1] = domain;
+      const [r0, r1] = range;
+      let t = (value - d0) / (d1 - d0);
+
+      // Apply clamping if needed
+      if (clamp) {
+        t = Math.max(0, Math.min(1, t));
+      }
+
+      return r0 + t * (r1 - r0);
+    },
+    invert: (value) => {
+      // Simple inverse mapping
+      const [d0, d1] = domain;
+      const [r0, r1] = range;
+      const t = (value - r0) / (r1 - r0);
+      return d0 + t * (d1 - d0);
+    },
+    ticks: (count = 10) => {
+      // Simple ticks implementation
+      const [d0, d1] = domain;
+      const step = (d1 - d0) / Math.max(1, count - 1);
+      return Array.from({ length: count }, (_, i) => d0 + i * step);
+    }
+  };
+
+  return scale;
 }
