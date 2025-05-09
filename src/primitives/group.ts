@@ -10,7 +10,7 @@
 import { registerDefineType } from '../core/define';
 import { buildViz } from '../core/builder';
 import { createSVGElement } from '../renderers/svgUtils';
-
+import { RenderableVisualization, VisualizationSpec } from '../core/types';
 
 // Group type definition
 export const groupTypeDefinition = {
@@ -29,11 +29,15 @@ export const groupTypeDefinition = {
       ? props.children.map(child => {
           // If child is a string or number, convert to a text node
           if (typeof child === 'string' || typeof child === 'number') {
+            const textContent = child.toString();
             return buildViz({
               type: 'text',
-              text: child.toString(),
+              text: textContent,
               x: 0,
-              y: 0
+              y: 0,
+              fontSize: 12,  // Add default font size
+              fontFamily: 'sans-serif',  // Add default font family
+              fill: 'black'  // Add default fill color
             });
           }
           return buildViz(child);
@@ -51,14 +55,48 @@ export const groupTypeDefinition = {
       opacity: props.opacity
     };
 
-    // Return a specification with rendering functions
-    return {
-      _renderType: "group",
-      attributes,
-      children: processedChildren,
+    // Create a renderable visualization
+    const renderable: RenderableVisualization = {
+      renderableType: "group",
+
+      render: (container: HTMLElement) => {
+        // Create SVG if needed
+        let svg = container.querySelector('svg');
+        if (!svg) {
+          svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          svg.setAttribute('width', '100%');
+          svg.setAttribute('height', '100%');
+          container.appendChild(svg);
+        }
+
+        // Render to SVG
+        const element = renderable.renderToSvg(svg as SVGElement);
+
+        // Return result
+        return {
+          element,
+          update: (newSpec: VisualizationSpec) => {
+            // Create a new spec by merging the original with the updates
+            const updatedSpec = {
+              type: 'group',
+              ...props,
+              ...newSpec
+            };
+
+            // Build and render the updated visualization
+            const updatedViz = buildViz(updatedSpec);
+            return updatedViz.render(container);
+          },
+          cleanup: () => {
+            if (element.parentNode) {
+              element.parentNode.removeChild(element);
+            }
+          }
+        };
+      },
 
       // SVG rendering function
-      renderToSvg: (container) => {
+      renderToSvg: (svg: SVGElement) => {
         // Create a group element
         const groupElement = createSVGElement('g');
 
@@ -77,15 +115,15 @@ export const groupTypeDefinition = {
         });
 
         // Append to container if provided
-        if (container) {
-          container.appendChild(groupElement);
+        if (svg) {
+          svg.appendChild(groupElement);
         }
 
         return groupElement;
       },
 
       // Canvas rendering function
-      renderCanvas: (ctx) => {
+      renderToCanvas: (ctx: CanvasRenderingContext2D) => {
         // Save the current context state
         ctx.save();
 
@@ -107,8 +145,8 @@ export const groupTypeDefinition = {
 
         // Render all children in this context
         processedChildren.forEach(child => {
-          if (child.renderCanvas) {
-            child.renderCanvas(ctx);
+          if (child.renderToCanvas) {
+            child.renderToCanvas(ctx);
           }
         });
 
@@ -116,8 +154,31 @@ export const groupTypeDefinition = {
         ctx.restore();
 
         return true; // Indicate successful rendering
+      },
+
+      // Update with a new specification
+      update: (newSpec: VisualizationSpec) => {
+        // Merge the new spec with the original spec
+        const mergedSpec = {
+          type: 'group',
+          ...props,
+          ...newSpec
+        };
+
+        return buildViz(mergedSpec);
+      },
+
+      // Get a property value
+      getProperty: (name: string) => {
+        if (name === 'children') {
+          return processedChildren;
+        }
+        if (name === 'type') return 'group';
+        return props[name];
       }
     };
+
+    return renderable;
   }
 };
 

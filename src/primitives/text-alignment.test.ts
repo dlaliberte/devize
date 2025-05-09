@@ -62,7 +62,7 @@ describe('Text Alignment', () => {
       textAlign: 'unset'
     };
 
-    startImpl.renderCanvas(startCtx);
+    startImpl.renderToCanvas(startCtx);
     expect(startCtx.textAlign).toBe('left');
 
     // Test 'middle' alignment
@@ -87,7 +87,7 @@ describe('Text Alignment', () => {
       textAlign: 'unset'
     };
 
-    middleImpl.renderCanvas(middleCtx);
+    middleImpl.renderToCanvas(middleCtx);
     expect(middleCtx.textAlign).toBe('center');
 
     // Test 'end' alignment
@@ -112,7 +112,7 @@ describe('Text Alignment', () => {
       textAlign: 'unset'
     };
 
-    endImpl.renderCanvas(endCtx);
+    endImpl.renderToCanvas(endCtx);
     expect(endCtx.textAlign).toBe('right');
   });
 
@@ -139,7 +139,7 @@ describe('Text Alignment', () => {
       textBaseline: 'unset'
     };
 
-    autoImpl.renderCanvas(autoCtx);
+    autoImpl.renderToCanvas(autoCtx);
     expect(autoCtx.textBaseline).toBe('alphabetic');
 
     // Test 'middle' baseline
@@ -164,7 +164,7 @@ describe('Text Alignment', () => {
       textBaseline: 'unset'
     };
 
-    middleImpl.renderCanvas(middleCtx);
+    middleImpl.renderToCanvas(middleCtx);
     expect(middleCtx.textBaseline).toBe('middle');
 
     // Test 'hanging' baseline
@@ -189,7 +189,7 @@ describe('Text Alignment', () => {
       textBaseline: 'unset'
     };
 
-    hangingImpl.renderCanvas(hangingCtx);
+    hangingImpl.renderToCanvas(hangingCtx);
     expect(hangingCtx.textBaseline).toBe('top');
 
     // Test 'alphabetic' baseline
@@ -214,7 +214,7 @@ describe('Text Alignment', () => {
       textBaseline: 'unset'
     };
 
-    alphabeticImpl.renderCanvas(alphabeticCtx);
+    alphabeticImpl.renderToCanvas(alphabeticCtx);
     expect(alphabeticCtx.textBaseline).toBe('alphabetic');
   });
 

@@ -96,7 +96,7 @@ export function registerLayerType() {
 
           return group;
         },
-        renderCanvas: ctx => {
+        renderToCanvas: ctx => {
           // Canvas doesn't have z-index, so we just render in order
           // Save the current context state
           ctx.save();
@@ -112,8 +112,8 @@ export function registerLayerType() {
 
           // Render all children in this context
           processedChildren.forEach(child => {
-            if (child && typeof child === 'object' && 'renderCanvas' in child) {
-              child.renderCanvas(ctx);
+            if (child && typeof child === 'object' && 'renderToCanvas' in child) {
+              child.renderToCanvas(ctx);
             }
           });
 

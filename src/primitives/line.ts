@@ -7,11 +7,14 @@
  * Last Modified: [Date]
  */
 
-import { buildViz } from '../core/devize.js';
-import { createSVGElement, applyAttributes } from '../renderers/svgUtils.js';
+import { registerDefineType } from '../core/define';
+import { buildViz } from '../core/builder';
+import { createSVGElement } from '../renderers/svgUtils';
+import { RenderableVisualization, VisualizationSpec } from '../core/types';
+import { createRenderableVisualization } from '../core/componentUtils';
 
-// Define the line type
-buildViz({
+// Line type definition
+export const lineTypeDefinition = {
   type: "define",
   name: "line",
   properties: {
@@ -35,54 +38,85 @@ buildViz({
       'stroke-dasharray': props.strokeDasharray === 'none' ? null : props.strokeDasharray
     };
 
-    // Return a specification with rendering functions
-    return {
-      _renderType: "line",  // Internal rendering type
-      attributes: attributes,
+    // SVG rendering function
+    const renderToSvg = (svg: SVGElement) => {
+      // Create a line element with the correct namespace
+      const element = createSVGElement('line');
 
-      // Rendering functions for different backends
-      renderToSvg: (container) => {
-        const element = createSVGElement('line');
-        applyAttributes(element, attributes);
-        if (container) container.appendChild(element);
-        return element;
-      },
+      // Apply attributes explicitly
+      element.setAttribute('x1', attributes.x1.toString());
+      element.setAttribute('y1', attributes.y1.toString());
+      element.setAttribute('x2', attributes.x2.toString());
+      element.setAttribute('y2', attributes.y2.toString());
+      element.setAttribute('stroke', attributes.stroke);
+      element.setAttribute('stroke-width', attributes['stroke-width'].toString());
 
-      renderCanvas: (ctx) => {
-        const { x1, y1, x2, y2, stroke, 'stroke-width': strokeWidth, 'stroke-dasharray': strokeDasharray } = attributes;
-
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-
-        ctx.strokeStyle = stroke;
-        ctx.lineWidth = strokeWidth;
-
-        if (strokeDasharray && strokeDasharray !== 'none') {
-          const dashArray = strokeDasharray.split(',').map(Number);
-          ctx.setLineDash(dashArray);
-        } else {
-          ctx.setLineDash([]);
-        }
-
-        ctx.stroke();
-        ctx.setLineDash([]);  // Reset dash pattern
-
-        return true; // Indicate successful rendering
-      },
-
-      // WebGL rendering function could be added here
-      renderWebGL: (gl, program) => {
-        // WebGL-specific rendering code
+      // Only set stroke-dasharray if it's not null
+      if (attributes['stroke-dasharray'] !== null) {
+        element.setAttribute('stroke-dasharray', attributes['stroke-dasharray']);
       }
+
+      // Add to the SVG
+      if (svg) {
+        svg.appendChild(element);
+      }
+
+      return element;
     };
+
+    // Canvas rendering function
+    const renderToCanvas = (ctx: CanvasRenderingContext2D) => {
+      const { x1, y1, x2, y2, stroke, 'stroke-width': strokeWidth, 'stroke-dasharray': strokeDasharray } = attributes;
+
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = strokeWidth;
+
+      if (strokeDasharray && strokeDasharray !== 'none') {
+        const dashArray = strokeDasharray.split(',').map(Number);
+        ctx.setLineDash(dashArray);
+      } else {
+        ctx.setLineDash([]);
+      }
+
+      ctx.stroke();
+      ctx.setLineDash([]);  // Reset dash pattern
+
+      return true; // Indicate successful rendering
+    };
+
+    // Create and return a renderable visualization
+    return createRenderableVisualization(
+      'line',
+      props,
+      renderToSvg,
+      renderToCanvas
+    );
   }
-});
+};
+
+/**
+ * Register the line primitive
+ */
+export function registerLinePrimitive() {
+  // Make sure define type is registered
+  registerDefineType();
+
+  // Define the line type using buildViz
+  buildViz(lineTypeDefinition);
+}
+
+// Auto-register when this module is imported
+registerLinePrimitive();
 
 /**
  * References:
  * - Related File: src/core/define.ts
  * - Related File: src/core/registry.ts
+ * - Related File: src/core/builder.ts
  * - Related File: src/core/devize.ts
  * - Related File: src/renderers/svgUtils.js
  * - Related File: src/renderers/canvasUtils.js

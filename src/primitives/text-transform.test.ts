@@ -73,7 +73,7 @@ beforeEach(() => {
     implementation: props => {
       // Create a simple implementation that directly uses the context methods
       return {
-        renderCanvas: (ctx) => {
+        renderToCanvas: (ctx) => {
           // Apply transform if specified
           if (props.transform) {
             const transformStr = props.transform.trim();
@@ -150,7 +150,7 @@ describe('Text Transformations', () => {
         generateConstraints: () => [],
         decompose: (spec, solvedConstraints) => {
           return {
-            renderCanvas: (ctx) => {
+            renderToCanvas: (ctx) => {
               // Apply transform if specified
               if (spec.transform) {
                 const transformStr = spec.transform.trim();
@@ -214,9 +214,9 @@ describe('Text Transformations', () => {
       fillText: vi.fn()
     };
 
-    // Call decompose and then renderCanvas
+    // Call decompose and then renderToCanvas
     const result = textType.decompose(spec, {});
-    result.renderCanvas(ctx);
+    result.renderToCanvas(ctx);
 
     // Verify translate was called with correct arguments
     expect(ctx.translate).toHaveBeenCalledWith(50, 30);
@@ -240,9 +240,9 @@ describe('Text Transformations', () => {
       fillText: vi.fn()
     };
 
-    // Call decompose and then renderCanvas
+    // Call decompose and then renderToCanvas
     const result = textType?.decompose(spec, {});
-    result.renderCanvas(ctx);
+    result.renderToCanvas(ctx);
 
     // Verify rotate was called with correct arguments (45 degrees in radians)
     expect(ctx.rotate).toHaveBeenCalledWith(45 * Math.PI / 180);
@@ -302,9 +302,9 @@ describe('Text Transformations', () => {
       fillText: vi.fn()
     };
 
-    // Call decompose and then renderCanvas
+    // Call decompose and then renderToCanvas
     const result = textType?.decompose(spec, {});
-    result.renderCanvas(ctx);
+    result.renderToCanvas(ctx);
 
     // Verify no transform methods were called
     expect(ctx.translate).not.toHaveBeenCalled();
@@ -328,9 +328,9 @@ describe('Text Transformations', () => {
       fillText: vi.fn()
     };
 
-    // Call decompose and then renderCanvas
+    // Call decompose and then renderToCanvas
     const result = textType?.decompose(spec, {});
-    result.renderCanvas(ctx);
+    result.renderToCanvas(ctx);
 
     // Verify no transform methods were called
     expect(ctx.translate).not.toHaveBeenCalled();

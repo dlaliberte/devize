@@ -71,7 +71,7 @@ describe('Text Overflow', () => {
     };
 
     // Call the Canvas rendering function
-    impl.renderCanvas(ctx);
+    impl.renderToCanvas(ctx);
 
     // Should have called fillText once with the full text
     expect(ctx.fillText).toHaveBeenCalledTimes(1);
@@ -118,7 +118,7 @@ describe('Text Overflow', () => {
     };
 
     // Call the Canvas rendering function
-    impl.renderCanvas(ctx);
+    impl.renderToCanvas(ctx);
 
     // Should have called fillText with truncated text + ellipsis
     expect(ctx.fillText).toHaveBeenCalledTimes(1);
@@ -183,7 +183,7 @@ describe('Text Overflow', () => {
     };
 
     // Call the Canvas rendering function
-    impl.renderCanvas(ctx);
+    impl.renderToCanvas(ctx);
 
     // Should have called fillText multiple times for each line
     // If the implementation doesn't support wrapping yet, we can adjust this expectation

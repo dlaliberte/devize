@@ -1,37 +1,35 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { renderViz, ensureSvg } from './renderer';
 import { buildViz } from './builder';
-import { initializeLibrary } from './devize';
-import { registerDefineType } from './define';
-
-// Initialize the library
-initializeLibrary();
-
-// Make sure define type is registered
-registerDefineType();
-
-// Import primitives to ensure they're registered
-import '../primitives/shapes';
-import '../primitives/text';
-import '../primitives/containers';
+import {
+  resetRegistry,
+  createTestContainer,
+  cleanupTestContainer,
+  testRendererOutput
+} from '../test/testUtils';
+import { initializeTestEnvironment, ensurePrimitivesRegistered } from '../test/testSetup';
 
 describe('Renderer', () => {
   let container: HTMLElement;
 
   beforeEach(() => {
+    // Initialize the test environment with all primitives
+    initializeTestEnvironment();
+
     // Create a fresh container for each test
-    container = document.createElement('div');
-    document.body.appendChild(container);
+    container = createTestContainer();
   });
 
   afterEach(() => {
     // Clean up after each test
-    if (container && container.parentNode) {
-      container.parentNode.removeChild(container);
-    }
+    cleanupTestContainer(container);
   });
 
   it('should render a rectangle to a container', () => {
+    // Ensure rectangle primitive is registered
+    ensurePrimitivesRegistered(['rectangle']);
+
+    // Use a simpler approach for now
     const result = renderViz({
       type: 'rectangle',
       x: 10,
@@ -60,8 +58,11 @@ describe('Renderer', () => {
     expect(typeof result.cleanup).toBe('function');
   });
 
-  // Let's add a simpler test for group rendering
   it('should render a simple group with a rectangle', () => {
+    // Ensure needed primitives are registered
+    ensurePrimitivesRegistered(['group', 'rectangle']);
+
+    // Use a simpler approach for now
     const result = renderViz({
       type: 'group',
       children: [
@@ -94,8 +95,11 @@ describe('Renderer', () => {
     expect(rect?.getAttribute('fill')).toBe('green');
   });
 
-  // Skip the more complex group test for now
-  it.skip('should render a group with multiple elements', () => {
+  it('should render a group with multiple elements', () => {
+    // Ensure needed primitives are registered
+    ensurePrimitivesRegistered(['group', 'rectangle', 'circle', 'text']);
+
+    // Use a simpler approach for now
     const result = renderViz({
       type: 'group',
       children: [
@@ -118,7 +122,7 @@ describe('Renderer', () => {
           type: 'text',
           x: 50,
           y: 80,
-          text: 'Hello, Devize!',
+          text: 'Hello, Devize!',  // Make sure to include the required 'text' property
           fontSize: '16px',
           fill: 'black'
         }
@@ -146,84 +150,58 @@ describe('Renderer', () => {
     expect(text).not.toBeNull();
     expect(text?.textContent).toBe('Hello, Devize!');
   });
-    // Let's add a simpler update test
-    it('should update a rectangle fill color', () => {
-      // Render initial visualization
-      renderViz({
-        type: 'rectangle',
-        x: 10,
-        y: 20,
-        width: 100,
-        height: 50,
-        fill: 'blue'
-      }, container);
 
-      // Check initial state
-      const svg = container.querySelector('svg');
-      const initialRect = svg?.querySelector('rect');
-      expect(initialRect?.getAttribute('fill')).toBe('blue');
+  it('should update an existing visualization', () => {
+    // Ensure rectangle primitive is registered
+    ensurePrimitivesRegistered(['rectangle']);
 
-      // Render a new visualization with different fill color
-      renderViz({
-        type: 'rectangle',
-        x: 10,
-        y: 20,
-        width: 100,
-        height: 50,
-        fill: 'red'
-      }, container);
-
-      // Check that the fill color is now red
-      const updatedSvg = container.querySelector('svg');
-      const updatedRect = updatedSvg?.querySelector('rect');
-      expect(updatedRect?.getAttribute('fill')).toBe('red');
-    });  // Skip the original update test for now
-  it.skip('should update an existing visualization', () => {
-    // Render initial visualization
-    const result = renderViz({
+    // Create a visualization
+    const viz = buildViz({
       type: 'rectangle',
       x: 10,
       y: 20,
       width: 100,
       height: 50,
-      fill: 'blue'
-    }, container);
-
-    // Debug: Log the initial state
-    console.log('Initial container HTML:', container.innerHTML);
-
-    // Update the visualization with a new fill color
-    result.update({
-      fill: 'red' // Changed color
+      fill: 'red'
     });
 
-    // Debug: Log the updated state
-    console.log('Updated container HTML:', container.innerHTML);
+    // Render it
+    const result = renderViz(viz, container);
 
-    // Check that the rectangle was updated
-    const svg = container.querySelector('svg');
-    const rect = svg?.querySelector('rect');
-    console.log('Updated rectangle fill:', rect?.getAttribute('fill'));
-    expect(rect?.getAttribute('fill')).toBe('red');
+    // Verify initial state
+    expect(container.innerHTML).toContain('x="10"');
+    expect(container.innerHTML).toContain('y="20"');
+    expect(container.innerHTML).toContain('fill="red"');
+
+    // Update it
+    result.update({
+      x: 30,
+      y: 40,
+      fill: 'blue'
+    });
+
+    // Verify updated state
+    expect(container.innerHTML).toContain('x="30"');
+    expect(container.innerHTML).toContain('y="40"');
+    expect(container.innerHTML).toContain('fill="blue"');
   });
 
   it('should ensure an SVG element exists in a container', () => {
-    // Call ensureSvg on an empty container
+    // Test with an empty container
     const svg = ensureSvg(container);
-
-    // Check that an SVG was created
-    expect(svg).not.toBeNull();
     expect(svg.tagName.toLowerCase()).toBe('svg');
-    expect(container.querySelector('svg')).toBe(svg);
+    expect(svg.getAttribute('width')).toBe('100%');
+    expect(svg.getAttribute('height')).toBe('100%');
 
-    // Call ensureSvg again on the same container
-    const svg2 = ensureSvg(container);
-
-    // Check that the same SVG is returned
-    expect(svg2).toBe(svg);
+    // Test with a container that already has an SVG
+    const existingSvg = ensureSvg(container);
+    expect(existingSvg).toBe(svg); // Should return the same SVG element
   });
 
   it('should clean up a rendered visualization', () => {
+    // Ensure rectangle primitive is registered
+    ensurePrimitivesRegistered(['rectangle']);
+
     // Render a visualization
     const result = renderViz({
       type: 'rectangle',
@@ -231,18 +209,16 @@ describe('Renderer', () => {
       y: 20,
       width: 100,
       height: 50,
-      fill: 'blue'
+      fill: 'green'
     }, container);
 
-    // Check that an SVG and rectangle were created
-    expect(container.querySelector('svg')).not.toBeNull();
-    expect(container.querySelector('rect')).not.toBeNull();
+    // Verify it was rendered
+    expect(container.innerHTML).toContain('<rect');
 
     // Clean up
     result.cleanup();
 
-    // Check that the SVG still exists but the rectangle is gone
-    expect(container.querySelector('svg')).not.toBeNull();
+    // Verify it was removed
     expect(container.querySelector('rect')).toBeNull();
   });
 });

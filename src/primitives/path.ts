@@ -50,7 +50,7 @@ buildViz({
         return element;
       },
 
-      renderCanvas: (ctx) => {
+      renderToCanvas: (ctx) => {
         const { d, fill, stroke, 'stroke-width': strokeWidth, 'stroke-dasharray': strokeDasharray, opacity } = attributes;
 
         // Save the current context state

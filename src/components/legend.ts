@@ -169,10 +169,10 @@ buildViz({
         return null;
       },
 
-      // Canvas rendering function - delegates to the group's renderCanvas
-      renderCanvas: (ctx) => {
-        if (renderableGroup && renderableGroup.renderCanvas) {
-          return renderableGroup.renderCanvas(ctx);
+      // Canvas rendering function - delegates to the group's renderToCanvas
+      renderToCanvas: (ctx) => {
+        if (renderableGroup && renderableGroup.renderToCanvas) {
+          return renderableGroup.renderToCanvas(ctx);
         }
         return false;
       }

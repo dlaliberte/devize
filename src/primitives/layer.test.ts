@@ -88,7 +88,7 @@ describe('Layer Primitive', () => {
               height: spec.height
             },
             renderToSvg: vi.fn(),
-            renderCanvas: vi.fn()
+            renderToCanvas: vi.fn()
           })
         };
       }
@@ -121,7 +121,7 @@ describe('Layer Primitive', () => {
             _renderType: 'rectangle',
             attributes: {},
             renderToSvg: vi.fn(),
-            renderCanvas: vi.fn()
+            renderToCanvas: vi.fn()
           })
         };
       }
@@ -179,7 +179,7 @@ describe('Layer Primitive', () => {
             _renderType: 'rectangle',
             attributes: {},
             renderToSvg: vi.fn(),
-            renderCanvas: vi.fn()
+            renderToCanvas: vi.fn()
           })
         };
       }
@@ -206,7 +206,7 @@ describe('Layer Primitive', () => {
     };
 
     // Call the Canvas rendering function
-    result.renderCanvas(ctx);
+    result.renderToCanvas(ctx);
 
     // Should have saved and restored context
     expect(ctx.save).toHaveBeenCalled();

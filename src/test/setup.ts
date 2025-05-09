@@ -3,31 +3,26 @@ import { vi } from 'vitest';
 import { _resetRegistryForTesting } from '../core/registry';
 import { registerDefineType } from '../core/define';
 
-// Mock document methods for SVG creation
-global.document = {
-  createElementNS: vi.fn((namespace, tagName) => {
-    return {
-      tagName: tagName.toUpperCase(),
-      setAttribute: vi.fn(),
-      appendChild: vi.fn(),
-      style: {},
-      querySelector: vi.fn(),
-      textContent: ''
-    };
-  }),
-  createElement: vi.fn((tagName) => {
-    return {
-      tagName: tagName.toUpperCase(),
-      setAttribute: vi.fn(),
-      appendChild: vi.fn(),
-      style: {}
-    };
-  })
-} as any;
+// Enhance JSDOM with better SVG support
+import { JSDOM } from 'jsdom';
 
-// Mock window object
-global.window = {} as any;
+// Create a custom JSDOM instance with SVG support
+const dom = new JSDOM('<!DOCTYPE html><html><body></body></html>', {
+  url: 'http://localhost/',
+  contentType: 'text/html',
+  includeNodeLocations: true,
+  storageQuota: 10000000,
+  runScripts: 'dangerously'
+});
 
+// Add SVG element support
+global.SVGElement = dom.window.SVGElement;
+global.SVGSVGElement = dom.window.SVGSVGElement;
+
+// Add document and window
+global.document = dom.window.document;
+global.window = dom.window;
+global.navigator = dom.window.navigator;
 // Setup function to reset registry and register define type
 export function setupTestEnvironment() {
   // Reset the registry

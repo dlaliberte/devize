@@ -105,7 +105,7 @@ buildViz({
         container.appendChild(rect);
         return rect;
       },
-      renderCanvas: ctx => {
+      renderToCanvas: ctx => {
         ctx.fillStyle = props.fill;
         ctx.fillRect(props.x, props.y, props.width, props.height);
         return true;
@@ -293,7 +293,7 @@ Primitives that return only rendering functions are indeed a special case:
 implementation: props => {
   return {
     renderToSvg: container => { /* SVG rendering */ },
-    renderCanvas: ctx => { /* Canvas rendering */ }
+    renderToCanvas: ctx => { /* Canvas rendering */ }
   };
 }
 ```
@@ -318,7 +318,7 @@ interface RenderableResult {
 
   // If it's rendering functions
   renderToSvg?: (container: SVGElement) => SVGElement;
-  renderCanvas?: (ctx: CanvasRenderingContext2D) => void;
+  renderToCanvas?: (ctx: CanvasRenderingContext2D) => void;
 }
 ```
 

@@ -7,34 +7,42 @@
  * Last Modified: [Date]
  */
 
-import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { registry, hasType, getType } from '../core/registry';
+import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
+import { registry } from '../core/registry';
 import { rectangleTypeDefinition, registerRectanglePrimitive } from './rectangle';
 import { buildViz } from '../core/builder';
-
-// Create a mock document object for SVG creation
-global.document = {
-  createElementNS: vi.fn((namespace, tagName) => ({
-    tagName: tagName.toUpperCase(),
-    setAttribute: vi.fn(),
-    appendChild: vi.fn()
-  }))
-} as any;
+import {
+  resetRegistry,
+  createTestContainer,
+  cleanupTestContainer,
+  testVisualizationRendering,
+  testVisualizationUpdate,
+  testVisualizationProperties,
+  testCanvasRendering
+} from '../test/testUtils';
 
 describe('Rectangle Primitive', () => {
-  // Reset registry before each test
+  let container: HTMLElement;
+
+  // Set up and tear down for rendering tests
   beforeEach(() => {
     // Reset the registry for clean tests
-    (registry as any).types = new Map();
+    resetRegistry();
 
     // Register the rectangle primitive
     registerRectanglePrimitive();
+
+    // Create a fresh container for rendering tests
+    container = createTestContainer();
+  });
+
+  afterEach(() => {
+    // Clean up after each test
+    cleanupTestContainer(container);
   });
 
   test('should register the rectangle type', () => {
-    expect(hasType('rectangle')).toBe(true);
-
-    const rectType = getType('rectangle');
+    const rectType = registry.getType('rectangle');
     expect(rectType).toBeDefined();
     expect(rectType?.properties.width.required).toBe(true);
     expect(rectType?.properties.height.required).toBe(true);
@@ -76,7 +84,86 @@ describe('Rectangle Primitive', () => {
   });
 
   test('should create a renderable object with correct attributes', () => {
-    const result = buildViz({
+    testVisualizationProperties(
+      {
+        type: "rectangle",
+        x: 10,
+        y: 20,
+        width: 100,
+        height: 50,
+        fill: 'red',
+        stroke: 'blue',
+        strokeWidth: 2,
+        cornerRadius: 5
+      },
+      {
+        x: 10,
+        y: 20,
+        width: 100,
+        height: 50,
+        fill: 'red',
+        stroke: 'blue',
+        strokeWidth: 2,
+        cornerRadius: 5
+      }
+    );
+  });
+
+  test('should render a rectangle to SVG with correct attributes', () => {
+    testVisualizationRendering(
+      {
+        type: "rectangle",
+        x: 10,
+        y: 20,
+        width: 100,
+        height: 50,
+        fill: 'red',
+        stroke: 'blue',
+        strokeWidth: 2,
+        cornerRadius: 5
+      },
+      container,
+      {
+        'x': '10',
+        'y': '20',
+        'width': '100',
+        'height': '50',
+        'fill': 'red',
+        'stroke': 'blue',
+        'stroke-width': '2',
+        'rx': '5',
+        'ry': '5'
+      },
+      'rect'
+    );
+  });
+
+  test('should apply default values for optional properties', () => {
+    testVisualizationRendering(
+      {
+        type: "rectangle",
+        width: 100,
+        height: 50
+      },
+      container,
+      {
+        'x': '0',
+        'y': '0',
+        'width': '100',
+        'height': '50',
+        'fill': 'none',
+        'stroke': 'black',
+        'stroke-width': '1',
+        'rx': '0',
+        'ry': '0'
+      },
+      'rect'
+    );
+  });
+
+  test('should update rectangle attributes', () => {
+    // Create a rectangle visualization
+    const rectangle = buildViz({
       type: "rectangle",
       x: 10,
       y: 20,
@@ -85,131 +172,131 @@ describe('Rectangle Primitive', () => {
       fill: 'red',
       stroke: 'blue',
       strokeWidth: 2,
-      cornerRadius: 5
+      cornerRadius: 0
     });
 
-    expect(result).toBeDefined();
-    expect(result.type).toBe('rectangle');
+    // Render the rectangle to the container
+    const result = rectangle.render(container);
 
-    // Access the internal implementation result
-    const impl = result.renderToSvg(document.createElementNS('', 'g'));
-    expect(impl).toBeDefined();
-  });
+    // Verify initial state
+    const initialHTML = container.innerHTML;
+    console.log('Initial rectangle HTML:', initialHTML);
 
-  test('should provide SVG rendering function', () => {
-    const result = buildViz({
-      type: "rectangle",
-      width: 100,
-      height: 50
-    });
+    expect(initialHTML).toContain('<rect');
+    expect(initialHTML).toContain('x="10"');
+    expect(initialHTML).toContain('y="20"');
+    expect(initialHTML).toContain('width="100"');
+    expect(initialHTML).toContain('height="50"');
+    expect(initialHTML).toContain('fill="red"');
+    expect(initialHTML).toContain('stroke="blue"');
+    expect(initialHTML).toContain('stroke-width="2"');
+    expect(initialHTML).toContain('rx="0"');
+    expect(initialHTML).toContain('ry="0"');
 
-    // Create a mock container
-    const container = document.createElementNS('', 'g');
-    const svgElement = result.renderToSvg(container);
-
-    // Verify the SVG element was created correctly
-    expect(svgElement).toBeDefined();
-  });
-
-  test('should provide Canvas rendering function for regular rectangle', () => {
-    // Create a more complete mock canvas context
-    const ctx = {
-      beginPath: vi.fn(),
-      rect: vi.fn(),
-      moveTo: vi.fn(),
-      lineTo: vi.fn(),
-      arcTo: vi.fn(),
-      fill: vi.fn(),
-      stroke: vi.fn(),
-      fillStyle: '',
-      strokeStyle: '',
-      lineWidth: 0
-    };
-
-    // Get the implementation function
-    const impl = rectangleTypeDefinition.implementation({
-      x: 10,
-      y: 20,
-      width: 100,
-      height: 50,
+    // Update the rectangle using the result's update method
+    result.update({
+      x: 30,
+      y: 40,
+      width: 200,
+      height: 100,
       fill: 'green',
-      stroke: 'black',
-      strokeWidth: 2
-      // No corner radius specified (should default to 0)
+      stroke: 'purple',
+      strokeWidth: 3,
+      cornerRadius: 10
     });
 
-    // Call the Canvas rendering function directly
-    impl.renderCanvas(ctx);
+    // Verify updated state
+    const updatedHTML = container.innerHTML;
+    console.log('Updated rectangle HTML:', updatedHTML);
 
-    // Verify the canvas operations were performed correctly
-    expect(ctx.beginPath).toHaveBeenCalled();
-    expect(ctx.rect).toHaveBeenCalledWith(10, 20, 100, 50);
-    expect(ctx.fill).toHaveBeenCalled();
-    expect(ctx.stroke).toHaveBeenCalled();
-
-    // Should not use rounded rectangle methods
-    expect(ctx.moveTo).not.toHaveBeenCalled();
-    expect(ctx.arcTo).not.toHaveBeenCalled();
+    expect(updatedHTML).toContain('<rect');
+    expect(updatedHTML).toContain('x="30"');
+    expect(updatedHTML).toContain('y="40"');
+    expect(updatedHTML).toContain('width="200"');
+    expect(updatedHTML).toContain('height="100"');
+    expect(updatedHTML).toContain('fill="green"');
+    expect(updatedHTML).toContain('stroke="purple"');
+    expect(updatedHTML).toContain('stroke-width="3"');
+    expect(updatedHTML).toContain('rx="10"');
+    expect(updatedHTML).toContain('ry="10"');
   });
 
-  test('should provide Canvas rendering function for rounded rectangle', () => {
-    // Create a more complete mock canvas context
-    const ctx = {
-      beginPath: vi.fn(),
-      rect: vi.fn(),
-      moveTo: vi.fn(),
-      lineTo: vi.fn(),
-      arcTo: vi.fn(),
-      fill: vi.fn(),
-      stroke: vi.fn(),
-      fillStyle: '',
-      strokeStyle: '',
-      lineWidth: 0
-    };
-
-    // Get the implementation function
-    const impl = rectangleTypeDefinition.implementation({
-      x: 10,
-      y: 20,
-      width: 100,
-      height: 50,
-      cornerRadius: 10,
-      fill: 'orange'
-    });
-
-    // Call the Canvas rendering function directly
-    impl.renderCanvas(ctx);
-
-    // Verify the canvas operations were performed correctly
-    expect(ctx.beginPath).toHaveBeenCalled();
-
-    // Should use rounded rectangle methods
-    expect(ctx.moveTo).toHaveBeenCalled();
-    expect(ctx.lineTo).toHaveBeenCalled();
-    expect(ctx.arcTo).toHaveBeenCalled();
-
-    // Should not use regular rectangle method
-    expect(ctx.rect).not.toHaveBeenCalled();
-
-    expect(ctx.fill).toHaveBeenCalled();
-    expect(ctx.stroke).toHaveBeenCalled();
+  test('should render a rounded rectangle', () => {
+    testVisualizationRendering(
+      {
+        type: "rectangle",
+        x: 10,
+        y: 20,
+        width: 100,
+        height: 50,
+        cornerRadius: 15,
+        fill: 'orange'
+      },
+      container,
+      {
+        'x': '10',
+        'y': '20',
+        'width': '100',
+        'height': '50',
+        'fill': 'orange',
+        'rx': '15',
+        'ry': '15'
+      },
+      'rect'
+    );
   });
 
-  test('should apply default values for optional properties', () => {
-    const result = buildViz({
-      type: "rectangle",
-      width: 100,
-      height: 50
-      // No optional properties specified
-    });
+  test('should provide Canvas rendering function', () => {
+    testCanvasRendering(
+      {
+        type: "rectangle",
+        x: 10,
+        y: 20,
+        width: 100,
+        height: 50,
+        fill: 'green',
+        stroke: 'black',
+        strokeWidth: 2
+      },
+      {
+        beginPath: true,
+        rect: [10, 20, 100, 50],
+        fillStyle: 'green',
+        strokeStyle: 'black',
+        lineWidth: 2,
+        fill: true,
+        stroke: true
+      }
+    );
+  });
 
-    // Should have default values
-    expect(result.spec.x).toBe(0);
-    expect(result.spec.y).toBe(0);
-    expect(result.spec.fill).toBe('none');
-    expect(result.spec.stroke).toBe('black');
-    expect(result.spec.strokeWidth).toBe(1);
-    expect(result.spec.cornerRadius).toBe(0);
+  test('should render rounded rectangle to canvas', () => {
+    testCanvasRendering(
+      {
+        type: "rectangle",
+        x: 10,
+        y: 20,
+        width: 100,
+        height: 50,
+        cornerRadius: 15,
+        fill: 'orange',
+        stroke: 'brown',
+        strokeWidth: 3
+      },
+      {
+        beginPath: true,
+        moveTo: true,
+        lineTo: true,
+        arcTo: true,
+        fillStyle: 'orange',
+        strokeStyle: 'brown',
+        lineWidth: 3,
+        fill: true,
+        stroke: true,
+        // Should not use regular rectangle method
+        rect: false
+      }
+    );
   });
 
   test('should match the exported type definition', () => {
@@ -220,7 +307,7 @@ describe('Rectangle Primitive', () => {
     expect(rectangleTypeDefinition.implementation).toBeDefined();
 
     // Compare with the registered type
-    const registeredType = getType('rectangle');
+    const registeredType = registry.getType('rectangle');
     expect(registeredType?.properties).toEqual(rectangleTypeDefinition.properties);
   });
 });

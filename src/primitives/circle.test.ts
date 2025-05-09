@@ -1,8 +1,25 @@
+/**
+ * Circle Primitive Tests
+ *
+ * Purpose: Tests the circle primitive visualization
+ * Author: [Author Name]
+ * Creation Date: [Date]
+ * Last Modified: [Date]
+ */
+
 import { describe, test, expect, beforeEach, afterEach } from 'vitest';
 import { registry } from '../core/registry';
 import { circleTypeDefinition, registerCirclePrimitive } from './circle';
 import { buildViz } from '../core/builder';
-import { renderViz } from '../core/renderer';
+import {
+  resetRegistry,
+  createTestContainer,
+  cleanupTestContainer,
+  testVisualizationRendering,
+  testVisualizationUpdate,
+  testVisualizationProperties,
+  testCanvasRendering
+} from '../test/testUtils';
 
 describe('Circle Primitive', () => {
   let container: HTMLElement;
@@ -10,21 +27,18 @@ describe('Circle Primitive', () => {
   // Set up and tear down for rendering tests
   beforeEach(() => {
     // Reset the registry for clean tests
-    (registry as any).types = new Map();
+    resetRegistry();
 
     // Register the circle primitive
     registerCirclePrimitive();
 
     // Create a fresh container for rendering tests
-    container = document.createElement('div');
-    document.body.appendChild(container);
+    container = createTestContainer();
   });
 
   afterEach(() => {
     // Clean up after each test
-    if (container && container.parentNode) {
-      container.parentNode.removeChild(container);
-    }
+    cleanupTestContainer(container);
   });
 
   test('should register the circle type', () => {
@@ -72,81 +86,140 @@ describe('Circle Primitive', () => {
   });
 
   test('should create a renderable object with correct attributes', () => {
-    const result = buildViz({
-      type: "circle",
-      cx: 100,
-      cy: 150,
-      r: 50,
-      fill: 'red',
-      stroke: 'blue',
-      strokeWidth: 2
-    });
-
-    expect(result).toBeDefined();
-    expect(result.spec.type).toBe('circle');
-    expect(result.spec.cx).toBe(100);
-    expect(result.spec.cy).toBe(150);
-    expect(result.spec.r).toBe(50);
-    expect(result.spec.fill).toBe('red');
-    expect(result.spec.stroke).toBe('blue');
-    expect(result.spec.strokeWidth).toBe(2);
+    testVisualizationProperties(
+      {
+        type: "circle",
+        cx: 100,
+        cy: 150,
+        r: 50,
+        fill: 'red',
+        stroke: 'blue',
+        strokeWidth: 2
+      },
+      {
+        cx: 100,
+        cy: 150,
+        r: 50,
+        fill: 'red',
+        stroke: 'blue',
+        strokeWidth: 2
+      }
+    );
   });
 
-  test('should be able to build a circle visualization', () => {
-    // Try to build a circle visualization
-    const circle = buildViz({
-      type: "circle",
-      cx: 100,
-      cy: 150,
-      r: 50
-    });
-
-    expect(circle).toBeDefined();
-    expect(circle.spec.type).toBe('circle');
+  test('should render a circle to SVG with correct attributes', () => {
+    testVisualizationRendering(
+      {
+        type: "circle",
+        cx: 100,
+        cy: 150,
+        r: 50,
+        fill: "coral",
+        stroke: "navy",
+        strokeWidth: 2
+      },
+      container,
+      {
+        'cx': '100',
+        'cy': '150',
+        'r': '50',
+        'fill': 'coral',
+        'stroke': 'navy',
+        'stroke-width': '2'
+      },
+      'circle'
+    );
   });
 
-  // Test direct rendering without using the renderer
-  test('should render directly to SVG', () => {
-    // Create a circle visualization
-    const circle = buildViz({
-      type: "circle",
-      cx: 100,
-      cy: 150,
-      r: 50,
-      fill: "coral"
-    });
-
-    // Create an SVG element
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    container.appendChild(svg);
-
-    // Directly create and append a circle element
-    const circleElement = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-    circleElement.setAttribute('cx', circle.spec.cx);
-    circleElement.setAttribute('cy', circle.spec.cy);
-    circleElement.setAttribute('r', circle.spec.r);
-    circleElement.setAttribute('fill', circle.spec.fill);
-    svg.appendChild(circleElement);
-
-    // Check that it worked
-    expect(circleElement).toBeDefined();
-    expect(circleElement.getAttribute('cx')).toBe('100');
-    expect(circleElement.getAttribute('cy')).toBe('150');
-    expect(circleElement.getAttribute('r')).toBe('50');
-    expect(circleElement.getAttribute('fill')).toBe('coral');
+  test('should apply default values for optional properties', () => {
+    testVisualizationRendering(
+      {
+        type: "circle",
+        cx: 100,
+        cy: 150,
+        r: 50
+      },
+      container,
+      {
+        'cx': '100',
+        'cy': '150',
+        'r': '50',
+        'fill': 'none',
+        'stroke': 'black',
+        'stroke-width': '1'
+      },
+      'circle'
+    );
   });
 
-  // Skip the more complex rendering tests for now
-  test.skip('should render a circle to SVG with correct attributes', () => {
-    // Skip this test for now
+  test('should update circle attributes', () => {
+    testVisualizationUpdate(
+      // Initial spec
+      {
+        type: "circle",
+        cx: 100,
+        cy: 150,
+        r: 50,
+        fill: "blue",
+        stroke: "black",
+        strokeWidth: 2
+      },
+      // Update spec
+      {
+        type: "circle",
+        cx: 200,
+        cy: 250,
+        r: 75,
+        fill: "red",
+        stroke: "green",
+        strokeWidth: 3
+      },
+      // Container
+      container,
+      // Initial attributes
+      {
+        'cx': '100',
+        'cy': '150',
+        'r': '50',
+        'fill': 'blue',
+        'stroke': 'black',
+        'stroke-width': '2'
+      },
+      // Updated attributes
+      {
+        'cx': '200',
+        'cy': '250',
+        'r': '75',
+        'fill': 'red',
+        'stroke': 'green',
+        'stroke-width': '3'
+      },
+      'circle'
+    );
   });
 
-  test.skip('should apply default values for optional properties', () => {
-    // Skip this test for now
-  });
-
-  test.skip('should update circle attributes', () => {
-    // Skip this test for now
+  // Add a test for canvas rendering
+  test('should render circle to canvas', () => {
+    testCanvasRendering(
+      {
+        type: "circle",
+        cx: 100,
+        cy: 150,
+        r: 50,
+        fill: "blue",
+        stroke: "black",
+        strokeWidth: 2
+      },
+      {
+        beginPath: true,
+        arc: [100, 150, 50, 0, Math.PI * 2],
+        fillStyle: 'blue',
+        strokeStyle: 'black',
+        lineWidth: 2,
+        fill: true,
+        stroke: true
+      }
+    );
   });
 
   test('should match the exported type definition', () => {

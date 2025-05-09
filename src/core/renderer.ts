@@ -43,23 +43,69 @@ function isCanvasContainer(container: HTMLElement): boolean {
 }
 
 /**
+ * Check if an object is a RenderableVisualization
+ */
+function isRenderableVisualization(obj: any): boolean {
+  return obj &&
+         typeof obj === 'object' &&
+         typeof obj.renderableType === 'string' &&
+         typeof obj.render === 'function' &&
+         typeof obj.renderToSvg === 'function' &&
+         typeof obj.renderToCanvas === 'function';
+}
+
+/**
  * Render a visualization to a container
  */
 export function renderViz(
   viz: VisualizationSpec | RenderableVisualization,
   container: HTMLElement
 ): RenderedResult {
-  // Process the visualization specification
-  const renderable = buildViz(viz);
+  console.log('Rendering visualization:', viz);
+
+  // Process the visualization specification if needed
+  const renderable = isRenderableVisualization(viz)
+    ? viz as RenderableVisualization
+    : buildViz(viz as VisualizationSpec);
+
+  console.log('Renderable visualization:', renderable);
 
   // Determine the rendering backend based on the container
   if (isSVGContainer(container)) {
     // Direct SVG rendering
+    // Clear existing content first
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
+
     const element = renderable.renderToSvg(container as SVGElement);
+    console.log('Rendered SVG element:', element);
+
     return {
       element,
       update: (newSpec: VisualizationSpec) => {
-        const updatedViz = renderable.update(newSpec);
+        // Merge the new spec with the original spec
+        const originalSpec = {};
+        for (const key in renderable.spec) {
+          if (key !== 'type') {
+            originalSpec[key] = renderable.getProperty(key);
+          }
+        }
+
+        const type = renderable.getProperty('type');
+        const mergedSpec = {
+          type,
+          ...originalSpec,
+          ...newSpec
+        };
+
+        const updatedViz = renderable.update(mergedSpec);
+
+        // Clear existing content before re-rendering
+        while (container.firstChild) {
+          container.removeChild(container.firstChild);
+        }
+
         return renderViz(updatedViz, container);
       },
       cleanup: () => {
@@ -97,18 +143,62 @@ export function renderViz(
     };
   } else {
     // Default to SVG rendering in a container
-    return renderable.render(container);
-  }
-}
+    // For regular containers, we need to handle SVG creation and clearing
+    console.log('Rendering to regular container');
 
-/**
+    // Clear existing SVG if present
+    const existingSvg = container.querySelector('svg');
+    if (existingSvg) {
+      container.removeChild(existingSvg);
+    }
+
+    const result = renderable.render(container);
+    console.log('Render result:', result);
+    console.log('Container after rendering:', container.innerHTML);
+
+    // Wrap the update function to ensure clearing
+    const originalUpdate = result.update;
+    result.update = (newSpec: VisualizationSpec) => {
+      // Clear existing SVG before updating
+      const existingSvg = container.querySelector('svg');
+      if (existingSvg) {
+        container.removeChild(existingSvg);
+      }
+
+      return originalUpdate(newSpec);
+    };
+
+    return result;
+  }
+}/**
  * Update an existing visualization
  */
 export function updateViz(
   vizInstance: RenderableVisualization,
   newSpec: VisualizationSpec
 ): RenderableVisualization {
-  return vizInstance.update(newSpec);
+  // Get the original spec from the visualization instance
+  const originalSpec = {};
+
+  // Copy all properties from the original spec
+  for (const key in vizInstance.spec) {
+    if (key !== 'type') { // We'll handle type separately
+      originalSpec[key] = vizInstance.getProperty(key);
+    }
+  }
+
+  // Ensure the type is preserved
+  const type = vizInstance.getProperty('type');
+
+  // Merge the specs, with new properties overriding original ones
+  const mergedSpec = {
+    type,
+    ...originalSpec,
+    ...newSpec
+  };
+
+  // Update the visualization with the merged spec
+  return vizInstance.update(mergedSpec);
 }
 
 /**
@@ -132,8 +222,8 @@ function renderToCanvas(processed, container) {
   const ctx = container.getContext('2d');
 
   // Check if the processed object has a Canvas rendering function
-  if (processed.renderCanvas) {
-    return processed.renderCanvas(ctx);
+  if (processed.renderToCanvas) {
+    return processed.renderToCanvas(ctx);
   } else {
     console.error('No Canvas rendering function available for:', processed);
     return null;

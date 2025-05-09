@@ -110,13 +110,13 @@ function createRenderableVisualization(spec: VisualizationSpec): RenderableVisua
       ctx.save();
 
       // If we have specific rendering logic in the implementation result, use it
-      if (spec._renderType && spec.renderCanvas && typeof spec.renderCanvas === 'function') {
+      if (spec._renderType && spec.renderToCanvas && typeof spec.renderToCanvas === 'function') {
         // Use the custom rendering function from the implementation result
-        return spec.renderCanvas(ctx);
+        return spec.renderToCanvas(ctx);
       }
 
       ctx.restore();
-      throw new Error('we should never get here. Every viz should have a renderCanvas.');
+      throw new Error('we should never get here. Every viz should have a renderToCanvas.');
     },
 
     // Update with a new specification

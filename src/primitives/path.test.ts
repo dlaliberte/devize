@@ -95,7 +95,7 @@ beforeEach(() => {
           return element;
         },
 
-        renderCanvas: (ctx) => {
+        renderToCanvas: (ctx) => {
           const { d, fill, stroke, 'stroke-width': strokeWidth, 'stroke-dasharray': strokeDasharray, opacity } = attributes;
 
           // Save the current context state
@@ -227,7 +227,7 @@ describe('Path Primitive', () => {
       strokeWidth: 2
     }, {});
 
-    expect(result?.renderCanvas).toBeTypeOf('function');
+    expect(result?.renderToCanvas).toBeTypeOf('function');
 
     // Create a mock canvas context
     const ctx = {
@@ -240,7 +240,7 @@ describe('Path Primitive', () => {
     };
 
     // Call the Canvas rendering function
-    const canvasResult = result?.renderCanvas(ctx);
+    const canvasResult = result?.renderToCanvas(ctx);
 
     // Verify the canvas operations were performed correctly
     expect(canvasResult).toBe(true);
@@ -277,7 +277,7 @@ describe('Path Primitive', () => {
     };
 
     // Call the Canvas rendering function
-    result?.renderCanvas(ctx);
+    result?.renderToCanvas(ctx);
 
     // Should not call fill with 'none' fill
     expect(ctx.fill).not.toHaveBeenCalled();

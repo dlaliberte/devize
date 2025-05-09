@@ -7,36 +7,34 @@
  * Last Modified: [Date]
  */
 
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
 import { registry, hasType, getType } from '../core/registry';
 import { textTypeDefinition, registerTextPrimitive } from './text';
 import { buildViz } from '../core/builder';
-
-// Mock the svgUtils module
-vi.mock('../renderers/svgUtils', () => ({
-  createSVGElement: vi.fn((tagName) => ({
-    tagName: tagName.toUpperCase(),
-    setAttribute: vi.fn(),
-    appendChild: vi.fn(),
-    textContent: ''
-  })),
-  applyAttributes: vi.fn()
-}));
-
-// Import the mocked functions
-import { createSVGElement, applyAttributes } from '../renderers/svgUtils';
+import {
+  resetRegistry,
+  createTestContainer,
+  cleanupTestContainer,
+  testVisualizationRendering
+} from '../test/testUtils';
+import { initializeTestEnvironment } from '../test/testSetup';
+import { getByText, queryByText } from '@testing-library/dom';
 
 describe('Text Primitive', () => {
+  let container: HTMLElement;
+
   // Reset registry before each test
   beforeEach(() => {
-    // Reset the registry for clean tests
-    (registry as any).types = new Map();
+    // Reset the registry and initialize test environment
+    initializeTestEnvironment();
 
-    // Register the text primitive
-    registerTextPrimitive();
+    // Create a test container
+    container = createTestContainer();
+  });
 
-    // Reset mocks
-    vi.clearAllMocks();
+  // Clean up after each test
+  afterEach(() => {
+    cleanupTestContainer(container);
   });
 
   test('should register the text type', () => {
@@ -69,38 +67,69 @@ describe('Text Primitive', () => {
     });
 
     expect(result).toBeDefined();
-    expect(result.type).toBe('text');
-    expect(result.spec.text).toBe('Hello World');
-    expect(result.spec.fontSize).toBe(16);
-    expect(result.spec.fontFamily).toBe('Arial');
-    expect(result.spec.fill).toBe('blue');
+    expect(result.renderableType).toBe('text');
+    expect(result.getProperty('text')).toBe('Hello World');
+    expect(result.getProperty('fontSize')).toBe(16);
+    expect(result.getProperty('fontFamily')).toBe('Arial');
+    expect(result.getProperty('fill')).toBe('blue');
+  });
+
+  test('should render text to DOM and be findable by content', () => {
+    // Create a visualization
+    const viz = buildViz({
+      type: "text",
+      x: 100,
+      y: 150,
+      text: "Hello World",
+      fontSize: 16,
+      fontFamily: 'Arial',
+      fill: 'blue'
+    });
+
+    // Render it to the container
+    viz.render(container);
+
+    // Use Testing Library to find the text by its content
+    const textElement = getByText(container, "Hello World");
+    expect(textElement).toBeTruthy();
+
+    // Log the actual HTML for debugging
+    console.log('Container HTML:', container.innerHTML);
+
+    // Check the text content
+    expect(textElement.textContent).toBe('Hello World');
+
+    // Since we're not mocking, we'll check the rendered output
+    // by examining the SVG element that was created
+    const svg = container.querySelector('svg');
+    expect(svg).toBeTruthy();
+
+    // Find the text element within the SVG
+    const svgTextElement = svg?.querySelector('text');
+    expect(svgTextElement).not.toBeNull();
+    expect(svgTextElement?.textContent).toBe('Hello World');
   });
 
   test('should provide SVG rendering function', () => {
-    const result = buildViz({
+    // Create a visualization
+    const viz = buildViz({
       type: "text",
       x: 100,
       y: 150,
       text: "Hello World"
     });
 
-    // Create a mock container
-    const container = { appendChild: vi.fn() };
+    // Create an SVG element
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
 
-    // Get the implementation result
-    const impl = textTypeDefinition.implementation(result.spec);
+    // Render to SVG
+    const element = viz.renderToSvg(svg);
 
-    // Call the SVG rendering function directly
-    impl.renderToSvg(container);
+    // Check the element type
+    expect(element.tagName.toLowerCase()).toBe('text');
 
-    // Should have created a text element
-    expect(createSVGElement).toHaveBeenCalledWith('text');
-
-    // Should have applied attributes
-    expect(applyAttributes).toHaveBeenCalled();
-
-    // Should have appended to container
-    expect(container.appendChild).toHaveBeenCalled();
+    // Check the text content
+    expect(element.textContent).toBe('Hello World');
   });
 
   test('should provide Canvas rendering function', () => {
@@ -118,8 +147,8 @@ describe('Text Primitive', () => {
       globalAlpha: 1
     };
 
-    // Call the implementation function directly with the props
-    const impl = textTypeDefinition.implementation({
+    const result = buildViz({
+      type: "text",
       x: 100,
       y: 150,
       text: "Hello World",
@@ -134,7 +163,7 @@ describe('Text Primitive', () => {
     });
 
     // Call the Canvas rendering function
-    impl.renderCanvas(ctx);
+    result.renderToCanvas(ctx);
 
     // Should have saved and restored context
     expect(ctx.save).toHaveBeenCalled();
@@ -156,31 +185,70 @@ describe('Text Primitive', () => {
       // No optional properties specified
     });
 
-    expect(result.spec.x).toBe(0);
-    expect(result.spec.y).toBe(0);
-    expect(result.spec.fontSize).toBe(12);
-    expect(result.spec.fontFamily).toBe('sans-serif');
-    expect(result.spec.fontWeight).toBe('normal');
-    expect(result.spec.fill).toBe('black');
-    expect(result.spec.textAnchor).toBe('start');
-    expect(result.spec.dominantBaseline).toBe('auto');
-    expect(result.spec.opacity).toBe(1);
-    expect(result.spec.transform).toBe('');
+    expect(result.getProperty('x')).toBe(0);
+    expect(result.getProperty('y')).toBe(0);
+    expect(result.getProperty('fontSize')).toBe(12);
+    expect(result.getProperty('fontFamily')).toBe('sans-serif');
+    expect(result.getProperty('fontWeight')).toBe('normal');
+    expect(result.getProperty('fill')).toBe('black');
+    expect(result.getProperty('textAnchor')).toBe('start');
+    expect(result.getProperty('dominantBaseline')).toBe('auto');
+    expect(result.getProperty('opacity')).toBe(1);
+    expect(result.getProperty('transform')).toBe('');
+  });
+
+  test('should update text properties', () => {
+    // Use the testVisualizationRendering utility from testUtils
+    // This avoids direct DOM manipulation that might cause issues in JSDOM
+
+    // Initial visualization
+    const initialSpec = {
+      type: "text",
+      x: 100,
+      y: 150,
+      text: "Hello World",
+      fontSize: 16,
+      fill: 'blue'
+    };
+
+    // Create and render the visualization
+    const viz = buildViz(initialSpec);
+    const renderResult = viz.render(container);
+
+    // Verify initial text is present
+    expect(getByText(container, "Hello World")).toBeTruthy();
+
+    // Update with new properties
+    const updatedSpec = {
+      x: 200,
+      y: 250,
+      text: "Updated Text",
+      fill: 'red'
+    };
+
+    renderResult.update(updatedSpec);
+
+    // Verify updated text is present and old text is gone
+    expect(getByText(container, "Updated Text")).toBeTruthy();
+    expect(queryByText(container, "Hello World")).toBeNull();
   });
 
   test('should handle transform property', () => {
-    const result = buildViz({
+    // Create a visualization with transform
+    const viz = buildViz({
       type: "text",
       text: "Hello World",
       transform: 'rotate(45)'
     });
 
-    // Get the implementation result
-    const impl = textTypeDefinition.implementation(result.spec);
+    // Render it to the container
+    viz.render(container);
 
-    expect(impl.attributes.transform).toBe('rotate(45)');
+    // Find the text element
+    const textElement = getByText(container, "Hello World");
+    expect(textElement).toBeTruthy();
 
-    // Create a mock canvas context
+    // Test canvas transform
     const ctx = {
       save: vi.fn(),
       restore: vi.fn(),
@@ -194,8 +262,7 @@ describe('Text Primitive', () => {
       globalAlpha: 1
     };
 
-    // Call the Canvas rendering function
-    impl.renderCanvas(ctx);
+    viz.renderToCanvas(ctx);
 
     // Should have applied rotation (45 degrees = π/4 radians)
     expect(ctx.rotate).toHaveBeenCalledWith(Math.PI / 4);
@@ -217,7 +284,6 @@ describe('Text Primitive', () => {
 /**
  * References:
  * - Related File: src/primitives/text.ts
- * - Related File: src/core/define.ts
  * - Related File: src/core/registry.ts
  * - Related File: src/core/builder.ts
  * - Related File: src/core/devize.ts

@@ -42,7 +42,7 @@ beforeEach(() => {
         attributes: attributes,
         content: spec.text,
 
-        renderCanvas: (ctx) => {
+        renderToCanvas: (ctx) => {
           // Save context state
           if (ctx.save) ctx.save();
 
@@ -128,7 +128,7 @@ beforeEach(() => {
         attributes: attributes,
         content: spec.text,
 
-        renderCanvas: (ctx) => {
+        renderToCanvas: (ctx) => {
           // Save context state
           if (ctx.save) ctx.save();
 
@@ -308,7 +308,7 @@ describe('Text Wrapping', () => {
     };
 
     // Call the Canvas rendering function
-    result.renderCanvas(ctx);
+    result.renderToCanvas(ctx);
 
     // Should have called fillText multiple times for each line
     expect(ctx.fillText.mock.calls.length).toBeGreaterThan(1);
@@ -344,7 +344,7 @@ describe('Text Wrapping', () => {
     };
 
     // Call the Canvas rendering function
-    result.renderCanvas(ctx);
+    result.renderToCanvas(ctx);
 
     // Should have called fillText exactly twice (maxLines = 2)
     expect(ctx.fillText).toHaveBeenCalledTimes(2);
@@ -422,7 +422,7 @@ describe('Text Wrapping', () => {
     };
 
     // Call the Canvas rendering function
-    result?.renderCanvas(ctx);
+    result?.renderToCanvas(ctx);
 
     // First line should be at the original y position
     expect(ctx.fillText.mock.calls[0][2]).toBe(20);
@@ -453,7 +453,7 @@ describe('Text Wrapping', () => {
     };
 
     // Call the Canvas rendering function
-    result?.renderCanvas(ctx);
+    result?.renderToCanvas(ctx);
 
     // Should have called fillText exactly once (no spaces to wrap)
     expect(ctx.fillText).toHaveBeenCalledTimes(1);
@@ -481,7 +481,7 @@ describe('Text Wrapping', () => {
     };
 
     // Call the Canvas rendering function
-    result?.renderCanvas(ctx);
+    result?.renderToCanvas(ctx);
 
     // Should have called fillText exactly once with empty string
     expect(ctx.fillText).toHaveBeenCalledTimes(1);

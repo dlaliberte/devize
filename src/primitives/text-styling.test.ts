@@ -35,7 +35,7 @@ describe('Text Styling', () => {
       font: 'unset'
     };
 
-    result?.renderCanvas(ctx);
+    result?.renderToCanvas(ctx);
 
     expect(ctx.font).toBe('bold 24px Arial');
   });
@@ -55,7 +55,7 @@ describe('Text Styling', () => {
       fillStyle: 'unset'
     };
 
-    result?.renderCanvas(ctx);
+    result?.renderToCanvas(ctx);
 
     expect(ctx.fillStyle).toBe('blue');
   });
@@ -75,7 +75,7 @@ describe('Text Styling', () => {
       globalAlpha: 1
     };
 
-    result?.renderCanvas(ctx);
+    result?.renderToCanvas(ctx);
 
     expect(ctx.globalAlpha).toBe(0.5);
   });
@@ -171,7 +171,7 @@ describe('Text Styling', () => {
       font: 'unset'
     };
 
-    result?.renderCanvas(ctx);
+    result?.renderToCanvas(ctx);
 
     expect(ctx.font).toBe('normal 12px sans-serif');
   });
@@ -192,7 +192,7 @@ describe('Text Styling', () => {
       font: 'unset'
     };
 
-    boldResult?.renderCanvas(boldCtx);
+    boldResult?.renderToCanvas(boldCtx);
     expect(boldCtx.font).toBe('bold 12px sans-serif');
 
     // Test numeric weight
@@ -208,7 +208,7 @@ describe('Text Styling', () => {
       font: 'unset'
     };
 
-    numericResult?.renderCanvas(numericCtx);
+    numericResult?.renderToCanvas(numericCtx);
     expect(numericCtx.font).toBe('700 12px sans-serif');
   });
 });

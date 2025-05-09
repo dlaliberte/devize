@@ -10,9 +10,9 @@
 import { buildViz } from '../core/builder';
 import { registerDefineType } from '../core/define';
 import { ensureSvg } from '../core/renderer';
-
-// Make sure define type is registered
-registerDefineType();
+import { RenderableVisualization, VisualizationSpec } from '../core/types';
+import { createSVGElement, applyAttributes } from '../renderers/svgUtils';
+import { createRenderableVisualization } from '../core/componentUtils';
 
 // Define the circle type definition
 export const circleTypeDefinition = {
@@ -32,76 +32,63 @@ export const circleTypeDefinition = {
       throw new Error('Circle radius must be positive');
     }
 
-    // Return a renderable object with SVG rendering functions
-    return {
-      type: "circle",
-      spec: props,
-
-      // Render to a container (creates an SVG if needed)
-      render: function(container) {
-        // Ensure there's an SVG element
-        const svg = ensureSvg(container);
-
-        // Render to the SVG
-        const element = this.renderToSvg(svg);
-
-        // Return the result
-        return {
-          element,
-          update: (newSpec) => {
-            // Update the element attributes
-            Object.entries(newSpec).forEach(([key, value]) => {
-              if (key !== 'type') {
-                element.setAttribute(key === 'strokeWidth' ? 'stroke-width' : key, value);
-              }
-            });
-
-            return this;
-          },
-          cleanup: () => {
-            if (element.parentNode) {
-              element.parentNode.removeChild(element);
-            }
-          }
-        };
-      },
-
-      // Render to an existing SVG element
-      renderToSvg: function(svg) {
-        // Create a circle element
-        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-
-        // Set attributes
-        circle.setAttribute('cx', props.cx);
-        circle.setAttribute('cy', props.cy);
-        circle.setAttribute('r', props.r);
-        circle.setAttribute('fill', props.fill);
-        circle.setAttribute('stroke', props.stroke);
-        circle.setAttribute('stroke-width', props.strokeWidth);
-
-        // Add to the SVG
-        svg.appendChild(circle);
-
-        return circle;
-      },
-
-      // Render to a canvas context
-      renderCanvas: function(ctx) {
-        ctx.beginPath();
-        ctx.arc(props.cx, props.cy, props.r, 0, Math.PI * 2);
-
-        if (props.fill !== 'none') {
-          ctx.fillStyle = props.fill;
-          ctx.fill();
-        }
-
-        if (props.stroke !== 'none') {
-          ctx.strokeStyle = props.stroke;
-          ctx.lineWidth = props.strokeWidth;
-          ctx.stroke();
-        }
-      }
+    // Prepare attributes
+    const attributes = {
+      cx: props.cx,
+      cy: props.cy,
+      r: props.r,
+      fill: props.fill,
+      stroke: props.stroke,
+      'stroke-width': props.strokeWidth
     };
+
+    // SVG rendering function
+    const renderToSvg = (svg: SVGElement) => {
+      console.log('Rendering circle to SVG:', svg);
+
+      // Create a circle element with the correct namespace
+      const circle = createSVGElement('circle');
+
+      // Apply attributes explicitly
+      circle.setAttribute('cx', attributes.cx.toString());
+      circle.setAttribute('cy', attributes.cy.toString());
+      circle.setAttribute('r', attributes.r.toString());
+      circle.setAttribute('fill', attributes.fill.toString());
+      circle.setAttribute('stroke', attributes.stroke.toString());
+      circle.setAttribute('stroke-width', attributes['stroke-width'].toString());
+
+      console.log('Created circle element with attributes:', attributes);
+
+      // Add to the SVG
+      if (svg) {
+        svg.appendChild(circle);
+        console.log('Appended circle to SVG, resulting SVG:', svg.outerHTML);
+      }
+
+      return circle;
+    };
+
+    // Canvas rendering function
+    const renderToCanvas = (ctx: CanvasRenderingContext2D) => {
+      ctx.beginPath();
+      ctx.arc(props.cx, props.cy, props.r, 0, Math.PI * 2);
+
+      if (props.fill !== 'none') {
+        ctx.fillStyle = props.fill;
+        ctx.fill();
+      }
+
+      if (props.stroke !== 'none') {
+        ctx.strokeStyle = props.stroke;
+        ctx.lineWidth = props.strokeWidth;
+        ctx.stroke();
+      }
+
+      return true; // Indicate successful rendering
+    };
+
+    // Create and return a renderable visualization using the utility function
+    return createRenderableVisualization('circle', props, renderToSvg, renderToCanvas);
   }
 };
 
@@ -109,6 +96,9 @@ export const circleTypeDefinition = {
  * Register the circle primitive
  */
 export function registerCirclePrimitive() {
+  // Make sure define type is registered
+  registerDefineType();
+
   // Register the circle type
   buildViz(circleTypeDefinition);
   console.log('Circle primitive registered');

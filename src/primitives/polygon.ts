@@ -9,7 +9,9 @@
 
 import { registerDefineType } from '../core/define';
 import { buildViz } from '../core/builder';
-import { createSVGElement, applyAttributes } from '../renderers/svgUtils';
+import { createSVGElement } from '../renderers/svgUtils';
+import { RenderableVisualization, VisualizationSpec } from '../core/types';
+import { createRenderableVisualization } from '../core/componentUtils';
 
 // Polygon type definition
 export const polygonTypeDefinition = {
@@ -42,71 +44,83 @@ export const polygonTypeDefinition = {
       class: props.class
     };
 
-    // Return a specification with rendering functions
-    return {
-      _renderType: "polygon",  // Internal rendering type
-      attributes: attributes,
+    // SVG rendering function
+    const renderToSvg = (svg: SVGElement) => {
+      // Create a polygon element with the correct namespace
+      const element = createSVGElement('polygon');
 
-      // Rendering functions for different backends
-      renderToSvg: (container) => {
-        const element = createSVGElement('polygon');
-        applyAttributes(element, attributes);
-        if (container) container.appendChild(element);
-        return element;
-      },
+      // Apply attributes explicitly
+      element.setAttribute('points', attributes.points);
+      element.setAttribute('fill', attributes.fill);
+      element.setAttribute('stroke', attributes.stroke);
+      element.setAttribute('stroke-width', attributes['stroke-width'].toString());
+      element.setAttribute('opacity', attributes.opacity.toString());
 
-      renderCanvas: (ctx) => {
-        const { points } = props;
-        const { fill, stroke, 'stroke-width': strokeWidth, opacity } = attributes;
-
-        if (!points || points.length < 2) return false;
-
-        // Save current context state
-        ctx.save();
-
-        // Set opacity if needed
-        if (opacity !== 1) {
-          ctx.globalAlpha = opacity;
-        }
-
-        // Begin the path
-        ctx.beginPath();
-        ctx.moveTo(points[0].x, points[0].y);
-
-        // Draw lines to each point
-        for (let i = 1; i < points.length; i++) {
-          ctx.lineTo(points[i].x, points[i].y);
-        }
-
-        // Close the path
-        ctx.closePath();
-
-        // Fill if needed
-        if (fill !== 'none') {
-          ctx.fillStyle = fill;
-          ctx.fill();
-        }
-
-        // Stroke if needed
-        if (stroke !== 'none') {
-          ctx.strokeStyle = stroke;
-          ctx.lineWidth = strokeWidth;
-          ctx.stroke();
-        }
-
-        // Restore context state
-        ctx.restore();
-
-        return true; // Indicate successful rendering
-      },
-
-      // WebGL rendering function could be added here
-      renderWebGL: (gl, program) => {
-        // WebGL-specific rendering code for polygons
-        // This would involve creating buffers for vertices and implementing
-        // shaders for rendering the polygon
+      if (attributes.class) {
+        element.setAttribute('class', attributes.class);
       }
+
+      // Add to the SVG
+      if (svg) {
+        svg.appendChild(element);
+      }
+
+      return element;
     };
+
+    // Canvas rendering function
+    const renderToCanvas = (ctx: CanvasRenderingContext2D) => {
+      const { points } = props;
+      const { fill, stroke, 'stroke-width': strokeWidth, opacity } = attributes;
+
+      if (!points || points.length < 2) return false;
+
+      // Save current context state
+      ctx.save();
+
+      // Set opacity if needed
+      if (opacity !== 1) {
+        ctx.globalAlpha = opacity;
+      }
+
+      // Begin the path
+      ctx.beginPath();
+      ctx.moveTo(points[0].x, points[0].y);
+
+      // Draw lines to each point
+      for (let i = 1; i < points.length; i++) {
+        ctx.lineTo(points[i].x, points[i].y);
+      }
+
+      // Close the path
+      ctx.closePath();
+
+      // Fill if needed
+      if (fill !== 'none') {
+        ctx.fillStyle = fill;
+        ctx.fill();
+      }
+
+      // Stroke if needed
+      if (stroke !== 'none') {
+        ctx.strokeStyle = stroke;
+        ctx.lineWidth = strokeWidth;
+        ctx.stroke();
+      }
+
+      // Restore context state
+      ctx.restore();
+
+      return true; // Indicate successful rendering
+    };
+
+    // Create and return a renderable visualization
+    return createRenderableVisualization(
+      'polygon',
+      props,
+      renderToSvg,
+      renderToCanvas
+    );
   }
 };
 

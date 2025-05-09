@@ -10,6 +10,8 @@
 import { registerDefineType } from '../core/define';
 import { buildViz } from '../core/builder';
 import { createSVGElement, applyAttributes } from '../renderers/svgUtils';
+import { RenderableVisualization, VisualizationSpec } from '../core/types';
+import { createRenderableVisualization } from '../core/componentUtils';
 
 // Text type definition
 export const textTypeDefinition = {
@@ -43,92 +45,85 @@ export const textTypeDefinition = {
       transform: props.transform || null
     };
 
-    // Return a specification with rendering functions
-    return {
-      _renderType: "text",  // Internal rendering type
-      type: "text",         // Public type
-      attributes: attributes,
-      content: props.text,  // Text content
-
-      // Rendering functions for different backends
-      renderToSvg: (container) => {
-        const element = createSVGElement('text');
-        applyAttributes(element, attributes);
-        element.textContent = props.text;
-        if (container) container.appendChild(element);
-        return element;
-      },
-
-      renderCanvas: (ctx) => {
-        const { x, y, 'font-size': fontSize, 'font-family': fontFamily, 'font-weight': fontWeight,
-                fill, 'text-anchor': textAnchor, 'dominant-baseline': dominantBaseline, opacity } = attributes;
-
-        // Save the current context state
-        ctx.save();
-
-        // Apply opacity
-        ctx.globalAlpha = opacity;
-
-        // Set font - ensure fontWeight is included
-        ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
-        ctx.fillStyle = fill;
-
-        // Handle text anchor
-        if (textAnchor === 'middle') {
-          ctx.textAlign = 'center';
-        } else if (textAnchor === 'end') {
-          ctx.textAlign = 'right';
-        } else {
-          ctx.textAlign = 'left';
-        }
-
-        // Handle dominant baseline
-        if (dominantBaseline === 'middle') {
-          ctx.textBaseline = 'middle';
-        } else if (dominantBaseline === 'hanging') {
-          ctx.textBaseline = 'top';
-        } else if (dominantBaseline === 'alphabetic') {
-          ctx.textBaseline = 'alphabetic';
-        } else {
-          ctx.textBaseline = 'alphabetic';
-        }
-
-        // Apply transform if specified
-        if (props.transform) {
-          // Parse and apply SVG transform to canvas context
-          // This is a simplified implementation and may not handle all transform types
-          const transformStr = props.transform.trim();
-          if (transformStr.startsWith('translate')) {
-            const match = transformStr.match(/translate\(([^,]+),([^)]+)\)/);
-            if (match) {
-              const tx = parseFloat(match[1]);
-              const ty = parseFloat(match[2]);
-              ctx.translate(tx, ty);
-            }
-          } else if (transformStr.startsWith('rotate')) {
-            const match = transformStr.match(/rotate\(([^)]+)\)/);
-            if (match) {
-              const angle = parseFloat(match[1]) * Math.PI / 180;
-              ctx.rotate(angle);
-            }
-          }
-          // Additional transform types could be handled here
-        }
-
-        // Draw the text
-        ctx.fillText(props.text, x, y);
-
-        // Restore the context state
-        ctx.restore();
-
-        return true; // Indicate successful rendering
-      },
-
-      // WebGL rendering function could be added here
-      renderWebGL: (gl, program) => {
-        // WebGL-specific rendering code
+    // SVG rendering function
+    const renderToSvg = (svg: SVGElement) => {
+      const element = createSVGElement('text');
+      applyAttributes(element, attributes);
+      element.textContent = props.text;
+      if (svg) {
+        svg.appendChild(element);
       }
+      return element;
     };
+
+    // Canvas rendering function
+    const renderToCanvas = (ctx: CanvasRenderingContext2D) => {
+      const { x, y, 'font-size': fontSize, 'font-family': fontFamily, 'font-weight': fontWeight,
+              fill, 'text-anchor': textAnchor, 'dominant-baseline': dominantBaseline, opacity } = attributes;
+
+      // Save the current context state
+      ctx.save();
+
+      // Apply opacity
+      ctx.globalAlpha = opacity;
+
+      // Set font - ensure fontWeight is included
+      ctx.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+      ctx.fillStyle = fill;
+
+      // Handle text anchor
+      if (textAnchor === 'middle') {
+        ctx.textAlign = 'center';
+      } else if (textAnchor === 'end') {
+        ctx.textAlign = 'right';
+      } else {
+        ctx.textAlign = 'left';
+      }
+
+      // Handle dominant baseline
+      if (dominantBaseline === 'middle') {
+        ctx.textBaseline = 'middle';
+      } else if (dominantBaseline === 'hanging') {
+        ctx.textBaseline = 'top';
+      } else if (dominantBaseline === 'alphabetic') {
+        ctx.textBaseline = 'alphabetic';
+      } else {
+        ctx.textBaseline = 'alphabetic';
+      }
+
+      // Apply transform if specified
+      if (props.transform) {
+        // Parse and apply SVG transform to canvas context
+        // This is a simplified implementation and may not handle all transform types
+        const transformStr = props.transform.trim();
+        if (transformStr.startsWith('translate')) {
+          const match = transformStr.match(/translate\(([^,]+),([^)]+)\)/);
+          if (match) {
+            const tx = parseFloat(match[1]);
+            const ty = parseFloat(match[2]);
+            ctx.translate(tx, ty);
+          }
+        } else if (transformStr.startsWith('rotate')) {
+          const match = transformStr.match(/rotate\(([^)]+)\)/);
+          if (match) {
+            const angle = parseFloat(match[1]) * Math.PI / 180;
+            ctx.rotate(angle);
+          }
+        }
+        // Additional transform types could be handled here
+      }
+
+      // Draw the text
+      ctx.fillText(props.text, x, y);
+
+      // Restore the context state
+      ctx.restore();
+
+      return true; // Indicate successful rendering
+    };
+
+    // Create and return a renderable visualization using the utility function
+    return createRenderableVisualization('text', props, renderToSvg, renderToCanvas);
   }
 };
 

@@ -121,7 +121,7 @@ renderToSvg: (container) => {
 }
 
 // Canvas rendering function
-renderCanvas: (ctx) => {
+renderToCanvas: (ctx) => {
         // Set up context properties
         ctx.fillStyle = attributes.fill;
         ctx.strokeStyle = attributes.stroke;
