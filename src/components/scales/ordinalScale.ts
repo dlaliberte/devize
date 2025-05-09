@@ -15,7 +15,7 @@ import { Scale } from './scale';
 registerDefineType();
 
 // Define an ordinal scale component
-buildViz({
+export const ordinalScaleDefinition = {
   type: "define",
   name: "ordinalScale",
   properties: {
@@ -29,23 +29,36 @@ buildViz({
     const unknown = props.unknown !== undefined ? props.unknown : range[0];
 
     // Create the scale function
-    const scale = (value: string): any => {
+    const scaleFunc = (value: string): any => {
       const index = domain.indexOf(value);
       if (index === -1) return unknown; // Return unknown value for values not in domain
       return range[index % range.length];
     };
 
     // Create the ticks function
-    const ticks = (): string[] => domain;
+    const ticksFunc = (): string[] => domain;
 
     // Return the scale object directly
     const scaleObj: Scale = {
       domain,
       range,
-      scale,
-      ticks
+      scale: scaleFunc,
+      ticks: ticksFunc
     };
 
     return scaleObj;
   }
-});
+};
+
+// Register the ordinal scale type
+buildViz(ordinalScaleDefinition);
+
+// Export a function to create an ordinal scale directly
+export function createOrdinalScale(domain: string[], range: any[], unknown?: any): Scale {
+  return buildViz({
+    type: 'ordinalScale',
+    domain,
+    range,
+    unknown
+  }) as Scale;
+}

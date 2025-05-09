@@ -14,8 +14,8 @@ import { Scale } from './scale';
 // Make sure define type is registered
 registerDefineType();
 
-// Define a band scale component (useful for bar charts)
-buildViz({
+// Define a band scale component
+export const bandScaleDefinition = {
   type: "define",
   name: "bandScale",
   properties: {
@@ -37,46 +37,59 @@ buildViz({
 
     // Calculate band width and step
     const width = rangeMax - rangeMin;
-    console.log('Band scale calculation:', {
-      domain,
-      rangeMin,
-      rangeMax,
-      width,
-      n,
-      padding,
-      paddingInner,
-      paddingOuter,
-      align
-    });
     const step = n === 0 ? 0 : width / Math.max(1, n - paddingInner + 2 * paddingOuter);
     const bandWidth = step * (1 - paddingInner);
-    console.log('Band scale result:', { step, bandWidth });
 
     // Calculate the start position based on alignment
     const start = rangeMin + align * (width - (n * step - paddingInner * step));
 
     // Create the scale function
-    const scale = (value) => {
+    const scaleFunc = (value) => {
       const index = domain.indexOf(value);
       if (index === -1) return NaN;
       return start + (paddingOuter * step) + (index * step);
     };
 
     // Create the bandwidth function
-    const bandwidth = () => bandWidth;
+    const bandwidthFunc = () => bandWidth;
 
     // Create the ticks function
-    const ticks = () => domain;
+    const ticksFunc = () => domain;
 
     // Return the scale object directly
     const scaleObj: Scale = {
       domain,
       range: props.range,
-      scale,
-      bandwidth,
-      ticks
+      scale: scaleFunc,
+      bandwidth: bandwidthFunc,
+      ticks: ticksFunc
     };
 
     return scaleObj;
   }
-});
+};
+
+// Register the band scale type
+buildViz(bandScaleDefinition);
+
+// Export a function to create a band scale directly
+export function createBandScale(
+  domain: string[],
+  range: [number, number],
+  options?: {
+    padding?: number,
+    paddingInner?: number,
+    paddingOuter?: number,
+    align?: number
+  }
+): Scale {
+  return buildViz({
+    type: 'bandScale',
+    domain,
+    range,
+    padding: options?.padding ?? 0.1,
+    paddingInner: options?.paddingInner ?? null,
+    paddingOuter: options?.paddingOuter ?? null,
+    align: options?.align ?? 0.5
+  }) as Scale;
+}

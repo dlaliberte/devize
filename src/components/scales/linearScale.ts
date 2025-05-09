@@ -15,7 +15,7 @@ import { Scale } from './scale';
 registerDefineType();
 
 // Define a linear scale component
-buildViz({
+export const linearScaleDefinition = {
   type: "define",
   name: "linearScale",
   properties: {
@@ -25,7 +25,7 @@ buildViz({
     clamp: { default: false },
     nice: { default: false }
   },
-  implementation: props => {
+  implementation: (props) => {
     const [domainMin, domainMax] = props.domain;
     const [rangeMin, rangeMax] = props.range;
 
@@ -48,7 +48,7 @@ buildViz({
     const paddedDomainSize = paddedDomainMax - paddedDomainMin;
 
     // Create the scale function
-    const scaleFunc = (value) => {
+    const scaleFunc = (value: number) => {
       // Handle edge case of zero domain size
       if (paddedDomainSize === 0) {
         return rangeMin + rangeSize / 2;
@@ -66,7 +66,7 @@ buildViz({
     };
 
     // Create the invert function
-    const invertFunc = (value) => {
+    const invertFunc = (value: number) => {
       // Handle edge case of zero range size
       if (rangeSize === 0) {
         return paddedDomainMin + paddedDomainSize / 2;
@@ -96,13 +96,29 @@ buildViz({
       ticks: ticksFunc
     };
 
-    console.log('Linear scale object created:', scaleObj);
-    console.log('Scale function type:', typeof scaleObj.scale);
-
-    // Return a visualization spec with the scale object as the implementation result
-    return {
-      type: 'group',
-      _implementationResult: scaleObj
-    };
+    return scaleObj;
   }
-});
+};
+
+// Register the linear scale type
+buildViz(linearScaleDefinition);
+
+// Export a function to create a linear scale directly
+export function createLinearScale(
+  domain: [number, number],
+  range: [number, number],
+  options?: {
+    padding?: number,
+    clamp?: boolean,
+    nice?: boolean
+  }
+): Scale {
+  return buildViz({
+    type: 'linearScale',
+    domain,
+    range,
+    padding: options?.padding ?? 0,
+    clamp: options?.clamp ?? false,
+    nice: options?.nice ?? false
+  }) as Scale;
+}
