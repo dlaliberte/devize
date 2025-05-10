@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UI Control Components Test - Devize</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    #test-container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .output-panel {
+      margin-top: 20px;
+      padding: 15px;
+      background-color: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    .output-panel h3 {
+      margin-top: 0;
+    }
+
+    pre {
+      background-color: #eee;
+      padding: 10px;
+      border-radius: 4px;
+      overflow: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>UI Control Components Test</h1>
+
+  <div id="test-container"></div>
+
+  <div class="output-panel">
+    <h3>Component Values</h3>
+    <pre id="output"></pre>
+  </div>
+
+  <a href="/examples/" class="back-link">← Back to Examples</a>
+
+  <script type="module">
+    import { buildViz } from '/src/core/builder.ts';
+    import { registerAllControlComponents } from '/src/components/controls/index.ts';
+
+    // Register all control components
+    registerAllControlComponents();
+
+    // State to track component values
+    const state = {
+      sliderValue: 50,
+      radioValue: 'option2',
+      selectValue: 'banana',
+      textValue: 'Hello, World!',
+      checkboxValue: true,
+      colorValue: '#4CAF50'
+    };
+
+    // Function to update output display
+    function updateOutput() {
+      const output = document.getElementById('output');
+      output.textContent = JSON.stringify(state, null, 2);
+    }
+
+    // Initialize the test dashboard when the page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      const container = document.getElementById('test-container');
+
+      // Create a dashboard with all control types
+      const dashboard = buildViz({
+        type: 'dashboard',
+        title: 'UI Control Components Demo',
+        sections: [
+          {
+            title: 'Basic Controls',
+            controls: [
+              // Slider
+              buildViz({
+                type: 'slider',
+                label: 'Slider Control',
+                value: state.sliderValue,
+                min: 0,
+                max: 100,
+                step: 1,
+                showValue: true,
+                valueFormat: (value) => `${value}%`,
+                onChange: (value) => {
+                  state.sliderValue = value;
+                  updateOutput();
+                }
+              }),
+
+              // Radio Group
+              buildViz({
+                type: 'radioGroup',
+                label: 'Radio Group Control',
+                name: 'options',
+                value: state.radioValue,
+                options: [
+                  { value: 'option1', label: 'Option 1' },
+                  { value: 'option2', label: 'Option 2' },
+                  { value: 'option3', label: 'Option 3' }
+                ],
+                onChange: (value) => {
+                  state.radioValue = value;
+                  updateOutput();
+                }
+              }),
+
+              // Select
+              buildViz({
+                type: 'select',
+                label: 'Select Control',
+                value: state.selectValue,
+                options: [
+                  { value: 'apple', label: 'Apple' },
+                  { value: 'banana', label: 'Banana' },
+                  { value: 'orange', label: 'Orange' },
+                  { value: 'grape', label: 'Grape' }
+                ],
+                onChange: (value) => {
+                  state.selectValue = value;
+                  updateOutput();
+                }
+              })
+            ]
+          },
+          {
+            title: 'Input Controls',
+            controls: [
+              // Text Input
+              buildViz({
+                type: 'textInput',
+                label: 'Text Input Control',
+                value: state.textValue,
+                placeholder: 'Enter some text...',
+                onChange: (value) => {
+                  state.textValue = value;
+                  updateOutput();
+                }
+              }),
+
+              // Color Input
+              buildViz({
+                type: 'colorInput',
+                label: 'Color Input Control',
+                value: state.colorValue,
+                showColorText: true,
+                onChange: (value) => {
+                    state.colorValue = value;
+                    updateOutput();
+                }
+              }),
+
+              // Checkbox
+              buildViz({
+                type: 'checkbox',
+                label: 'Checkbox Control',
+                value: state.checkboxValue,
+                onChange: (value) => {
+                  state.checkboxValue = value;
+                  updateOutput();
+                }
+              })
+            ]
+          }
+        ]
+      });
+
+      // Render the dashboard to the container
+      if (dashboard && dashboard.element) {
+        container.appendChild(dashboard.element);
+      } else {
+        console.error('Failed to create dashboard');
+      }
+
+      // Initialize output display
+      updateOutput();
+    });
+  </script>
+</body>
+</html>

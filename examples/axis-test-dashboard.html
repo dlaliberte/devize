@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Axis Test Dashboard - Devize</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    #dashboard-container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>Axis Test Dashboard</h1>
+
+  <div id="dashboard-container"></div>
+
+  <a href="/examples/" class="back-link">← Back to Examples</a>
+
+  <script type="module">
+    // Import Devize library
+    import { buildViz, renderViz, updateViz, registerData } from '/src/index.ts';
+
+    import { createAxisTestDashboard } from '/src/components/axisTestDashboard.ts';
+
+    // Initialize the dashboard when the page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      const container = document.getElementById('dashboard-container');
+      createAxisTestDashboard(container);
+    });
+  </script>
+</body>
+</html>
