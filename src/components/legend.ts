@@ -34,7 +34,7 @@ export const legendDefinition = {
     itemSpacing: { default: 20 },
     labelOffset: { default: 10 },
     symbolSize: { default: 15 },
-    format: { default: value => value.toString() }
+    format: { default: value => value ? value.toString() : '' }
   },
   validate: function(props) {
     // Validate legend type

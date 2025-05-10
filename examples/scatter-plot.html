@@ -75,6 +75,8 @@ Devize.createScatterPlot(spec, document.getElementById('chart-container'));
 
   <script type="module">
     import * as Devize from '/src/index.ts';
+    // Import Devize library
+    import { buildViz, renderViz, updateViz, registerData } from '/src/index.ts';
 
     const data = [
       { country: 'USA', gdp: 21400, population: 331 },
@@ -101,7 +103,29 @@ Devize.createScatterPlot(spec, document.getElementById('chart-container'));
       grid: true
     };
 
-    Devize.createScatterPlot(spec, document.getElementById('chart-container'));
+    // Function to create the visualization
+    function createVisualization(data) {
+      // Clear the container
+      const container = document.getElementById("chart-container");
+      container.innerHTML = '';
+
+      // Create a bar chart specification
+      const spec = {
+        type: "barChart",
+        data: data,
+        x: { field: "product" },
+        y: { field: "revenue" },
+        color: { field: "category" },
+        title: "Product Revenue by Category"
+      };
+
+      // Build the visualization
+      const viz = buildViz(spec);
+
+      // Render the visualization
+      return renderViz(viz, container);
+    }
+    createVisualization(data);
   </script>
 </body>
 </html>

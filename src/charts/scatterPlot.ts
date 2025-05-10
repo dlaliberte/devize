@@ -1,17 +1,21 @@
-// Scatter plot implementation using a declarative approach
-import { VizSpec, VizInstance, DataField } from '../core/types';
-import { buildViz } from '../core/devize';
-import { applyTransforms } from '../data/transforms';
+import { buildViz } from '../core/builder';
+import { createScale } from '../components/scales/scale';
+import { createRenderableVisualization } from '../core/componentUtils';
 
-// Import direct dependencies only
-import '../primitives/shapes'; // For circle, text, etc.
-import '../primitives/containers'; // For group
-import '../core/define'; // For the define component
-import '../components/axis'; // For axis component
-import '../components/legend'; // For legend component
+// Import necessary primitives and components
+import '../primitives/circle';
+import '../primitives/text';
+import '../primitives/group';
+import '../components/axis';
+import '../components/legend';
 
-// Define the scatterPlot visualization type using the define type
-buildViz({
+// Helper function to calculate legend position (if needed)
+function calculateLegendPosition(position, dimensions, margin) {
+  // Logic similar to the barChart for positioning the legend
+}
+
+// Scatter plot component definition
+export const scatterPlotDefinition = {
   type: "define",
   name: "scatterPlot",
   properties: {
@@ -23,11 +27,35 @@ buildViz({
     margin: { default: { top: 40, right: 30, bottom: 60, left: 60 } },
     tooltip: { default: false },
     title: { default: '' },
-    grid: { default: false }
+    width: { default: 800 },
+    height: { default: 400 }
   },
-  implementation: (props) => {
+  validate(props) {
+    // Validate function similar to the barChart for non-empty arrays, fields, and dimensions
+    if (!Array.isArray(props.data) || props.data.length === 0) {
+      throw new Error('Data must be a non-empty array');
+    }
+    if (!props.x || !props.y) {
+      throw new Error('X and Y fields are required');
+    }
+    if (typeof props.x !== 'object' || typeof props.y !== 'object') {
+      throw new Error('X and Y must be objects with a field property');
+    }
+    if (props.x.field === undefined || props.y.field === undefined) {
+      throw new Error('X and Y must have a field property');
+    }
+    // height and width must be positive numbers
+    if (props.width <= 0 || props.height <= 0) {
+      throw new Error('Width and height must be positive');
+    }
+    if (props.color && typeof props.color !== 'string' && typeof props.color !== 'object') {
+      throw new Error('Color must be a string or an object with a field property');
+    }
+  },
+  implementation(props) {
+    let { data, x, y, color, size, margin, tooltip, title, width, height } = props;
     // Get data and apply transformations
-    let data = Array.isArray(props.data) ? [...props.data] : [];
+    data = Array.isArray(data) ? [...data] : [];
 
     // Apply transforms if specified
     if (props.transforms && Array.isArray(props.transforms)) {
@@ -36,11 +64,10 @@ buildViz({
 
     const xField = (props.x as DataField).field;
     const yField = (props.y as DataField).field;
-    const margin = props.margin;
 
     // Calculate dimensions - these will be filled in by constraints
-    const width = props.width || 800;
-    const height = props.height || 400;
+    width = width || 800;
+    height = height || 400;
     const chartWidth = width - margin.left - margin.right;
     const chartHeight = height - margin.top - margin.bottom;
 
@@ -91,7 +118,7 @@ buildViz({
     }
 
     // Create the chart group
-    return {
+    const groupSpec = {
       type: 'group',
       transform: `translate(${margin.left}, ${margin.top})`,
       children: [
@@ -118,10 +145,7 @@ buildViz({
         },
 
         // Points
-        {
-          type: 'dataMap',
-          data: data,
-          map: (d, i, array) => {
+        ...data.map((d, i, array) => {
             const xScale = (value: number) => (value - xMin_padded) / (xMax_padded - xMin_padded) * chartWidth;
             const yScale = (value: number) => chartHeight - (value - yMin_padded) / (yMax_padded - yMin_padded) * chartHeight;
 
@@ -160,8 +184,7 @@ buildViz({
               data: d,
               tooltip: props.tooltip
             };
-          }
-        },
+        }),
 
         // Title (conditionally included)
         props.title ? {
@@ -186,21 +209,51 @@ buildViz({
             color: colors[i % colors.length]
           }))
         } : null
-      ].filter(Boolean) // Remove null items
+      ].filter(Boolean)
     };
+
+    const renderableGroup = buildViz(groupSpec);
+    return createRenderableVisualization(
+      'scatterPlot',
+      props,
+      (container: SVGElement) => renderableGroup.renderToSvg(container),
+      (ctx: CanvasRenderingContext2D) => renderableGroup.renderToCanvas(ctx)
+    );
   }
-}, document.createElement('div')); // We need a container, but it won't be used for rendering
+};
+
+// Register the scatterPlot component
+buildViz(scatterPlotDefinition);
 
 /**
- * Create a scatter plot
- * @param spec The scatter plot specification
- * @param container The container element
- * @returns The scatter plot instance
+ * Create a scatter plot directly
+ *
+ * @param options Scatter plot configuration options
+ * @returns A renderable scatter plot visualization
  */
-export function createScatterPlot(spec: VizSpec): VizInstance {
-  // Make sure the scatter plot type is registered
-  registerScatterPlotType();
-
-  // Create the visualization using the registered type
-  return buildViz(spec, container);
+export function createScatterPlot(options: {
+  data: any[],
+  x: { field: string },
+  y: { field: string },
+  color?: string | { field: string },
+  size?: number,
+  margin?: { top: number, right: number, bottom: number, left: number },
+  tooltip?: boolean,
+  title?: string,
+  width?: number,
+  height?: number
+}) {
+  return buildViz({
+    type: 'scatterPlot',
+    data: options.data,
+    x: options.x,
+    y: options.y,
+    color: options.color || '#3366CC',
+    size: options.size || 5,
+    margin: options.margin || { top: 40, right: 30, bottom: 60, left: 60 },
+    tooltip: options.tooltip || false,
+    title: options.title || '',
+    width: options.width || 800,
+    height: options.height || 400
+  });
 }
