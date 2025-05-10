@@ -241,3 +241,15 @@ export function createLegend(options: {
     format: options.format || (value => value.toString())
   });
 }
+
+
+export function registerLegendComponent() {
+  // Make sure define type is registered
+  registerDefineType();
+
+  // Register the legend component with the builder
+  buildViz(legendDefinition);
+console.log('Legend component registered');
+
+}
+registerLegendComponent();

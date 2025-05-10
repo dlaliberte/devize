@@ -75,9 +75,6 @@ export const bandScaleDefinition = {
   }
 };
 
-// Register the band scale type
-buildViz(bandScaleDefinition);
-
 // Export a function to create a band scale directly
 export function createBandScale(
   domain: string[],
@@ -98,7 +95,9 @@ export function createBandScale(
     paddingOuter: options?.paddingOuter ?? null,
     align: options?.align ?? 0.5
   }) as Scale;
-}// Minimal band scale implementation
+}
+
+// Minimal band scale implementation
 export function createMinimalBandScale(options: {
   domain: string[];
   range: [number, number];
@@ -131,3 +130,10 @@ export function createMinimalBandScale(options: {
 
   return scale;
 }
+
+export function registerBandScaleComponent() {
+  // Register the band scale component with the builder
+  buildViz(bandScaleDefinition);
+  console.log('Band scale component registered');
+}
+registerBandScaleComponent();

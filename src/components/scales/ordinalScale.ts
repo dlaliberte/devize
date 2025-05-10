@@ -50,9 +50,6 @@ export const ordinalScaleDefinition = {
   }
 };
 
-// Register the ordinal scale type
-buildViz(ordinalScaleDefinition);
-
 // Export a function to create an ordinal scale directly
 export function createOrdinalScale(domain: string[], range: any[], unknown?: any): Scale {
   return buildViz({
@@ -82,3 +79,11 @@ export function createMinimalOrdinalScale(options: {
 
   return scale;
 }
+
+
+export function registerOrdinalScaleComponent() {
+  // Register the ordinal scale component with the builder
+  buildViz(ordinalScaleDefinition);
+  console.log('Ordinal scale component registered');
+}
+registerOrdinalScaleComponent();

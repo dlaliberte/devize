@@ -11,6 +11,7 @@ export const defineTypeSpec: VisualizationSpec = {
   properties: {
     name: { required: true },
     properties: { required: true },
+    validate: { required: false },
     implementation: { required: true },
     extend: { required: false }
   },
@@ -48,6 +49,7 @@ export const defineTypeSpec: VisualizationSpec = {
     const typeDefinition: TypeDefinition = {
       name,
       properties: mergedProperties,
+      validate: props.validate || (() => true), // Default to a no-op validation function
       implementation,
       extend
     };

@@ -17,10 +17,13 @@ registerDefineType();
 import './linearScale';
 import './bandScale';
 import './ordinalScale';
+
 import { Scale } from './scale-interface';
-import { createMinimalLinearScale } from './linearScale';
-import { createMinimalBandScale } from './bandScale';
-import { createMinimalOrdinalScale } from './ordinalScale';
+
+import { createMinimalBandScale, registerBandScaleComponent } from './bandScale';
+import { createMinimalLinearScale, registerLinearScaleComponent } from './linearScale';
+import { createMinimalOrdinalScale, registerOrdinalScaleComponent } from './ordinalScale';
+
 
 /**
  * Create a scale factory function that can be used directly in code
@@ -138,7 +141,7 @@ export function createScale(type: string, options: any): Scale {
 }
 
 // Export a unified scale component that can create any type of scale
-buildViz({
+const scaleDefinition = {
   type: "define",
   name: "scale",
   properties: {
@@ -173,4 +176,21 @@ buildViz({
       ...scale
     };
   }
-});
+};
+
+
+export function registerScaleComponents() {
+  // Make sure define type is registered
+  registerDefineType();
+
+  // Register the scale component with the builder
+  buildViz(scaleDefinition);
+
+  // Register individual scale components
+  registerBandScaleComponent();
+  registerLinearScaleComponent();
+  registerOrdinalScaleComponent();
+
+  console.log('Scale components registered');
+}
+registerScaleComponents();

@@ -293,8 +293,6 @@ export const axisDefinition = {
   }
 };
 
-// Register the axis component
-buildViz(axisDefinition);
 
 /**
  * Create an axis directly
@@ -348,3 +346,14 @@ export function createAxis(options: {
     className: options.className || 'axis'
   });
 }
+
+export function registerAxisComponent() {
+    // Make sure define type is registered
+    registerDefineType();
+
+  // Register the axis component with the builder
+  buildViz(axisDefinition);
+  console.log('Axis component registered');
+
+}
+registerAxisComponent();

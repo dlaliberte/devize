@@ -100,9 +100,6 @@ export const linearScaleDefinition = {
   }
 };
 
-// Register the linear scale type
-buildViz(linearScaleDefinition);
-
 // Export a function to create a linear scale directly
 export function createLinearScale(
   domain: [number, number],
@@ -164,4 +161,10 @@ export function createMinimalLinearScale(options: {
   };
 
   return scale;
+}
+
+export function registerLinearScaleComponent() {
+  // Register the linear scale component with the builder
+  buildViz(linearScaleDefinition);
+  console.log('Linear scale component registered');
 }
