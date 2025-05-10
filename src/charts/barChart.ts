@@ -137,19 +137,24 @@ export const barChartDefinition = {
     const legendOptions = props.legend || {};
     const legendEnabled = legendOptions.enabled !== false;
 
+    // Calculate legend position
+    let legendPosition = legendOptions.position || 'top-right';
+    const calculatedPosition = calculateLegendPosition(legendPosition, dimensions, margin);
+
     const legend = (colorMapping && legendEnabled) ? {
       type: 'legend',
       legendType: 'color',
       items: colorMapping,
-      position: { x: dimensions.chartWidth - 50, y: 10 },
+
+      position: calculatedPosition,
       itemSpacing: 25,
       symbolSize: 15,
       orientation: legendOptions.orientation || 'vertical',
-      // Use explicit positioning relative to the chart dimensions
-      // Position at top-right
-      transform: `translate(${dimensions.chartWidth - 150}, 10)`,
-      // Calculate position based on the specified option
-      ...calculateLegendPosition(legendOptions.position || 'top-right', dimensions, margin)
+      // Add explicit class
+
+      class: 'legend',
+      // Add explicit transform for positioning
+      transform: `translate(${calculatedPosition.x},${calculatedPosition.y})`
     } : null;
 
     // Create bars
@@ -284,7 +289,12 @@ export function createBarChart(options: {
   title?: string,
   grid?: boolean,
   width?: number,
-  height?: number
+  height?: number,
+  legend?: {
+    enabled?: boolean,
+    position?: string | { x: number, y: number },
+    orientation?: 'vertical' | 'horizontal'
+  }
 }) {
   return buildViz({
     type: 'barChart',
@@ -297,6 +307,7 @@ export function createBarChart(options: {
     title: options.title || '',
     grid: options.grid || false,
     width: options.width || 800,
-    height: options.height || 400
+    height: options.height || 400,
+    legend: options.legend
   });
 }

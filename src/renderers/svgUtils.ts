@@ -40,3 +40,28 @@ export function createSVGElement(tagName: string): SVGElement {
 
     return svg as SVGElement;
   }
+
+
+/**
+ * Apply attributes to an SVG element
+ */
+export function applyAttributes(element: SVGElement, attributes: Record<string, any>): void {
+    for (const [key, value] of Object.entries(attributes)) {
+      // Skip null or undefined values
+      if (value === null || value === undefined) {
+        continue;
+      }
+
+      // Special handling for class attribute
+      if (key === 'class') {
+        element.setAttribute('class', value.toString());
+        continue;
+      }
+
+      // Convert values to strings
+      const stringValue = value.toString();
+
+      // Set the attribute
+      element.setAttribute(key, stringValue);
+    }
+  }

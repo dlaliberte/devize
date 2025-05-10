@@ -9,7 +9,7 @@
 
 import { registerDefineType } from '../core/define';
 import { buildViz } from '../core/builder';
-import { createSVGElement } from '../renderers/svgUtils';
+import { createSVGElement, applyAttributes } from '../renderers/svgUtils';
 import { RenderableVisualization, VisualizationSpec } from '../core/types';
 
 // Group type definition
@@ -97,29 +97,37 @@ export const groupTypeDefinition = {
 
       // SVG rendering function
       renderToSvg: (svg: SVGElement) => {
-        // Create a group element
-        const groupElement = createSVGElement('g');
+        const element = createSVGElement('g');
 
-        // Apply attributes
+        // Apply attributes - not working
+        // applyAttributes(element, attributes);
+
         for (const [key, value] of Object.entries(attributes)) {
           if (value !== undefined && value !== null) {
-            groupElement.setAttribute(key, value.toString());
+            element.setAttribute(key, value.toString());
           }
         }
 
-        // Render all children into this group
-        processedChildren.forEach(child => {
-          if (child.renderToSvg) {
-            child.renderToSvg(groupElement);
-          }
-        });
 
-        // Append to container if provided
+        // Ensure class is applied
+        if (props.class) {
+          element.setAttribute('class', props.class);
+        }
+
+        // Render children
+        if (processedChildren) {
+          for (const child of processedChildren) {
+            if (child && child.renderToSvg) {
+              child.renderToSvg(element);
+            }
+          }
+        }
+
         if (svg) {
-          svg.appendChild(groupElement);
+          svg.appendChild(element);
         }
 
-        return groupElement;
+        return element;
       },
 
       // Canvas rendering function

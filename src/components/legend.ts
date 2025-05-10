@@ -176,10 +176,11 @@ export const legendDefinition = {
         class: 'legend-label'
       };
 
+      // Create a group for this legend item with explicit class
       return {
         type: 'group',
-        children: [symbol, label],
-        class: 'legend-item'
+        class: 'legend-item',
+        children: [symbol, label].filter(Boolean)
       };
     });
 
@@ -204,7 +205,12 @@ export const legendDefinition = {
       // SVG rendering function - delegates to the group's renderToSvg
       (container) => {
         if (renderableGroup && renderableGroup.renderToSvg) {
-          return renderableGroup.renderToSvg(container);
+          const element = renderableGroup.renderToSvg(container);
+          // Ensure the class is set on the SVG element
+          if (element && !element.classList.contains('legend')) {
+            element.classList.add('legend');
+          }
+          return element;
         }
         return null;
       },
