@@ -48,11 +48,33 @@ export const textTypeDefinition = {
     // SVG rendering function
     const renderToSvg = (svg: SVGElement) => {
       const element = createSVGElement('text');
-      applyAttributes(element, attributes);
+
+      // Apply all attributes - make sure each attribute is explicitly set
+      element.setAttribute('x', props.x.toString());
+      element.setAttribute('y', props.y.toString());
+      element.setAttribute('font-size', props.fontSize.toString());
+      element.setAttribute('font-family', props.fontFamily);
+      element.setAttribute('font-weight', props.fontWeight);
+      element.setAttribute('fill', props.fill);
+      element.setAttribute('text-anchor', props.textAnchor);
+      element.setAttribute('dominant-baseline', props.dominantBaseline);
+      element.setAttribute('opacity', props.opacity.toString());
+
+      if (props.transform) {
+        element.setAttribute('transform', props.transform);
+      }
+
+      // Set text content
       element.textContent = props.text;
+
       if (svg) {
         svg.appendChild(element);
       }
+
+      // Store the current attributes on the element for easier updates
+      // This avoids needing getAttributeNames
+      (element as any)._currentAttributes = { ...attributes };
+
       return element;
     };
 
@@ -122,8 +144,42 @@ export const textTypeDefinition = {
       return true; // Indicate successful rendering
     };
 
-    // Create and return a renderable visualization using the utility function
-    return createRenderableVisualization('text', props, renderToSvg, renderToCanvas);
+    // Add an update method to the renderable visualization
+    const update = (element: SVGElement, newProps: any) => {
+      // Update text content if changed
+      if (newProps.text !== undefined && newProps.text !== props.text) {
+        element.textContent = newProps.text;
+      }
+
+      // Create new attributes object with updated values
+      const newAttributes = { ...attributes };
+
+      // Update attributes with new values
+      for (const key in newProps) {
+        if (key === 'text') continue; // Already handled
+
+        // Map property names to attribute names
+        const attrKey = key === 'fontSize' ? 'font-size' :
+                        key === 'fontFamily' ? 'font-family' :
+                        key === 'fontWeight' ? 'font-weight' :
+                        key === 'textAnchor' ? 'text-anchor' :
+                        key === 'dominantBaseline' ? 'dominant-baseline' :
+                        key;
+
+        newAttributes[attrKey] = newProps[key];
+      }
+
+      // Apply the updated attributes
+      applyAttributes(element, newAttributes);
+
+      // Store the updated attributes
+      (element as any)._currentAttributes = { ...newAttributes };
+
+      return element;
+    };
+
+    // Create and return a renderable visualization with the update method
+    return createRenderableVisualization('text', props, renderToSvg, renderToCanvas, update);
   }
 };
 

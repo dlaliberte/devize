@@ -64,11 +64,27 @@ export const legendDefinition = {
 
     const isHorizontal = orientation === 'horizontal';
 
-    // Create legend title
+    // Get position coordinates - either from position object or transform
+    let posX = 0;
+    let posY = 0;
+
+    if (position && typeof position === 'object') {
+      posX = position.x || 0;
+      posY = position.y || 0;
+    } else if (props.transform) {
+      // Try to extract position from transform attribute if provided
+      const translateMatch = props.transform.match(/translate\(([^,]+),([^)]+)\)/);
+      if (translateMatch) {
+        posX = parseFloat(translateMatch[1]);
+        posY = parseFloat(translateMatch[2]);
+      }
+    }
+
+    // Create legend title with correct positioning
     const legendTitle = title ? {
       type: 'text',
-      x: position.x,
-      y: position.y,
+      x: 0, // Relative to the legend group
+      y: 0,
       text: title,
       fontSize: '14px',
       fontFamily: 'Arial',
@@ -81,10 +97,10 @@ export const legendDefinition = {
     // Calculate title offset for items positioning
     const titleOffset = title ? 25 : 0;
 
-    // Create legend items
+    // Create legend items with correct positioning
     const legendItems = items.map((item, i) => {
-      const itemX = position.x + (isHorizontal ? i * itemSpacing : 0);
-      const itemY = position.y + titleOffset + (isHorizontal ? 0 : i * itemSpacing);
+      const itemX = isHorizontal ? i * itemSpacing : 0;
+      const itemY = titleOffset + (isHorizontal ? 0 : i * itemSpacing);
 
       // Create the appropriate symbol based on legend type
       let symbol;
@@ -167,9 +183,10 @@ export const legendDefinition = {
       };
     });
 
-    // Combine all elements into a group specification
+    // Combine all elements into a group specification with explicit transform
     const groupSpec = {
       type: 'group',
+      transform: `translate(${posX},${posY})`, // Apply explicit positioning
       class: 'legend',
       children: [
         legendTitle,

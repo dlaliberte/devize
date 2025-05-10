@@ -9,6 +9,7 @@
 
 import { buildViz } from './builder';
 import { RenderableVisualization, VisualizationSpec } from './types';
+import { ensureSvg } from '../core/renderer';
 
 /**
  * Creates a standard render function for a component
@@ -79,43 +80,71 @@ export function createGetPropertyFunction(props: VisualizationSpec) {
 }
 
 /**
- * Creates a standard renderable visualization object
- *
- * @param type The component type
- * @param props The component properties
- * @param renderToSvg The component-specific SVG rendering function
- * @param renderToCanvas The component-specific Canvas rendering function
- * @returns A standard renderable visualization object
+ * Creates a renderable visualization with optional update function
  */
 export function createRenderableVisualization(
-  type: string,
-  props: VisualizationSpec,
-  renderToSvg?: (svg: SVGElement) => SVGElement,
-  renderToCanvas?: (ctx: CanvasRenderingContext2D) => boolean
-): RenderableVisualization {
-  const defaultRenderToSvg = (svg: SVGElement) => {
-    throw new Error('No SVG rendering function provided for this component type.');
-  };
+  renderableType: string,
+  props: any,
+  renderToSvg: (svg: SVGElement) => SVGElement,
+  renderToCanvas: (ctx: CanvasRenderingContext2D) => boolean,
+  updateFn?: (element: SVGElement, newProps: any) => SVGElement
+) {
+  // Store the original properties
+  const originalProps = { ...props };
 
-  const defaultRenderToCanvas = (ctx: CanvasRenderingContext2D) => {
-    throw new Error('No Canvas rendering function provided for this component type.');
-  };
-
+  // Create the renderable object
   const renderable: RenderableVisualization = {
-    renderableType: type,
+    renderableType,
 
-    render: null as any, // Will be set below
+    // Property getter
+    getProperty: (name: string) => {
+      return originalProps[name];
+    },
 
-    // If renderToSvg is defined, use it, otherwise use the default SVG renderer
-    renderToSvg: renderToSvg || defaultRenderToSvg,
-    renderToCanvas: renderToCanvas || defaultRenderToCanvas,
+    // SVG rendering function
+    renderToSvg,
 
-    update: createUpdateFunction(props),
-    getProperty: createGetPropertyFunction(props)
+    // Canvas rendering function
+    renderToCanvas,
+
+    // Render to a container
+    render: (container: HTMLElement) => {
+      // Create or get SVG element
+      const svg = ensureSvg(container);
+
+      // Render the element
+      const element = renderToSvg(svg);
+
+      // Return an object with update method
+      return {
+        element,
+        update: (newProps: any) => {
+          if (updateFn) {
+            // Use the provided update function
+            updateFn(element, newProps);
+          } else {
+            // Default update behavior
+            // Remove the old element and render a new one
+            if (element.parentNode) {
+              element.parentNode.removeChild(element);
+            }
+
+            // Create a merged props object
+            const mergedProps = { ...originalProps, ...newProps };
+
+            // Create a new visualization with the merged props
+            const newViz = buildViz({
+              type: renderableType,
+              ...mergedProps
+            });
+
+            // Render the new visualization
+            newViz.renderToSvg(svg);
+          }
+        }
+      };
+    }
   };
-
-  // Set the render function (needs access to the renderable object)
-  renderable.render = createRenderFunction(renderable);
 
   return renderable;
 }

@@ -170,7 +170,9 @@ export function renderViz(
 
     return result;
   }
-}/**
+}
+
+/**
  * Update an existing visualization
  */
 export function updateViz(

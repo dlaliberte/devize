@@ -38,6 +38,14 @@ import {
 describe('Bar Chart Component', () => {
   let container: HTMLElement;
 
+    // Define sample data for all tests to use
+    const sampleData = [
+      { category: 'A', value: 10, group: 'Group 1' },
+      { category: 'B', value: 20, group: 'Group 2' },
+      { category: 'C', value: 15, group: 'Group 1' },
+      { category: 'D', value: 25, group: 'Group 2' }
+  ];
+
   // Reset registry before each test
   beforeEach(() => {
     // Reset the registry
@@ -356,5 +364,109 @@ describe('Bar Chart Component', () => {
     // Compare with the registered type
     const registeredType = getType('barChart');
     expect(registeredType?.properties).toEqual(barChartDefinition.properties);
+  });
+
+  test('should render a bar chart with default legend position', () => {
+    // Create a bar chart with default legend position
+    const chart = createBarChart({
+      data: sampleData,
+      x: { field: 'category' },
+      y: { field: 'value' },
+      color: { field: 'group' },
+      width: 600,
+      height: 400
+    });
+
+    // Render the chart
+    chart.render(container);
+
+    // Check if the chart is rendered
+    const svg = container.querySelector('svg');
+    expect(svg).toBeTruthy();
+
+    // Check if legend is rendered
+    const legendGroup = svg?.querySelector('.legend');
+    expect(legendGroup).toBeTruthy();
+
+    // Check legend position - should be at the right side by default
+    const legendTransform = legendGroup?.getAttribute('transform');
+    console.log('Default legend transform:', legendTransform);
+
+    // The legend should have a transform that positions it on the right side
+    // This will depend on your implementation, but we expect it to be positioned
+    // relative to the right edge of the chart
+    expect(legendTransform).toBeTruthy();
+
+    // Check if legend items are rendered
+    const legendItems = svg?.querySelectorAll('.legend-item');
+    expect(legendItems?.length).toBeGreaterThan(0);
+  });
+
+  test('should position legend at specified coordinates', () => {
+    // Create a bar chart with custom legend position
+    const chart = buildViz({
+      type: 'barChart',
+      data: sampleData,
+      x: { field: 'category' },
+      y: { field: 'value' },
+      color: { field: 'group' },
+      width: 600,
+      height: 400,
+      legend: {
+        position: { x: 450, y: 50 } // Explicitly position the legend
+      }
+    });
+
+    // Render the chart
+    chart.render(container);
+
+    // Check if legend is rendered
+    const svg = container.querySelector('svg');
+    const legendGroup = svg?.querySelector('.legend');
+    expect(legendGroup).toBeTruthy();
+
+    // Check legend position
+    const legendTransform = legendGroup?.getAttribute('transform');
+    console.log('Custom legend transform:', legendTransform);
+
+    // The legend should have a transform that positions it at the specified coordinates
+    expect(legendTransform).toContain('translate(450,50)');
+  });
+
+  test('should position legend with different orientations', () => {
+    // Create a bar chart with horizontal legend
+    const chart = buildViz({
+      type: 'barChart',
+      data: sampleData,
+      x: { field: 'category' },
+      y: { field: 'value' },
+      color: { field: 'group' },
+      width: 600,
+      height: 400,
+      legend: {
+        position: { x: 150, y: 350 },
+        orientation: 'horizontal'
+      }
+    });
+
+    // Render the chart
+    chart.render(container);
+
+    // Check if legend is rendered
+    const svg = container.querySelector('svg');
+    const legendGroup = svg?.querySelector('.legend');
+    expect(legendGroup).toBeTruthy();
+
+    // Check legend position
+    const legendTransform = legendGroup?.getAttribute('transform');
+    console.log('Horizontal legend transform:', legendTransform);
+
+    // The legend should have a transform that positions it at the specified coordinates
+    expect(legendTransform).toContain('translate(150,350)');
+
+    // Check if legend items are rendered horizontally
+    // This might be harder to test directly, but we can check if they exist
+    const legendItems = svg?.querySelectorAll('.legend-item');
+    expect(legendItems?.length).toBeGreaterThan(0);
   });
 });

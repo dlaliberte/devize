@@ -24,6 +24,29 @@ import '../components/legend';
 import '../components/scales/linearScale';
 import '../components/scales/bandScale';
 
+
+// Helper function to calculate legend position
+function calculateLegendPosition(position, dimensions, margin) {
+  if (typeof position === 'object' && position.x !== undefined && position.y !== undefined) {
+    // Use explicit coordinates
+    return { x: position.x, y: position.y };
+  }
+
+  // Handle named positions
+  switch(position) {
+    case 'top-right':
+      return { x: dimensions.chartWidth - 150, y: 20 };
+    case 'top-left':
+      return { x: 20, y: 20 };
+    case 'bottom-right':
+      return { x: dimensions.chartWidth - 150, y: dimensions.chartHeight - 100 };
+    case 'bottom-left':
+      return { x: 20, y: dimensions.chartHeight - 100 };
+    default:
+      return { x: dimensions.chartWidth - 150, y: 20 }; // Default to top-right
+  }
+}
+
 // Define the barChart component
 export const barChartDefinition = {
   type: "define",
@@ -38,7 +61,14 @@ export const barChartDefinition = {
     title: { default: '' },
     grid: { default: false },
     width: { default: 800 },
-    height: { default: 400 }
+    height: { default: 400 },
+    legend: {
+      default: {
+        enabled: true,
+        position: 'top-right', // 'top-right', 'top-left', 'bottom-right', 'bottom-left', or {x, y}
+        orientation: 'vertical'
+      }
+    }
   },
   validate: function(props: any) {
     // Validate data is an array
@@ -103,12 +133,23 @@ export const barChartDefinition = {
       }));
     }
 
-    // Create legend if color mapping exists
-    const legend = colorMapping ? {
+    // Use the helper function when creating the legend
+    const legendOptions = props.legend || {};
+    const legendEnabled = legendOptions.enabled !== false;
+
+    const legend = (colorMapping && legendEnabled) ? {
       type: 'legend',
       legendType: 'color',
-      transform: `translate(${dimensions.chartWidth - 120}, 0)`,
-      items: colorMapping
+      items: colorMapping,
+      position: { x: dimensions.chartWidth - 50, y: 10 },
+      itemSpacing: 25,
+      symbolSize: 15,
+      orientation: legendOptions.orientation || 'vertical',
+      // Use explicit positioning relative to the chart dimensions
+      // Position at top-right
+      transform: `translate(${dimensions.chartWidth - 150}, 10)`,
+      // Calculate position based on the specified option
+      ...calculateLegendPosition(legendOptions.position || 'top-right', dimensions, margin)
     } : null;
 
     // Create bars
