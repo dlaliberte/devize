@@ -192,7 +192,8 @@ export function createMockCanvasContext() {
     translate: vi.fn(),
     rotate: vi.fn(),
     scale: vi.fn(),
-    clearRect: vi.fn()
+    clearRect: vi.fn(),
+    setLineDash: vi.fn()
   };
 }
 
@@ -210,6 +211,7 @@ export function testCanvasRendering(
     lineWidth?: number;
     fill?: boolean;
     stroke?: boolean;
+    setLineDash?: any[] | boolean; // Update this line to handle setLineDash
     [key: string]: any;
   }
 ) {
@@ -281,9 +283,30 @@ export function testCanvasRendering(
     }
   }
 
+  // Add specific handling for setLineDash
+  if (expectedOperations.setLineDash !== undefined) {
+    if (typeof expectedOperations.setLineDash === 'boolean') {
+      if (expectedOperations.setLineDash) {
+        expect(ctx.setLineDash).toHaveBeenCalled();
+      } else {
+        expect(ctx.setLineDash).not.toHaveBeenCalled();
+      }
+    } else if (Array.isArray(expectedOperations.setLineDash)) {
+      // If it's an array of arrays, check each call
+      if (Array.isArray(expectedOperations.setLineDash[0])) {
+        expectedOperations.setLineDash.forEach(dashArray => {
+          expect(ctx.setLineDash).toHaveBeenCalledWith(dashArray);
+        });
+      } else {
+        // If it's a single array, check just one call
+        expect(ctx.setLineDash).toHaveBeenCalledWith(expectedOperations.setLineDash);
+      }
+    }
+  }
+
   // Check any other operations
   for (const [key, value] of Object.entries(expectedOperations)) {
-    if (!['beginPath', 'rect', 'arc', 'fillStyle', 'strokeStyle', 'lineWidth', 'fill', 'stroke'].includes(key)) {
+    if (!['beginPath', 'rect', 'arc', 'fillStyle', 'strokeStyle', 'lineWidth', 'fill', 'stroke', 'setLineDash'].includes(key)) {
       if (typeof value === 'boolean') {
         if (value) {
           expect(ctx[key]).toHaveBeenCalled();

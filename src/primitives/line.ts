@@ -7,10 +7,9 @@
  * Last Modified: [Date]
  */
 
-import { registerDefineType } from '../core/define';
 import { buildViz } from '../core/builder';
+import { registerDefineType } from '../core/define';
 import { createSVGElement } from '../renderers/svgUtils';
-import { RenderableVisualization, VisualizationSpec } from '../core/types';
 import { createRenderableVisualization } from '../core/componentUtils';
 
 // Line type definition
@@ -26,7 +25,7 @@ export const lineTypeDefinition = {
     strokeWidth: { default: 1 },
     strokeDasharray: { default: "none" }
   },
-  implementation: props => {
+  implementation: function(props) {
     // Prepare attributes
     const attributes = {
       x1: props.x1,

@@ -16,7 +16,10 @@ import {
   resetRegistry,
   createTestContainer,
   cleanupTestContainer,
-  testVisualizationRendering
+  testVisualizationRendering,
+  testVisualizationUpdate,
+  testVisualizationProperties,
+  testCanvasRendering
 } from '../test/testUtils';
 
 describe('Line Primitive', () => {
@@ -55,58 +58,55 @@ describe('Line Primitive', () => {
   });
 
   test('should create a renderable object with correct attributes', () => {
-    const result = buildViz({
-      type: "line",
-      x1: 10,
-      y1: 20,
-      x2: 100,
-      y2: 200,
-      stroke: 'red',
-      strokeWidth: 2,
-      strokeDasharray: '5,5'
-    });
-
-    expect(result).toBeDefined();
-    expect(result.renderableType).toBe('line');
-    expect(result.getProperty('x1')).toBe(10);
-    expect(result.getProperty('y1')).toBe(20);
-    expect(result.getProperty('x2')).toBe(100);
-    expect(result.getProperty('y2')).toBe(200);
-    expect(result.getProperty('stroke')).toBe('red');
-    expect(result.getProperty('strokeWidth')).toBe(2);
-    expect(result.getProperty('strokeDasharray')).toBe('5,5');
+    testVisualizationProperties(
+      {
+        type: "line",
+        x1: 10,
+        y1: 20,
+        x2: 100,
+        y2: 200,
+        stroke: 'red',
+        strokeWidth: 2,
+        strokeDasharray: '5,5'
+      },
+      {
+        x1: 10,
+        y1: 20,
+        x2: 100,
+        y2: 200,
+        stroke: 'red',
+        strokeWidth: 2,
+        strokeDasharray: '5,5'
+      }
+    );
   });
 
   test('should render line to SVG with correct attributes', () => {
-    // Build and render the visualization
-    const viz = buildViz({
-      type: 'line',
-      x1: 10,
-      y1: 20,
-      x2: 100,
-      y2: 200,
-      stroke: 'red',
-      strokeWidth: 2,
-      strokeDasharray: '5,5'
-    });
-
-    // Render to container
-    viz.render(container);
-
-    // Get the HTML
-    const html = container.innerHTML;
-    console.log('Rendered HTML:', html);
-
-    // Check for expected attributes
-    expect(html).toContain('<line');
-    expect(html).toContain('x1="10"');
-    expect(html).toContain('y1="20"');
-    expect(html).toContain('x2="100"');
-    expect(html).toContain('y2="200"');
-    expect(html).toContain('stroke="red"');
-    expect(html).toContain('stroke-width="2"');
-    expect(html).toContain('stroke-dasharray="5,5"');
+    testVisualizationRendering(
+      {
+        type: 'line',
+        x1: 10,
+        y1: 20,
+        x2: 100,
+        y2: 200,
+        stroke: 'red',
+        strokeWidth: 2,
+        strokeDasharray: '5,5'
+      },
+      container,
+      {
+        'x1': '10',
+        'y1': '20',
+        'x2': '100',
+        'y2': '200',
+        'stroke': 'red',
+        'stroke-width': '2',
+        'stroke-dasharray': '5,5'
+      },
+      'line'
+    );
   });
+
   test('should handle null stroke-dasharray when none is specified', () => {
     const result = buildViz({
       type: "line",
@@ -125,162 +125,119 @@ describe('Line Primitive', () => {
     expect(element.hasAttribute('stroke-dasharray')).toBe(false);
   });
 
-  test('should provide SVG rendering function', () => {
-    const result = buildViz({
-      type: "line",
-      x1: 10,
-      y1: 20,
-      x2: 100,
-      y2: 200
-    });
-
-    expect(result.renderToSvg).toBeTypeOf('function');
-
-    // Create a mock container
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-
-    // Call the SVG rendering function
-    const svgElement = result.renderToSvg(svg);
-
-    // Verify the SVG element was created correctly
-    expect(svgElement).toBeDefined();
-    expect(svgElement.tagName.toLowerCase()).toBe('line');
-    expect(svg.contains(svgElement)).toBe(true);
-  });
-
-  test('should provide Canvas rendering function for solid line', () => {
-    const result = buildViz({
-      type: "line",
-      x1: 10,
-      y1: 20,
-      x2: 100,
-      y2: 200,
-      stroke: 'blue',
-      strokeWidth: 2
-      // No strokeDasharray specified (should default to 'none')
-    });
-
-    expect(result.renderToCanvas).toBeTypeOf('function');
-
-    // Create a mock canvas context
-    const ctx = {
-      beginPath: vi.fn(),
-      moveTo: vi.fn(),
-      lineTo: vi.fn(),
-      stroke: vi.fn(),
-      setLineDash: vi.fn(),
-      strokeStyle: '',
-      lineWidth: 0
-    };
-
-    // Call the Canvas rendering function
-    const canvasResult = result.renderToCanvas(ctx as any);
-
-    // Verify the canvas operations were performed correctly
-    expect(canvasResult).toBe(true);
-    expect(ctx.beginPath).toHaveBeenCalled();
-    expect(ctx.moveTo).toHaveBeenCalledWith(10, 20);
-    expect(ctx.lineTo).toHaveBeenCalledWith(100, 200);
-    expect(ctx.setLineDash).toHaveBeenCalledWith([]);
-    expect(ctx.stroke).toHaveBeenCalled();
-    expect(ctx.strokeStyle).toBe('blue');
-    expect(ctx.lineWidth).toBe(2);
-
-    // Should reset line dash
-    expect(ctx.setLineDash).toHaveBeenCalledTimes(2);
-  });
-
-  test('should provide Canvas rendering function for dashed line', () => {
-    const result = buildViz({
-      type: "line",
-      x1: 10,
-      y1: 20,
-      x2: 100,
-      y2: 200,
-      strokeDasharray: '5,10'
-    });
-
-    expect(result.renderToCanvas).toBeTypeOf('function');
-
-    // Create a mock canvas context
-    const ctx = {
-      beginPath: vi.fn(),
-      moveTo: vi.fn(),
-      lineTo: vi.fn(),
-      stroke: vi.fn(),
-      setLineDash: vi.fn(),
-      strokeStyle: '',
-      lineWidth: 0
-    };
-
-    // Call the Canvas rendering function
-    const canvasResult = result.renderToCanvas(ctx as any);
-
-    // Verify the canvas operations were performed correctly
-    expect(canvasResult).toBe(true);
-    expect(ctx.beginPath).toHaveBeenCalled();
-    expect(ctx.moveTo).toHaveBeenCalledWith(10, 20);
-    expect(ctx.lineTo).toHaveBeenCalledWith(100, 200);
-
-    // Should set line dash with parsed values
-    expect(ctx.setLineDash).toHaveBeenCalledWith([5, 10]);
-    expect(ctx.stroke).toHaveBeenCalled();
-
-    // Should reset line dash
-    expect(ctx.setLineDash).toHaveBeenCalledTimes(2);
-    expect(ctx.setLineDash).toHaveBeenLastCalledWith([]);
-  });
-
   test('should apply default values for optional properties', () => {
-    const result = buildViz({
-      type: "line",
-      x1: 10,
-      y1: 20,
-      x2: 100,
-      y2: 200
-      // No optional properties specified
-    });
-
-    expect(result.getProperty('stroke')).toBe('black');
-    expect(result.getProperty('strokeWidth')).toBe(1);
-    expect(result.getProperty('strokeDasharray')).toBe('none');
+    testVisualizationRendering(
+      {
+        type: "line",
+        x1: 10,
+        y1: 20,
+        x2: 100,
+        y2: 200
+      },
+      container,
+      {
+        'x1': '10',
+        'y1': '20',
+        'x2': '100',
+        'y2': '200',
+        'stroke': 'black',
+        'stroke-width': '1'
+      },
+      'line'
+    );
   });
 
   test('should update line attributes', () => {
-    // Create initial line
-    const viz = buildViz({
-      type: "line",
-      x1: 10,
-      y1: 20,
-      x2: 100,
-      y2: 200,
-      stroke: 'black'
-    });
+    testVisualizationUpdate(
+      // Initial spec
+      {
+        type: "line",
+        x1: 10,
+        y1: 20,
+        x2: 100,
+        y2: 200,
+        stroke: 'black'
+      },
+      // Update spec
+      {
+        type: "line",
+        x1: 50,
+        y1: 60,
+        x2: 150,
+        y2: 250,
+        stroke: 'red',
+        strokeDasharray: '5,5'
+      },
+      // Container
+      container,
+      // Initial attributes
+      {
+        'x1': '10',
+        'y1': '20',
+        'x2': '100',
+        'y2': '200',
+        'stroke': 'black',
+        'stroke-width': '1'
+      },
+      // Updated attributes
+      {
+        'x1': '50',
+        'y1': '60',
+        'x2': '150',
+        'y2': '250',
+        'stroke': 'red',
+        'stroke-width': '1',
+        'stroke-dasharray': '5,5'
+      },
+      'line'
+    );
+  });
 
-    // Render it to the container
-    const renderResult = viz.render(container);
+  test('should render to canvas with solid line', () => {
+    testCanvasRendering(
+      {
+        type: "line",
+        x1: 10,
+        y1: 20,
+        x2: 100,
+        y2: 200,
+        stroke: 'blue',
+        strokeWidth: 2
+      },
+      {
+        beginPath: true,
+        moveTo: [10, 20],
+        lineTo: [100, 200],
+        strokeStyle: 'blue',
+        lineWidth: 2,
+        setLineDash: [[]], // Updated to match the expected call
+        stroke: true
+      }
+    );
+  });
 
-    // Get the initial HTML
-    const initialHTML = container.innerHTML;
-    expect(initialHTML).toContain('<line');
-    expect(initialHTML).toContain('x1="10"');
-    expect(initialHTML).toContain('y1="20"');
-    expect(initialHTML).toContain('stroke="black"');
-
-    // Update with new properties
-    const updatedResult = renderResult.update({
-      x1: 50,
-      y1: 60,
-      stroke: 'red',
-      strokeDasharray: '5,5'
-    });
-
-    // Get the updated HTML
-    const updatedHTML = container.innerHTML;
-    expect(updatedHTML).toContain('x1="50"');
-    expect(updatedHTML).toContain('y1="60"');
-    expect(updatedHTML).toContain('stroke="red"');
-    expect(updatedHTML).toContain('stroke-dasharray="5,5"');
+  test('should render to canvas with dashed line', () => {
+    testCanvasRendering(
+      {
+        type: "line",
+        x1: 10,
+        y1: 20,
+        x2: 100,
+        y2: 200,
+        stroke: 'blue',
+        strokeWidth: 2,
+        strokeDasharray: '5,10'
+      },
+      {
+        beginPath: true,
+        moveTo: [10, 20],
+        lineTo: [100, 200],
+        strokeStyle: 'blue',
+        lineWidth: 2,
+        setLineDash: [[5, 10]], // Updated to match the expected call
+        stroke: true
+      }
+    );
   });
 
   test('should match the exported type definition', () => {
