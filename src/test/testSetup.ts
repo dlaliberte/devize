@@ -13,6 +13,7 @@ import { registerCirclePrimitive } from '../primitives/circle';
 import { registerRectanglePrimitive } from '../primitives/rectangle';
 import { registerTextPrimitive } from '../primitives/text';
 import { registerGroupPrimitive } from '../primitives/group';
+import { registerLinePrimitive } from '../primitives/line';
 
 /**
  * Initialize the library with all standard primitives
@@ -52,6 +53,9 @@ export function ensurePrimitivesRegistered(primitives: string[]) {
       switch (primitive) {
         case 'circle':
           registerCirclePrimitive();
+          break;
+        case 'line':
+          registerLinePrimitive();
           break;
         case 'rectangle':
           registerRectanglePrimitive();

@@ -17,13 +17,13 @@ function isRenderableVisualization(obj: any): boolean {
  * Process a specification with type definition
  */
 function processSpecification(spec: VisualizationSpec, typeDefinition: TypeDefinition): VisualizationSpec {
-  const result = { ...spec };
+  const processed = { ...spec };
 
   // Apply default values for any missing properties
   if (typeDefinition.properties) {
     for (const [propName, propDef] of Object.entries(typeDefinition.properties)) {
-      if (!(propName in result) && 'default' in propDef) {
-        result[propName] = propDef.default;
+      if (!(propName in processed) && 'default' in propDef) {
+        processed[propName] = propDef.default;
       }
     }
   }
@@ -31,7 +31,7 @@ function processSpecification(spec: VisualizationSpec, typeDefinition: TypeDefin
   // Validate required properties
   if (typeDefinition.properties) {
     for (const [propName, propDef] of Object.entries(typeDefinition.properties)) {
-      if (propDef.required && !(propName in result)) {
+      if (propDef.required && !(propName in processed)) {
         throw new Error(`Required property '${propName}' missing for visualization type '${typeDefinition.name}'`);
       }
     }
@@ -39,10 +39,10 @@ function processSpecification(spec: VisualizationSpec, typeDefinition: TypeDefin
 
   // Call custom validation function if available
   if (typeDefinition.validate && typeof typeDefinition.validate === 'function') {
-    typeDefinition.validate(result);
+    typeDefinition.validate(processed);
   }
 
-  return result;
+  return processed;
 }
 
 /**

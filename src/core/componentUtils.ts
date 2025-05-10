@@ -90,15 +90,25 @@ export function createGetPropertyFunction(props: VisualizationSpec) {
 export function createRenderableVisualization(
   type: string,
   props: VisualizationSpec,
-  renderToSvg: (svg: SVGElement) => SVGElement,
-  renderToCanvas: (ctx: CanvasRenderingContext2D) => boolean
+  renderToSvg?: (svg: SVGElement) => SVGElement,
+  renderToCanvas?: (ctx: CanvasRenderingContext2D) => boolean
 ): RenderableVisualization {
+  const defaultRenderToSvg = (svg: SVGElement) => {
+    throw new Error('No SVG rendering function provided for this component type.');
+  };
+
+  const defaultRenderToCanvas = (ctx: CanvasRenderingContext2D) => {
+    throw new Error('No Canvas rendering function provided for this component type.');
+  };
+
   const renderable: RenderableVisualization = {
     renderableType: type,
 
     render: null as any, // Will be set below
-    renderToSvg,
-    renderToCanvas,
+
+    // If renderToSvg is defined, use it, otherwise use the default SVG renderer
+    renderToSvg: renderToSvg || defaultRenderToSvg,
+    renderToCanvas: renderToCanvas || defaultRenderToCanvas,
 
     update: createUpdateFunction(props),
     getProperty: createGetPropertyFunction(props)
