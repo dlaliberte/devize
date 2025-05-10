@@ -233,6 +233,51 @@ describe('Text Primitive', () => {
     expect(queryByText(container, "Hello World")).toBeNull();
   });
 
+  test('should update text properties without getAttributeNames', () => {
+    // Initial visualization
+    const initialSpec = {
+      type: "text",
+      x: 100,
+      y: 150,
+      text: "Hello World",
+      fontSize: 16,
+      fill: 'blue'
+    };
+
+    // Create and render the visualization
+    const viz = buildViz(initialSpec);
+    const renderResult = viz.render(container);
+
+    // Verify initial text is present
+    expect(getByText(container, "Hello World")).toBeTruthy();
+
+    // Get the initial text element
+    const initialTextElement = getByText(container, "Hello World");
+    expect(initialTextElement.getAttribute('x')).toBe('100');
+    expect(initialTextElement.getAttribute('y')).toBe('150');
+    expect(initialTextElement.getAttribute('fill')).toBe('blue');
+
+    // Update with new properties
+    const updatedSpec = {
+      x: 200,
+      y: 250,
+      text: "Updated Text",
+      fill: 'red'
+    };
+
+    renderResult.update(updatedSpec);
+
+    // Verify updated text is present and old text is gone
+    const updatedTextElement = getByText(container, "Updated Text");
+    expect(updatedTextElement).toBeTruthy();
+    expect(queryByText(container, "Hello World")).toBeNull();
+
+    // Check updated attributes
+    expect(updatedTextElement.getAttribute('x')).toBe('200');
+    expect(updatedTextElement.getAttribute('y')).toBe('250');
+    expect(updatedTextElement.getAttribute('fill')).toBe('red');
+  });
+
   test('should handle transform property', () => {
     // Create a visualization with transform
     const viz = buildViz({

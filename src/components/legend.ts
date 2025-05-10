@@ -8,6 +8,8 @@
  */
 
 import { buildViz } from '../core/builder';
+import { registerDefineType } from '../core/define';
+import { createRenderableVisualization } from '../core/componentUtils';
 
 // Import required primitives
 import '../primitives/rectangle';
@@ -16,8 +18,11 @@ import '../primitives/polygon';
 import '../primitives/text';
 import '../primitives/group';
 
+// Make sure define type is registered
+registerDefineType();
+
 // Define the legend component
-buildViz({
+export const legendDefinition = {
   type: "define",
   name: "legend",
   properties: {
@@ -30,6 +35,29 @@ buildViz({
     labelOffset: { default: 10 },
     symbolSize: { default: 15 },
     format: { default: value => value.toString() }
+  },
+  validate: function(props) {
+    // Validate legend type
+    const validTypes = ['color', 'size', 'symbol'];
+    if (!validTypes.includes(props.legendType)) {
+      throw new Error(`Invalid legend type: ${props.legendType}. Must be one of: ${validTypes.join(', ')}`);
+    }
+
+    // Validate items is an array
+    if (!Array.isArray(props.items)) {
+      throw new Error('Legend items must be an array');
+    }
+
+    // Validate orientation
+    const validOrientations = ['vertical', 'horizontal'];
+    if (!validOrientations.includes(props.orientation)) {
+      throw new Error(`Invalid orientation: ${props.orientation}. Must be one of: ${validOrientations.join(', ')}`);
+    }
+
+    // Validate format is a function
+    if (typeof props.format !== 'function') {
+      throw new Error('Format must be a function');
+    }
   },
   implementation: function(props) {
     const { legendType, title, items, orientation, position, itemSpacing, labelOffset, symbolSize, format } = props;
@@ -152,30 +180,64 @@ buildViz({
     // Process the group specification to create a renderable visualization
     const renderableGroup = buildViz(groupSpec);
 
-    // Return a specification with rendering functions that delegate to the group
-    return {
-      _renderType: "legend",
-      type: 'legend',
-      legendType,
-      items,
-      orientation,
-      position,
-
+    // Create and return a renderable visualization
+    return createRenderableVisualization(
+      'legend',
+      props,
       // SVG rendering function - delegates to the group's renderToSvg
-      renderToSvg: (container) => {
+      (container) => {
         if (renderableGroup && renderableGroup.renderToSvg) {
           return renderableGroup.renderToSvg(container);
         }
         return null;
       },
-
       // Canvas rendering function - delegates to the group's renderToCanvas
-      renderToCanvas: (ctx) => {
+      (ctx) => {
         if (renderableGroup && renderableGroup.renderToCanvas) {
           return renderableGroup.renderToCanvas(ctx);
         }
         return false;
       }
-    };
+    );
   }
-});
+};
+
+// Register the legend component
+buildViz(legendDefinition);
+
+/**
+ * Create a legend directly
+ *
+ * @param options Legend configuration options
+ * @returns A renderable legend visualization
+ */
+export function createLegend(options: {
+  legendType: 'color' | 'size' | 'symbol',
+  title?: string,
+  items: Array<{
+    value: any,
+    label?: string,
+    color?: string,
+    size?: number,
+    symbol?: 'circle' | 'square' | 'triangle'
+  }>,
+  orientation?: 'vertical' | 'horizontal',
+  position?: { x: number, y: number },
+  itemSpacing?: number,
+  labelOffset?: number,
+  symbolSize?: number,
+  format?: (value: any) => string
+}) {
+  return buildViz({
+    type: 'legend',
+    legendType: options.legendType,
+    title: options.title || '',
+    items: options.items,
+    orientation: options.orientation || 'vertical',
+    position: options.position || { x: 0, y: 0 },
+    itemSpacing: options.itemSpacing || 20,
+    labelOffset: options.labelOffset || 10,
+    symbolSize: options.symbolSize || 15,
+    format: options.format || (value => value.toString())
+  });
+}

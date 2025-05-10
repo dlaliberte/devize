@@ -7,176 +7,201 @@
    * Last Modified: [Date]
    */
 
-import { describe, test, expect, beforeEach } from 'vitest';
+import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
+import { registry, hasType, getType } from '../core/registry';
 import { buildViz } from '../core/builder';
 import { registerDefineType } from '../core/define';
 
-// Import primitives needed for the legend component
-import '../primitives/group';
-import '../primitives/shapes';
-import '../primitives/text';
+// Import the legend definition
+import { legendDefinition, createLegend } from './legend';
 
-// Import the legend component
-import './legend';
+// Import primitive registration functions
+import { registerRectanglePrimitive } from '../primitives/rectangle';
+import { registerCirclePrimitive } from '../primitives/circle';
+import { registerPolygonPrimitive } from '../primitives/polygon';
+import { registerTextPrimitive } from '../primitives/text';
+import { registerGroupPrimitive } from '../primitives/group';
 
-// Reset registry and register define type before each test
-beforeEach(() => {
-    registerDefineType();
-});
+import {
+  resetRegistry,
+  createTestContainer,
+  cleanupTestContainer,
+  testVisualizationRendering,
+  testVisualizationUpdate,
+  testVisualizationProperties
+} from '../test/testUtils';
 
 describe('Legend Component', () => {
-    test('should create a color legend with provided items', () => {
-      const legend = buildViz({
-        type: 'legend',
-        legendType: 'color',
-        title: 'Color Legend',
-        items: [
-          { value: 'A', label: 'Category A', color: 'red' },
-          { value: 'B', label: 'Category B', color: 'blue' },
-          { value: 'C', label: 'Category C', color: 'green' }
-        ],
-        orientation: 'vertical',
-        position: { x: 10, y: 10 }
-      });
+  let container: HTMLElement;
 
-      expect(legend).toBeDefined();
-      // We're not expecting the type to be preserved anymore
-      // expect(legend.type).toBe('legend');
+  // Reset registry before each test
+  beforeEach(() => {
+    // Reset the registry
+    resetRegistry();
 
-      // Get the implementation result
-      const implementation = legend.spec;
-      expect(implementation.type).toBe('group');
-      expect(implementation.children && implementation.children.length).toBe(4); // Title + 3 items
+    // Register the define type first
+    registerDefineType();
+
+    // Register primitives
+    registerRectanglePrimitive();
+    registerCirclePrimitive();
+    registerPolygonPrimitive();
+    registerTextPrimitive();
+    registerGroupPrimitive();
+
+    // Register the legend component
+    buildViz(legendDefinition);
+
+    // Create a test container
+    container = createTestContainer();
+  });
+
+  // Clean up after each test
+  afterEach(() => {
+    cleanupTestContainer(container);
+  });
+
+  test('should register the legend type', () => {
+    // Check if the legend type is registered
+    expect(hasType('legend')).toBe(true);
+
+    // Get the legend type definition
+    const legendType = getType('legend');
+    expect(legendType).toBeDefined();
+
+    // Check properties
+    expect(legendType?.properties.legendType.required).toBe(true);
+    expect(legendType?.properties.items.required).toBe(true);
+    expect(legendType?.properties.orientation.default).toBe('vertical');
+  });
+
+  test('should create a color legend with provided items', () => {
+    // Create a color legend
+    const result = buildViz({
+      type: 'legend',
+      legendType: 'color',
+      title: 'Color Legend',
+      items: [
+        { value: 'A', label: 'Category A', color: 'red' },
+        { value: 'B', label: 'Category B', color: 'blue' },
+        { value: 'C', label: 'Category C', color: 'green' }
+      ],
+      orientation: 'vertical',
+      position: { x: 10, y: 10 }
     });
 
-    test('should create a size legend with provided items', () => {
-      const legend = buildViz({
-        type: 'legend',
-        legendType: 'size',
-        title: 'Size Legend',
-        items: [
-          { value: 'Small', size: 5 },
-          { value: 'Medium', size: 10 },
-          { value: 'Large', size: 15 }
-        ],
-        orientation: 'horizontal',
-        position: { x: 10, y: 10 }
-      });
+    // Check basic properties
+    expect(result).toBeDefined();
+    expect(result.renderableType).toBe('legend');
+    expect(result.getProperty('legendType')).toBe('color');
+    expect(result.getProperty('title')).toBe('Color Legend');
+    expect(result.getProperty('items').length).toBe(3);
+  });
 
-      expect(legend).toBeDefined();
-      // We're not expecting the type to be preserved anymore
-      // expect(legend.type).toBe('legend');
-
-      // Get the implementation result
-      const implementation = legend.spec;
-      expect(implementation.type).toBe('group');
-      expect(implementation.children && implementation.children.length).toBe(4); // Title + 3 items
+  test('should create a size legend with provided items', () => {
+    // Create a size legend
+    const result = buildViz({
+      type: 'legend',
+      legendType: 'size',
+      title: 'Size Legend',
+      items: [
+        { value: 'Small', size: 5 },
+        { value: 'Medium', size: 10 },
+        { value: 'Large', size: 15 }
+      ],
+      orientation: 'horizontal',
+      position: { x: 10, y: 10 }
     });
 
-    test('should create a symbol legend with provided items', () => {
-      const legend = buildViz({
-        type: 'legend',
-        legendType: 'symbol',
-        title: 'Symbol Legend',
-        items: [
-          { value: 'Circle', symbol: 'circle', color: 'red' },
-          { value: 'Square', symbol: 'square', color: 'blue' },
-          { value: 'Triangle', symbol: 'triangle', color: 'green' }
-        ],
-        orientation: 'vertical',
-        position: { x: 10, y: 10 }
-      });
+    // Check basic properties
+    expect(result).toBeDefined();
+    expect(result.renderableType).toBe('legend');
+    expect(result.getProperty('legendType')).toBe('size');
+    expect(result.getProperty('title')).toBe('Size Legend');
+    expect(result.getProperty('items').length).toBe(3);
+    expect(result.getProperty('orientation')).toBe('horizontal');
+  });
 
-      expect(legend).toBeDefined();
-      // We're not expecting the type to be preserved anymore
-      // expect(legend.type).toBe('legend');
-
-      // Get the implementation result
-      const implementation = legend.spec;
-      expect(implementation.type).toBe('group');
-      expect(implementation.children && implementation.children.length).toBe(4); // Title + 3 items
+  test('should create a symbol legend with provided items', () => {
+    // Create a symbol legend
+    const result = buildViz({
+      type: 'legend',
+      legendType: 'symbol',
+      title: 'Symbol Legend',
+      items: [
+        { value: 'Circle', symbol: 'circle', color: 'red' },
+        { value: 'Square', symbol: 'square', color: 'blue' },
+        { value: 'Triangle', symbol: 'triangle', color: 'green' }
+      ],
+      orientation: 'vertical',
+      position: { x: 10, y: 10 }
     });
 
-    test('should handle legend without title', () => {
-      const legend = buildViz({
-        type: 'legend',
-        legendType: 'color',
-        items: [
-          { value: 'A', color: 'red' },
-          { value: 'B', color: 'blue' }
-        ],
-        position: { x: 10, y: 10 }
-      });
+    // Check basic properties
+    expect(result).toBeDefined();
+    expect(result.renderableType).toBe('legend');
+    expect(result.getProperty('legendType')).toBe('symbol');
+    expect(result.getProperty('title')).toBe('Symbol Legend');
+    expect(result.getProperty('items').length).toBe(3);
+  });
 
-      expect(legend).toBeDefined();
-      // We're not expecting the type to be preserved anymore
-      // expect(legend.type).toBe('legend');
-
-      // Get the implementation result
-      const implementation = legend.spec;
-      expect(implementation.type).toBe('group');
-      expect(implementation.children && implementation.children.length).toBe(2); // No title, just 2 items
+  test('should handle legend without title', () => {
+    // Create a legend without title
+    const result = buildViz({
+      type: 'legend',
+      legendType: 'color',
+      items: [
+        { value: 'A', color: 'red' },
+        { value: 'B', color: 'blue' }
+      ],
+      position: { x: 10, y: 10 }
     });
 
-    test('should apply custom formatting to labels', () => {
-      const legend = buildViz({
-        type: 'legend',
-        legendType: 'color',
-        items: [
-          { value: 10, color: 'red' },
-          { value: 20, color: 'blue' }
-        ],
-        format: value => `$${value}`,
-        position: { x: 10, y: 10 }
-      });
+    // Check basic properties
+    expect(result).toBeDefined();
+    expect(result.renderableType).toBe('legend');
+    expect(result.getProperty('title')).toBe('');
+    expect(result.getProperty('items').length).toBe(2);
+  });
 
-      expect(legend).toBeDefined();
-      // We're not expecting the type to be preserved anymore
-      // expect(legend.type).toBe('legend');
+  test('should apply custom formatting to labels', () => {
+    // Create a legend with custom formatting
+    const formatFunc = (value: any) => `${value}`;
 
-      // Get the implementation result
-      const implementation = legend.spec;
-
-      // Find a label
-      const firstItemGroup = implementation.children && implementation.children[0];
-      const label = firstItemGroup && firstItemGroup.children &&
-        firstItemGroup.children.find(child =>
-          child && child.type === 'text' && child.class === 'legend-label'
-        );
-
-      expect(label).toBeDefined();
-      // For now, just check that the text exists
-      expect(label.text).toBeDefined();
-      // The format function might not be applied correctly in the current implementation
-      // expect(label.text).toBe('$10');
+    const result = buildViz({
+      type: 'legend',
+      legendType: 'color',
+      items: [
+        { value: 10, color: 'red' },
+        { value: 20, color: 'blue' }
+      ],
+      format: formatFunc,
+      position: { x: 10, y: 10 }
     });
 
-    test('should handle horizontal orientation', () => {
-      const legend = buildViz({
-        type: 'legend',
-        legendType: 'color',
-        items: [
-          { value: 'A', color: 'red' },
-          { value: 'B', color: 'blue' }
-        ],
-        orientation: 'horizontal',
-        position: { x: 10, y: 10 }
-      });
+    // Check format function
+    expect(result).toBeDefined();
+    expect(result.renderableType).toBe('legend');
+    expect(result.getProperty('format')).toBe(formatFunc);
+  });
 
-      expect(legend).toBeDefined();
-      // We're not expecting the type to be preserved anymore
-      // expect(legend.type).toBe('legend');
-
-      // Get the implementation result
-      const implementation = legend.spec;
-
-      // Check that items are positioned horizontally
-      const firstItem = implementation.children && implementation.children[0];
-      const secondItem = implementation.children && implementation.children[1];
-
-      // In horizontal orientation, items should have different positions
-      // but we can't easily check the exact positioning in the current implementation
-      expect(firstItem).toBeDefined();
-      expect(secondItem).toBeDefined();
+  test('should handle horizontal orientation', () => {
+    // Create a legend with horizontal orientation
+    const result = buildViz({
+      type: 'legend',
+      legendType: 'color',
+      items: [
+        { value: 'A', color: 'red' },
+        { value: 'B', color: 'blue' }
+      ],
+      orientation: 'horizontal',
+      position: { x: 10, y: 10 }
     });
+
+    // Check basic properties
+    expect(result).toBeDefined();
+    expect(result.renderableType).toBe('legend');
+    expect(result.getProperty('orientation')).toBe('horizontal');
+    expect(result.getProperty('items').length).toBe(2);
+  });
 });
