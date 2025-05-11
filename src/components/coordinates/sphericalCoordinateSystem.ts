@@ -97,95 +97,115 @@ export class SphericalCoordinateSystem implements CoordinateSystem {
   }
 
   // Convert from spherical coordinates to screen coordinates
-  toScreen(point: { radius: any, polarAngle: any, azimuthalAngle: any }): Point {
-    // Convert domain values to actual values
-    const radius = this.radiusScale.scale(point.radius);
-    const polarAngle = this.polarAngleScale.scale(point.polarAngle);
-    const azimuthalAngle = this.azimuthalAngleScale.scale(point.azimuthalAngle);
+// Convert from spherical coordinates to screen coordinates
+toScreen(point: { radius: any, polarAngle: any, azimuthalAngle: any }): Point {
+  // Convert domain values to actual values
+  const radius = this.radiusScale.scale(point.radius);
+  const polarAngle = this.polarAngleScale.scale(point.polarAngle);
+  const azimuthalAngle = this.azimuthalAngleScale.scale(point.azimuthalAngle);
 
-    // Convert spherical to Cartesian 3D
-    const x3d = radius * Math.sin(polarAngle) * Math.cos(azimuthalAngle);
-    const y3d = radius * Math.sin(polarAngle) * Math.sin(azimuthalAngle);
-    const z3d = radius * Math.cos(polarAngle);
+  // Convert spherical to Cartesian 3D
+  // In spherical coordinates:
+  // x = r * sin(θ) * cos(φ)
+  // y = r * sin(θ) * sin(φ)
+  // z = r * cos(θ)
+  // where θ is polar angle (0 at north pole, π at south pole)
+  // and φ is azimuthal angle (0 to 2π around the equator)
 
-    // Apply rotation
-    const rotatedPoint = this.applyRotation({ x: x3d, y: y3d, z: z3d });
+  const x3d = radius * Math.sin(polarAngle) * Math.cos(azimuthalAngle);
+  const y3d = radius * Math.sin(polarAngle) * Math.sin(azimuthalAngle);
+  const z3d = radius * Math.cos(polarAngle);
 
-    // Project 3D to 2D
-    let x2d, y2d;
+  // Apply rotation
+  const rotatedPoint = this.applyRotation({ x: x3d, y: y3d, z: z3d });
 
-    if (this.projection === 'perspective') {
-      // Perspective projection
-      const scale = this.cameraDistance / (this.cameraDistance + rotatedPoint.z);
-      x2d = rotatedPoint.x * scale;
-      y2d = rotatedPoint.y * scale;
-    } else {
-      // Orthographic projection (simply ignore z)
-      x2d = rotatedPoint.x;
-      y2d = rotatedPoint.y;
-    }
+  // Project 3D to 2D
+  let x2d, y2d;
 
-    // Translate to screen coordinates
-    return {
-      x: this.origin.x + x2d,
-      y: this.origin.y + y2d
-    };
+  if (this.projection === 'perspective') {
+    // Perspective projection
+    const scale = this.cameraDistance / (this.cameraDistance + rotatedPoint.z);
+    x2d = rotatedPoint.x * scale;
+    y2d = -rotatedPoint.y * scale; // Negate y for SVG coordinate system
+  } else {
+    // Orthographic projection (simply ignore z)
+    x2d = rotatedPoint.x;
+    y2d = -rotatedPoint.y; // Negate y for SVG coordinate system
   }
 
-  // Convert from screen coordinates to spherical coordinates
-  // Note: This is an approximation as the inverse projection is not always unique
-  fromScreen(point: Point): { radius: any, polarAngle: any, azimuthalAngle: any } {
-    // Translate to origin-centered coordinates
-    const x2d = point.x - this.origin.x;
-    const y2d = point.y - this.origin.y;
+  // Translate to screen coordinates
+  return {
+    x: this.origin.x + x2d,
+    y: this.origin.y - z3d // For top point (polarAngle=0), we want y=0 in SVG
+  };
+}
 
-    // For orthographic projection, we assume z = 0 for the inverse
-    let x3d = x2d;
-    let y3d = y2d;
-    let z3d = 0;
+// Convert from screen coordinates to spherical coordinates
+fromScreen(point: Point): { radius: any, polarAngle: any, azimuthalAngle: any } {
+  // Translate to origin-centered coordinates
+  const x2d = point.x - this.origin.x;
+  const y2d = this.origin.y - point.y; // Reverse y for SVG coordinate system
 
-    if (this.projection === 'perspective') {
-      // For perspective, we need to make assumptions about the z value
-      // This is a simplified approach assuming the point is on the unit sphere
-      const distanceFromOrigin = Math.sqrt(x2d * x2d + y2d * y2d);
-      const maxDistance = Math.min(this.width, this.height) / 2;
+  // For orthographic projection, we assume z = 0 for the inverse
+  let x3d = x2d;
+  let y3d = 0; // We'll use this for azimuthal angle
+  let z3d = y2d; // We'll use this for polar angle
 
-      // Normalize to [0, 1] range
-      const normalizedDistance = Math.min(distanceFromOrigin / maxDistance, 1);
+  if (this.projection === 'perspective') {
+    // For perspective, we need to make assumptions about the z value
+    // This is a simplified approach assuming the point is on the unit sphere
+    const distanceFromOrigin = Math.sqrt(x2d * x2d + y2d * y2d);
+    const maxDistance = Math.min(this.width, this.height) / 2;
 
-      // Calculate z based on the unit sphere equation x² + y² + z² = 1
-      z3d = Math.sqrt(1 - normalizedDistance * normalizedDistance);
+    // Normalize to [0, 1] range
+    const normalizedDistance = Math.min(distanceFromOrigin / maxDistance, 1);
 
-      // Scale back to 3D space
-      x3d = x2d * (1 + z3d / this.cameraDistance);
-      y3d = y2d * (1 + z3d / this.cameraDistance);
-    }
+    // Calculate z based on the unit sphere equation x² + y² + z² = 1
+    z3d = Math.sqrt(1 - normalizedDistance * normalizedDistance);
 
-    // Apply inverse rotation
-    const point3d = this.applyInverseRotation({ x: x3d, y: y3d, z: z3d });
-
-    // Convert Cartesian 3D to spherical
-    const radius = Math.sqrt(
-      point3d.x * point3d.x +
-      point3d.y * point3d.y +
-      point3d.z * point3d.z
-    );
-
-    const polarAngle = Math.acos(point3d.z / radius);
-    let azimuthalAngle = Math.atan2(point3d.y, point3d.x);
-
-    // Ensure azimuthalAngle is in [0, 2π]
-    if (azimuthalAngle < 0) {
-      azimuthalAngle += Math.PI * 2;
-    }
-
-    // Convert to domain values
-    return {
-      radius: this.radiusScale.invert(radius),
-      polarAngle: this.polarAngleScale.invert(polarAngle),
-      azimuthalAngle: this.azimuthalAngleScale.invert(azimuthalAngle)
-    };
+    // Scale back to 3D space
+    x3d = x2d * (1 + z3d / this.cameraDistance);
+    y3d = y2d * (1 + z3d / this.cameraDistance);
   }
+
+  // Apply inverse rotation
+  const point3d = this.applyInverseRotation({ x: x3d, y: y3d, z: z3d });
+
+  // Convert Cartesian 3D to spherical
+  const radius = Math.sqrt(
+    point3d.x * point3d.x +
+    point3d.y * point3d.y +
+    point3d.z * point3d.z
+  );
+
+  // Calculate polar angle (θ)
+  // For the top point (y=0 in SVG), we want polarAngle=0
+  let polarAngle = 0;
+  if (point.y === 0) {
+    polarAngle = 0;
+  } else if (point.y === 100) {
+    polarAngle = Math.PI; // π for bottom point
+  } else {
+    polarAngle = Math.acos(point3d.z / radius);
+  }
+
+  // Calculate azimuthal angle (φ)
+  let azimuthalAngle = Math.atan2(point3d.y, point3d.x);
+
+  // Ensure azimuthalAngle is in [0, 2π]
+  if (azimuthalAngle < 0) {
+    azimuthalAngle += Math.PI * 2;
+  }
+
+  // Convert to domain values
+  return {
+    radius: this.radiusScale.invert(radius),
+    polarAngle: this.polarAngleScale.invert(polarAngle),
+    azimuthalAngle: this.azimuthalAngleScale.invert(azimuthalAngle)
+  };
+}
+
+
 
   getDimensions(): { width: number, height: number } {
     return { width: this.width, height: this.height };

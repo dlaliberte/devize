@@ -67,35 +67,36 @@ describe('CartesianCoordinateSystem', () => {
   });
 
   test('should handle origin offset correctly', () => {
-    // Create a coordinate system with an offset origin
-    const xScale = createScale('linear', {
-      domain: [0, 10],
-      range: [0, 100]
-    });
-
-    const yScale = createScale('linear', {
-      domain: [0, 10],
-      range: [100, 0]
-    });
-
-    const offsetCoordSystem = createCartesianCoordinateSystem({
-      width: 100,
-      height: 100,
-      xScale,
-      yScale,
-      origin: { x: 10, y: 10 }
-    });
-
-    // Test with offset origin
-    const point = offsetCoordSystem.toScreen({ x: 5, y: 5 });
-    expect(point.x).toBeCloseTo(60); // 10 + 50
-    expect(point.y).toBeCloseTo(50);
-
-    // Test inverse with offset origin
-    const domainPoint = offsetCoordSystem.fromScreen({ x: 60, y: 50 });
-    expect(domainPoint.x).toBeCloseTo(5);
-    expect(domainPoint.y).toBeCloseTo(5);
+  // Create a coordinate system with an offset origin
+  const xScale = createScale('linear', {
+    domain: [0, 10],
+    range: [0, 100]
   });
+
+  const yScale = createScale('linear', {
+    domain: [0, 10],
+    range: [100, 0]
+  });
+
+  const offsetCoordSystem = createCartesianCoordinateSystem({
+    width: 100,
+    height: 100,
+    xScale,
+    yScale,
+    origin: { x: 10, y: 10 }
+  });
+
+  // Test with offset origin
+  const point = offsetCoordSystem.toScreen({ x: 5, y: 5 });
+  expect(point.x).toBeCloseTo(60); // 10 + 50
+  expect(point.y).toBeCloseTo(60); // 10 + 50 (y=5 maps to 50 in screen coordinates)
+
+  // Test inverse with offset origin
+  const domainPoint = offsetCoordSystem.fromScreen({ x: 60, y: 60 });
+  expect(domainPoint.x).toBeCloseTo(5);
+  expect(domainPoint.y).toBeCloseTo(5);
+});
+
 
   test('should get and set origin', () => {
     // Get initial origin

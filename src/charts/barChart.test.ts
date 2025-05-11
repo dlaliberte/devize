@@ -367,45 +367,45 @@ describe('Bar Chart Component', () => {
   });
 
   test('should render a bar chart with default legend position', () => {
-    // Create a bar chart with default legend position
-    const chart = createBarChart({
-      data: sampleData,
-      x: { field: 'category' },
-      y: { field: 'value' },
-      color: { field: 'group' },
-      width: 600,
-      height: 400
-    });
-
-    // Render the chart
-    chart.render(container);
-
-    // Check if the chart is rendered
-    const svg = container.querySelector('svg');
-    expect(svg).toBeTruthy();
-
-    // Debug: Log just the legend-related elements
-    const legendGroup = svg?.querySelector('.legend');
-    const legendItems = svg?.querySelectorAll('.legend-item');
-    console.log('Legend found:', legendGroup ? 'yes' : 'no');
-    console.log('Legend items found:', legendItems?.length);
-
-    // If no legend items found, log all classes in the SVG
-    if (!legendItems?.length) {
-      const allClasses = new Set();
-      svg?.querySelectorAll('*').forEach(el => {
-        const classes = el.getAttribute('class');
-        if (classes) classes.split(' ').forEach(c => allClasses.add(c));
-      });
-      console.log('All classes in SVG:', Array.from(allClasses));
-    }
-
-    // Check if legend is rendered
-    expect(legendGroup).toBeTruthy();
-
-    // Check if legend items are rendered
-    expect(legendItems?.length).toBeGreaterThan(0);
+  // Create a bar chart with default legend position and ensure color field is specified
+  const chart = createBarChart({
+    data: sampleData,
+    x: { field: 'category' },
+    y: { field: 'value' },
+    color: { field: 'group' }, // This is important - we need a color field to generate a legend
+    width: 600,
+    height: 400
   });
+
+  // Render the chart
+  chart.render(container);
+
+  // Check if the chart is rendered
+  const svg = container.querySelector('svg');
+  expect(svg).toBeTruthy();
+
+  // Debug: Log just the legend-related elements
+  const legendGroup = svg?.querySelector('.legend');
+  const legendItems = svg?.querySelectorAll('.legend-item');
+  console.log('Legend found:', legendGroup ? 'yes' : 'no');
+  console.log('Legend items found:', legendItems?.length);
+
+  // If no legend items found, log all classes in the SVG
+  if (!legendItems?.length) {
+    const allClasses = new Set();
+    svg?.querySelectorAll('*').forEach(el => {
+      const classes = el.getAttribute('class');
+      if (classes) classes.split(' ').forEach(c => allClasses.add(c));
+    });
+    console.log('All classes in SVG:', Array.from(allClasses));
+  }
+
+  // Check if legend is rendered
+  expect(legendGroup).toBeTruthy();
+
+  // Check if legend items are rendered
+  expect(legendItems?.length).toBeGreaterThan(0);
+});
 
   test('should position legend at specified coordinates', () => {
     // Create a bar chart with custom legend position

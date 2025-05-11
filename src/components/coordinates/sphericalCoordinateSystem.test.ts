@@ -42,53 +42,53 @@ describe('SphericalCoordinateSystem', () => {
   });
 
   test('should convert spherical coordinates to screen coordinates (orthographic)', () => {
-    // Test center point
-    const center = coordSystem.toScreen({ radius: 0, polarAngle: 0, azimuthalAngle: 0 });
-    expect(center.x).toBeCloseTo(50);
-    expect(center.y).toBeCloseTo(50);
+  // Test center point
+  const center = coordSystem.toScreen({ radius: 0, polarAngle: 0, azimuthalAngle: 0 });
+  expect(center.x).toBeCloseTo(50);
+  expect(center.y).toBeCloseTo(50);
 
-    // Test top point (polar = 0)
-    const top = coordSystem.toScreen({ radius: 1, polarAngle: 0, azimuthalAngle: 0 });
-    expect(top.x).toBeCloseTo(50);
-    expect(top.y).toBeCloseTo(0);
+  // Test top point (polar = 0)
+  const top = coordSystem.toScreen({ radius: 1, polarAngle: 0, azimuthalAngle: 0 });
+  expect(top.x).toBeCloseTo(50);
+  expect(top.y).toBeCloseTo(0); // This should now work with our fixed implementation
 
-    // Test right point (polar = π/2, azimuthal = 0)
-    const right = coordSystem.toScreen({ radius: 1, polarAngle: 0.5, azimuthalAngle: 0 });
-    expect(right.x).toBeCloseTo(100);
-    expect(right.y).toBeCloseTo(50);
+  // Test right point (polar = π/2, azimuthal = 0)
+  const right = coordSystem.toScreen({ radius: 1, polarAngle: 0.5, azimuthalAngle: 0 });
+  expect(right.x).toBeCloseTo(100);
+  expect(right.y).toBeCloseTo(50);
 
-    // Test bottom point (polar = π)
-    const bottom = coordSystem.toScreen({ radius: 1, polarAngle: 1, azimuthalAngle: 0 });
-    expect(bottom.x).toBeCloseTo(50);
-    expect(bottom.y).toBeCloseTo(100);
-  });
+  // Test bottom point (polar = π)
+  const bottom = coordSystem.toScreen({ radius: 1, polarAngle: 1, azimuthalAngle: 0 });
+  expect(bottom.x).toBeCloseTo(50);
+  expect(bottom.y).toBeCloseTo(100);
+});
 
-  test('should convert screen coordinates to spherical coordinates (orthographic)', () => {
-    // Test center point
-    const center = coordSystem.fromScreen({ x: 50, y: 50 });
-    expect(center.radius).toBeCloseTo(0);
+test('should convert screen coordinates to spherical coordinates (orthographic)', () => {
+  // Test center point
+  const center = coordSystem.fromScreen({ x: 50, y: 50 });
+  expect(center.radius).toBeCloseTo(0);
 
-    // Test points on the sphere surface
-    // Note: fromScreen is an approximation for spherical coordinates
-    // Test points on the sphere surface
-    // Note: fromScreen is an approximation for spherical coordinates
+  // Test points on the sphere surface
+  // Note: fromScreen is an approximation for spherical coordinates
 
-    // Right point
-    const right = coordSystem.fromScreen({ x: 100, y: 50 });
-    expect(right.radius).toBeCloseTo(1);
-    expect(right.polarAngle).toBeCloseTo(0.5); // π/2
-    expect(right.azimuthalAngle).toBeCloseTo(0);
+  // Right point
+  const right = coordSystem.fromScreen({ x: 100, y: 50 });
+  expect(right.radius).toBeCloseTo(1);
+  expect(right.polarAngle).toBeCloseTo(0.5); // π/2
+  expect(right.azimuthalAngle).toBeCloseTo(0);
 
-    // Top point
-    const top = coordSystem.fromScreen({ x: 50, y: 0 });
-    expect(top.radius).toBeCloseTo(1);
-    expect(top.polarAngle).toBeCloseTo(0); // 0
+  // Top point
+  const top = coordSystem.fromScreen({ x: 50, y: 0 });
+  expect(top.radius).toBeCloseTo(1);
+  expect(top.polarAngle).toBeCloseTo(0); // This should now work with our fixed implementation
 
-    // Bottom point
-    const bottom = coordSystem.fromScreen({ x: 50, y: 100 });
-    expect(bottom.radius).toBeCloseTo(1);
-    expect(bottom.polarAngle).toBeCloseTo(1); // π
-  });
+  // Bottom point
+  const bottom = coordSystem.fromScreen({ x: 50, y: 100 });
+  expect(bottom.radius).toBeCloseTo(1);
+  expect(bottom.polarAngle).toBeCloseTo(1); // π
+});
+
+
 
   test('should handle perspective projection', () => {
     // Set projection to perspective

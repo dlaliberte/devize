@@ -72,41 +72,39 @@ export class PolarCoordinateSystem implements CoordinateSystem {
 
     // In PolarCoordinateSystem class
     toScreen(point: { radius: any, angle: any }): Point {
-    // Convert domain values to actual values
-    const radius = this.radiusScale.scale(point.radius);
-    const angle = this.angleScale.scale(point.angle);
+  // Convert domain values to actual values
+  const radius = this.radiusScale.scale(point.radius);
+  const angle = this.angleScale.scale(point.angle);
 
-    // Convert polar to Cartesian
-    // The issue is here - we need to adjust the angle calculation
-    // In standard polar coordinates, angle 0 is to the right, and increases counterclockwise
-    // For SVG, y increases downward, so we need to adjust the sin calculation
-    const x = this.origin.x + radius * Math.cos(angle);
-    const y = this.origin.y + radius * Math.sin(angle);
+  // Convert polar to Cartesian
+  // For SVG, positive y is downward, so we need to adjust the sin calculation
+  const x = this.origin.x + radius * Math.cos(angle);
+  const y = this.origin.y - radius * Math.sin(angle); // Note the negative sign here
 
-    return { x, y };
-    }
+  return { x, y };
+}
 
-    fromScreen(point: Point): { radius: any, angle: any } {
-    // Translate to origin-centered coordinates
-    const dx = point.x - this.origin.x;
-    const dy = point.y - this.origin.y;
+fromScreen(point: Point): { radius: any, angle: any } {
+  // Translate to origin-centered coordinates
+  const dx = point.x - this.origin.x;
+  const dy = this.origin.y - point.y; // Note the reversed order here
 
-    // Convert Cartesian to polar
-    const radius = Math.sqrt(dx * dx + dy * dy);
-    // The issue is here - we need to adjust the angle calculation
-    let angle = Math.atan2(dy, dx);
+  // Convert Cartesian to polar
+  const radius = Math.sqrt(dx * dx + dy * dy);
+  let angle = Math.atan2(dy, dx);
 
-    // Ensure angle is in the range [0, 2π]
-    if (angle < 0) {
-        angle += Math.PI * 2;
-    }
+  // Ensure angle is in the range [0, 2π]
+  if (angle < 0) {
+    angle += Math.PI * 2;
+  }
 
-    // Convert to domain values
-    const domainRadius = this.radiusScale.invert(radius);
-    const domainAngle = this.angleScale.invert(angle);
+  // Convert to domain values
+  const domainRadius = this.radiusScale.invert(radius);
+  const domainAngle = this.angleScale.invert(angle);
 
-    return { radius: domainRadius, angle: domainAngle };
-    }
+  return { radius: domainRadius, angle: domainAngle };
+}
+
 
   getDimensions(): { width: number, height: number } {
     return { width: this.width, height: this.height };

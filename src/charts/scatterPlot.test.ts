@@ -13,9 +13,13 @@ import { registerTextPrimitive } from '../primitives/text';
 import { registerGroupPrimitive } from '../primitives/group';
 import { registerAxisComponent } from '../components/axis';
 import { registerLegendComponent } from '../components/legend';
+import { registerLinearScaleComponent } from '../components/scales/linearScale';
+import { registerBandScaleComponent } from '../components/scales/bandScale';
 
 import '../components/axis';
 import '../components/legend';
+import '../components/scales/linearScale';
+import '../components/scales/bandScale';
 
 // Test utilities
 import {
@@ -50,6 +54,8 @@ describe('Scatter Plot Component', () => {
     // Register required components
     registerAxisComponent();
     registerLegendComponent();
+    registerLinearScaleComponent();
+    registerBandScaleComponent();
 
     // Register the scatter plot component
     buildViz(scatterPlotDefinition);
@@ -71,7 +77,8 @@ describe('Scatter Plot Component', () => {
     expect(scatterPlotType?.properties.x.required).toBe(true);
     expect(scatterPlotType?.properties.y.required).toBe(true);
     expect(scatterPlotType?.properties.color.default).toBe('#3366CC');
-    expect(scatterPlotType?.properties.size.default).toBe(5);
+    // Updated to match the new implementation
+    expect(scatterPlotType?.properties.size.default).toEqual({ value: 5 });
   });
 
   test('should create a scatter plot with provided data', () => {
@@ -151,7 +158,7 @@ describe('Scatter Plot Component', () => {
         x: { field: 'xValue' },
         y: { field: 'yValue' }
       });
-    }).toThrow(/Data must be a non-empty array/);
+    }).toThrow(/Data must be an array/);
   });
 
   test('should validate x and y fields are specified', () => {
@@ -163,7 +170,7 @@ describe('Scatter Plot Component', () => {
         x: {},
         y: { field: 'yValue' }
       });
-    }).toThrow('X and Y must have a field property');
+    }).toThrow(/X field must be specified/);
 
     expect(() => {
       buildViz({
@@ -173,7 +180,7 @@ describe('Scatter Plot Component', () => {
         // @ts-ignore - Testing runtime behavior with invalid input
         y: {}
       });
-    }).toThrow('X and Y must have a field property');
+    }).toThrow(/Y field must be specified/);
   });
 
   test('should validate width and height are positive', () => {

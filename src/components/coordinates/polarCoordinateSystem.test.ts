@@ -34,60 +34,59 @@ describe('PolarCoordinateSystem', () => {
     });
   });
 
-    test('should convert polar coordinates to screen coordinates', () => {
-    // Test center point
-    const center = coordSystem.toScreen({ radius: 0, angle: 0 });
-    expect(center.x).toBeCloseTo(50);
-    expect(center.y).toBeCloseTo(50);
+   test('should convert polar coordinates to screen coordinates', () => {
+  // Test center point
+  const center = coordSystem.toScreen({ radius: 0, angle: 0 });
+  expect(center.x).toBeCloseTo(50);
+  expect(center.y).toBeCloseTo(50);
 
-    // Test right point (0 degrees)
-    const right = coordSystem.toScreen({ radius: 1, angle: 0 });
-    expect(right.x).toBeCloseTo(100);
-    expect(right.y).toBeCloseTo(50);
+  // Test right point (0 degrees)
+  const right = coordSystem.toScreen({ radius: 1, angle: 0 });
+  expect(right.x).toBeCloseTo(100);
+  expect(right.y).toBeCloseTo(50);
 
-    // Test top point (90 degrees)
-    const top = coordSystem.toScreen({ radius: 1, angle: 0.25 });
-    // In SVG, y=0 is at the top, so this should be 50 - 50 = 0
-    expect(top.x).toBeCloseTo(50);
-    expect(top.y).toBeCloseTo(0);
+  // Test top point (90 degrees)
+  const top = coordSystem.toScreen({ radius: 1, angle: 0.25 });
+  expect(top.x).toBeCloseTo(50);
+  expect(top.y).toBeCloseTo(0); // Now this should work with our fixed implementation
 
-    // Test left point (180 degrees)
-    const left = coordSystem.toScreen({ radius: 1, angle: 0.5 });
-    expect(left.x).toBeCloseTo(0);
-    expect(left.y).toBeCloseTo(50);
+  // Test left point (180 degrees)
+  const left = coordSystem.toScreen({ radius: 1, angle: 0.5 });
+  expect(left.x).toBeCloseTo(0);
+  expect(left.y).toBeCloseTo(50);
 
-    // Test bottom point (270 degrees)
-    const bottom = coordSystem.toScreen({ radius: 1, angle: 0.75 });
-    expect(bottom.x).toBeCloseTo(50);
-    expect(bottom.y).toBeCloseTo(100);
-    });
+  // Test bottom point (270 degrees)
+  const bottom = coordSystem.toScreen({ radius: 1, angle: 0.75 });
+  expect(bottom.x).toBeCloseTo(50);
+  expect(bottom.y).toBeCloseTo(100);
+});
 
-    test('should convert screen coordinates to polar coordinates', () => {
-    // Test center point
-    const center = coordSystem.fromScreen({ x: 50, y: 50 });
-    expect(center.radius).toBeCloseTo(0);
+test('should convert screen coordinates to polar coordinates', () => {
+  // Test center point
+  const center = coordSystem.fromScreen({ x: 50, y: 50 });
+  expect(center.radius).toBeCloseTo(0);
 
-    // Test right point
-    const right = coordSystem.fromScreen({ x: 100, y: 50 });
-    expect(right.radius).toBeCloseTo(1);
-    expect(right.angle).toBeCloseTo(0);
+  // Test right point
+  const right = coordSystem.fromScreen({ x: 100, y: 50 });
+  expect(right.radius).toBeCloseTo(1);
+  expect(right.angle).toBeCloseTo(0);
 
-    // Test top point
-    const top = coordSystem.fromScreen({ x: 50, y: 0 });
-    expect(top.radius).toBeCloseTo(1);
-    // This should be 0.25 (90 degrees)
-    expect(top.angle).toBeCloseTo(0.25);
+  // Test top point
+  const top = coordSystem.fromScreen({ x: 50, y: 0 });
+  expect(top.radius).toBeCloseTo(1);
+  expect(top.angle).toBeCloseTo(0.25); // This should now work with our fixed implementation
 
-    // Test left point
-    const left = coordSystem.fromScreen({ x: 0, y: 50 });
-    expect(left.radius).toBeCloseTo(1);
-    expect(left.angle).toBeCloseTo(0.5);
+  // Test left point
+  const left = coordSystem.fromScreen({ x: 0, y: 50 });
+  expect(left.radius).toBeCloseTo(1);
+  expect(left.angle).toBeCloseTo(0.5);
 
-    // Test bottom point
-    const bottom = coordSystem.fromScreen({ x: 50, y: 100 });
-    expect(bottom.radius).toBeCloseTo(1);
-    expect(bottom.angle).toBeCloseTo(0.75);
-    });
+  // Test bottom point
+  const bottom = coordSystem.fromScreen({ x: 50, y: 100 });
+  expect(bottom.radius).toBeCloseTo(1);
+  expect(bottom.angle).toBeCloseTo(0.75);
+});
+
 
 
   test('should create arc paths correctly', () => {

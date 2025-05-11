@@ -22,6 +22,7 @@ import {
 import { LineStyle } from '../components/styles/lineStyle';
 import { AreaStyle } from '../components/styles/areaStyle';
 import { PointStyle } from '../components/styles/pointStyle';
+import { CartesianCoordinateSystem, createCartesianCoordinateSystem } from '../components/coordinates/cartesianCoordinateSystem';
 
 // Make sure define type is registered
 registerDefineType();
@@ -189,6 +190,16 @@ export const lineChartDefinition = {
       range: [dimensions.chartHeight, 0]
     });
 
+    // Create a Cartesian coordinate system
+    const coordSystem = createCartesianCoordinateSystem({
+      width: dimensions.chartWidth,
+      height: dimensions.chartHeight,
+      xScale: xScale,
+      yScale: yScale,
+      origin: { x: 0, y: 0 }, // Origin at top-left of chart area
+      flipY: true // Flip Y axis for SVG coordinate system
+    });
+
     // Determine color mapping
     let colorMapping = null;
     const colorField = typeof color === 'object' && color.field ? color.field : null;
@@ -226,7 +237,7 @@ export const lineChartDefinition = {
     const areaStyleToUse = customAreaStyle ? defaultAreaStyle.merge(customAreaStyle) : defaultAreaStyle;
     const pointStyleToUse = customPointStyle ? defaultPointStyle.merge(customPointStyle) : defaultPointStyle;
 
-    // Generate path data for the line
+    // Generate path data for the line using the coordinate system
     function generatePathData(data: any[]) {
       if (data.length === 0) return '';
 
@@ -234,50 +245,47 @@ export const lineChartDefinition = {
 
       // Move to the first point
       const firstPoint = data[0];
-      const firstX = xScale.scale(firstPoint[x.field]);
-      const firstY = yScale.scale(firstPoint[y.field]);
-      pathData += `M ${firstX} ${firstY} `;
+      const firstScreenPoint = coordSystem.toScreen({ x: firstPoint[x.field], y: firstPoint[y.field] });
+      pathData += `M ${firstScreenPoint.x} ${firstScreenPoint.y} `;
 
       // Add line segments based on curve type
       if (curve === 'linear') {
         // Simple line segments
         for (let i = 1; i < data.length; i++) {
           const d = data[i];
-          const pointX = xScale.scale(d[x.field]);
-          const pointY = yScale.scale(d[y.field]);
-          pathData += `L ${pointX} ${pointY} `;
+          const screenPoint = coordSystem.toScreen({ x: d[x.field], y: d[y.field] });
+          pathData += `L ${screenPoint.x} ${screenPoint.y} `;
         }
       } else if (curve === 'cardinal') {
         // Cardinal spline (simplified version)
         for (let i = 1; i < data.length; i++) {
           const d = data[i];
-          const pointX = xScale.scale(d[x.field]);
-          const pointY = yScale.scale(d[y.field]);
+          const screenPoint = coordSystem.toScreen({ x: d[x.field], y: d[y.field] });
 
           // Simple curved line - in a real implementation, this would use
           // proper cardinal spline calculations
           if (i === 1) {
-            pathData += `C ${firstX + (pointX - firstX) / 2} ${firstY}, `;
-            pathData += `${firstX + (pointX - firstX) / 2} ${pointY}, `;
-            pathData += `${pointX} ${pointY} `;
+            pathData += `C ${firstScreenPoint.x + (screenPoint.x - firstScreenPoint.x) / 2} ${firstScreenPoint.y}, `;
+            pathData += `${firstScreenPoint.x + (screenPoint.x - firstScreenPoint.x) / 2} ${screenPoint.y}, `;
+            pathData += `${screenPoint.x} ${screenPoint.y} `;
           } else {
             const prevD = data[i - 1];
-            const prevX = xScale.scale(prevD[x.field]);
-            const prevY = yScale.scale(prevD[y.field]);
+            const prevScreenPoint = coordSystem.toScreen({ x: prevD[x.field], y: prevD[y.field] });
 
-            pathData += `S ${prevX + (pointX - prevX) / 2} ${pointY}, `;
-            pathData += `${pointX} ${pointY} `;
+            pathData += `S ${prevScreenPoint.x + (screenPoint.x - prevScreenPoint.x) / 2} ${screenPoint.y}, `;
+            pathData += `${screenPoint.x} ${screenPoint.y} `;
           }
         }
       } else if (curve === 'step') {
         // Step line (horizontal first)
         for (let i = 1; i < data.length; i++) {
           const d = data[i];
-          const pointX = xScale.scale(d[x.field]);
-          const pointY = yScale.scale(d[y.field]);
+          const screenPoint = coordSystem.toScreen({ x: d[x.field], y: d[y.field] });
+          const prevD = data[i - 1];
+          const prevScreenPoint = coordSystem.toScreen({ x: prevD[x.field], y: prevD[y.field] });
 
           // Horizontal line to midpoint, then vertical line
-          pathData += `H ${pointX} V ${pointY} `;
+          pathData += `H ${screenPoint.x} V ${screenPoint.y} `;
         }
       }
 
@@ -293,15 +301,15 @@ export const lineChartDefinition = {
 
       // Add the closing path to create an area
       const lastPoint = data[data.length - 1];
-      const lastX = xScale.scale(lastPoint[x.field]);
+      const lastScreenPoint = coordSystem.toScreen({ x: lastPoint[x.field], y: lastPoint[y.field] });
 
       // Line to bottom
-      pathData += `L ${lastX} ${dimensions.chartHeight} `;
+      pathData += `L ${lastScreenPoint.x} ${dimensions.chartHeight} `;
 
       // Line to bottom-left corner
       const firstPoint = data[0];
-      const firstX = xScale.scale(firstPoint[x.field]);
-      pathData += `L ${firstX} ${dimensions.chartHeight} `;
+      const firstScreenPoint = coordSystem.toScreen({ x: firstPoint[x.field], y: firstPoint[y.field] });
+      pathData += `L ${firstScreenPoint.x} ${dimensions.chartHeight} `;
 
       // Close the path
       pathData += 'Z';
@@ -370,14 +378,16 @@ export const lineChartDefinition = {
         // Add points if enabled
         if (showPoints) {
           categoryData.forEach((d: any) => {
+            const screenPoint = coordSystem.toScreen({ x: d[x.field], y: d[y.field] });
             chartElements.push({
               type: 'circle',
-              cx: xScale.scale(d[x.field]),
-              cy: yScale.scale(d[y.field]),
+              cx: screenPoint.x,
+              cy: screenPoint.y,
               r: pointSize,
               ...categoryPointStyle.toSpec(),
               class: `point-${category}`,
               data: d,
+
               tooltip: tooltip
             });
           });

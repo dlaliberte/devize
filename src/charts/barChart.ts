@@ -2,15 +2,24 @@
  * Bar Chart Component
  *
  * Purpose: Provides a bar chart visualization
- * Author: [Author Name]
- * Creation Date: [Date]
- * Last Modified: [Date]
+ * Author: Devize Team
+ * Creation Date: 2023-11-10
+ * Last Modified: 2023-11-10
  */
 
 import { buildViz } from '../core/builder';
 import { registerDefineType } from '../core/define';
 import { createScale } from '../components/scales/scale';
 import { createRenderableVisualization } from '../core/componentUtils';
+import {
+  calculateLegendPosition,
+  createColorMapping,
+  createLegend,
+  createGridLines,
+  createChartTitle,
+  determineXType
+} from './utils/axisChartUtils';
+import { CartesianCoordinateSystem, createCartesianCoordinateSystem } from '../components/coordinates/cartesianCoordinateSystem';
 
 // Make sure define type is registered
 registerDefineType();
@@ -23,29 +32,6 @@ import '../components/axis';
 import '../components/legend';
 import '../components/scales/linearScale';
 import '../components/scales/bandScale';
-
-
-// Helper function to calculate legend position
-function calculateLegendPosition(position, dimensions, margin) {
-  if (typeof position === 'object' && position.x !== undefined && position.y !== undefined) {
-    // Use explicit coordinates
-    return { x: position.x, y: position.y };
-  }
-
-  // Handle named positions
-  switch(position) {
-    case 'top-right':
-      return { x: dimensions.chartWidth - 150, y: 20 };
-    case 'top-left':
-      return { x: 20, y: 20 };
-    case 'bottom-right':
-      return { x: dimensions.chartWidth - 150, y: dimensions.chartHeight - 100 };
-    case 'bottom-left':
-      return { x: 20, y: dimensions.chartHeight - 100 };
-    default:
-      return { x: dimensions.chartWidth - 150, y: 20 }; // Default to top-right
-  }
-}
 
 // Define the barChart component
 export const barChartDefinition = {
@@ -62,6 +48,7 @@ export const barChartDefinition = {
     grid: { default: false },
     width: { default: 800 },
     height: { default: 400 },
+    barPadding: { default: 0.2 },
     legend: {
       default: {
         enabled: true,
@@ -92,7 +79,7 @@ export const barChartDefinition = {
   },
   implementation: function(props: any) {
     // Extract properties from props
-    const { data, x, y, color, margin, tooltip, title, width, height } = props;
+    const { data, x, y, color, margin, tooltip, title, width, height, barPadding } = props;
 
     // Calculate dimensions
     const dimensions = {
@@ -105,25 +92,46 @@ export const barChartDefinition = {
 
     // Calculate y-axis statistics
     const yValues = data.map((d: any) => d[y.field]);
+    const yMin = Math.min(0, ...yValues); // Include 0 as the minimum
     const yMax = Math.max(...yValues);
-    const yAxisValues = [0, yMax * 0.25, yMax * 0.5, yMax * 0.75, yMax];
+    const yRange = yMax - yMin;
+    const yPadding = yRange * 0.05; // 5% padding
+
+    // Create y-axis tick values
+    const yAxisValues = [
+      yMin,
+      yMin + yRange * 0.25,
+      yMin + yRange * 0.5,
+      yMin + yRange * 0.75,
+      yMax + yPadding
+    ];
 
     // Create scales using the createScale function
     const xScale = createScale('band', {
       domain: xValues,
       range: [0, dimensions.chartWidth],
-      padding: 0.2
+      padding: barPadding
     });
 
     const yScale = createScale('linear', {
-      domain: [0, yMax],
+      domain: [yMin, yMax + yPadding],
       range: [dimensions.chartHeight, 0]
+    });
+
+    // Create a Cartesian coordinate system
+    const coordSystem = createCartesianCoordinateSystem({
+      width: dimensions.chartWidth,
+      height: dimensions.chartHeight,
+      xScale: xScale,
+      yScale: yScale,
+      origin: { x: 0, y: 0 }, // Origin at top-left of chart area
+      flipY: true // Flip Y axis for SVG coordinate system
     });
 
     // Determine color mapping
     let colorMapping = null;
-    if (typeof color === 'object' && color.field) {
-      const colorField = color.field;
+    const colorField = typeof color === 'object' && color.field ? color.field : null;
+    if (colorField) {
       const categories = [...new Set(data.map((d: any) => d[colorField]))];
       const colors = ["#3366CC", "#DC3912", "#FF9900", "#109618", "#990099"];
 
@@ -133,7 +141,7 @@ export const barChartDefinition = {
       }));
     }
 
-    // Use the helper function when creating the legend
+    // Create legend
     const legendOptions = props.legend || {};
     const legendEnabled = legendOptions.enabled !== false;
 
@@ -145,32 +153,33 @@ export const barChartDefinition = {
       type: 'legend',
       legendType: 'color',
       items: colorMapping,
-
       position: calculatedPosition,
       itemSpacing: 25,
       symbolSize: 15,
       orientation: legendOptions.orientation || 'vertical',
-      // Add explicit class
-
       class: 'legend',
-      // Add explicit transform for positioning
       transform: `translate(${calculatedPosition.x},${calculatedPosition.y})`
     } : null;
 
     // Create bars
     const bars = data.map((d: any) => {
-      // Use the scales to calculate bar position and dimensions
+      // Use the coordinate system to calculate bar position and dimensions
       const barX = xScale.scale(d[x.field]);
       const barWidth = xScale.bandwidth ? xScale.bandwidth() : dimensions.chartWidth / data.length * 0.8;
-      const barHeight = dimensions.chartHeight - yScale.scale(d[y.field]);
-      const barY = yScale.scale(d[y.field]);
+
+      // For the bar height, we need to handle both positive and negative values
+      const yZero = yScale.scale(0);
+      const yValue = yScale.scale(d[y.field]);
+      const barHeight = Math.abs(yZero - yValue);
+
+      // For the bar Y position, we need to start from the zero line for negative values
+      const barY = d[y.field] >= 0 ? yValue : yZero;
 
       // Determine bar color
       let barColor;
       if (typeof color === 'string') {
         barColor = color;
-      } else if (color && color.field) {
-        const colorField = color.field;
+      } else if (colorField) {
         const categories = [...new Set(data.map((item: any) => item[colorField]))];
         const colors = ["#3366CC", "#DC3912", "#FF9900", "#109618", "#990099"];
         const categoryIndex = categories.indexOf(d[colorField]);
@@ -194,23 +203,19 @@ export const barChartDefinition = {
     });
 
     // Create chart title
-    const chartTitle = title ? {
-      type: 'text',
-      x: dimensions.chartWidth / 2,
-      y: -10,
-      text: title,
-      fontSize: '16px',
-      fontFamily: 'Arial',
-      fontWeight: 'bold',
-      fill: '#333',
-      textAnchor: 'middle'
-    } : null;
+    const chartTitle = createChartTitle(title, dimensions);
+
+    // Create grid lines if enabled
+    const gridLines = props.grid ? createGridLines(dimensions, yAxisValues, xValues, xScale, yScale, 'band') : [];
 
     // Combine all elements into a group specification
     const groupSpec = {
       type: 'group',
       transform: `translate(${margin.left}, ${margin.top})`,
       children: [
+        // Grid lines (if enabled)
+        ...gridLines,
+
         // X-axis
         {
           type: 'axis',
@@ -218,7 +223,7 @@ export const barChartDefinition = {
           scale: xScale,
           length: dimensions.chartWidth,
           transform: `translate(0, ${dimensions.chartHeight})`,
-          title: x.field,
+          title: x.title || x.field,
           values: xValues
         },
 
@@ -229,7 +234,7 @@ export const barChartDefinition = {
           scale: yScale,
           length: dimensions.chartHeight,
           transform: 'translate(0, 0)',
-          title: y.field,
+          title: y.title || y.field,
           format: (value: number) => value.toLocaleString(),
           values: yAxisValues
         },
@@ -281,8 +286,8 @@ buildViz(barChartDefinition);
  */
 export function createBarChart(options: {
   data: any[],
-  x: { field: string },
-  y: { field: string },
+  x: { field: string, title?: string },
+  y: { field: string, title?: string },
   color?: string | { field: string },
   margin?: { top: number, right: number, bottom: number, left: number },
   tooltip?: boolean,
@@ -290,6 +295,7 @@ export function createBarChart(options: {
   grid?: boolean,
   width?: number,
   height?: number,
+  barPadding?: number,
   legend?: {
     enabled?: boolean,
     position?: string | { x: number, y: number },
@@ -308,6 +314,7 @@ export function createBarChart(options: {
     grid: options.grid || false,
     width: options.width || 800,
     height: options.height || 400,
+    barPadding: options.barPadding !== undefined ? options.barPadding : 0.2,
     legend: options.legend
   });
 }

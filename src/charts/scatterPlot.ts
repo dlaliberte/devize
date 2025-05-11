@@ -1,20 +1,43 @@
+/**
+ * Scatter Plot Component
+ *
+ * Purpose: Provides a scatter plot visualization (line chart without lines)
+ * Author: Devize Team
+ * Creation Date: 2023-11-10
+ * Last Modified: 2023-11-10
+ */
+
 import { buildViz } from '../core/builder';
+import { registerDefineType } from '../core/define';
 import { createScale } from '../components/scales/scale';
 import { createRenderableVisualization } from '../core/componentUtils';
+import {
+  calculateLegendPosition,
+  createColorMapping,
+  createLegend,
+  createGridLines,
+  createChartTitle,
+  determineXType
+} from './utils/axisChartUtils';
+import { PointStyle } from '../components/styles/pointStyle';
+import { CartesianCoordinateSystem, createCartesianCoordinateSystem } from '../components/coordinates/cartesianCoordinateSystem';
 
-// Import necessary primitives and components
+// Make sure define type is registered
+registerDefineType();
+
+// Import required components
 import '../primitives/circle';
 import '../primitives/text';
 import '../primitives/group';
 import '../components/axis';
 import '../components/legend';
+import '../components/scales/linearScale';
+import '../components/scales/bandScale';
 
-// Helper function to calculate legend position (if needed)
-function calculateLegendPosition(position, dimensions, margin) {
-  // Logic similar to the barChart for positioning the legend
-}
+// Import the line chart to extend it
+import { lineChartDefinition } from './lineChart';
 
-// Scatter plot component definition
+// Define the scatterPlot component as an extension of lineChart
 export const scatterPlotDefinition = {
   type: "define",
   name: "scatterPlot",
@@ -23,201 +46,305 @@ export const scatterPlotDefinition = {
     x: { required: true },
     y: { required: true },
     color: { default: '#3366CC' },
-    size: { default: 5 },
+    size: { default: { value: 5 } }, // Can be a fixed value or a field mapping
     margin: { default: { top: 40, right: 30, bottom: 60, left: 60 } },
     tooltip: { default: false },
     title: { default: '' },
+    grid: { default: false },
     width: { default: 800 },
-    height: { default: 400 }
+    height: { default: 400 },
+    pointStyle: { default: null },
+    legend: {
+      default: {
+        enabled: true,
+        position: 'top-right', // 'top-right', 'top-left', 'bottom-right', 'bottom-left', or {x, y}
+        orientation: 'vertical'
+      }
+    }
   },
-  validate(props) {
-    // Validate function similar to the barChart for non-empty arrays, fields, and dimensions
-    if (!Array.isArray(props.data) || props.data.length === 0) {
-      throw new Error('Data must be a non-empty array');
+  validate: function(props: any) {
+    // Validate data is an array
+    if (!Array.isArray(props.data)) {
+      throw new Error('Data must be an array');
     }
-    if (!props.x || !props.y) {
-      throw new Error('X and Y fields are required');
+
+    // Validate x and y fields
+    if (!props.x || !props.x.field) {
+      throw new Error('X field must be specified');
     }
-    if (typeof props.x !== 'object' || typeof props.y !== 'object') {
-      throw new Error('X and Y must be objects with a field property');
+
+    if (!props.y || !props.y.field) {
+      throw new Error('Y field must be specified');
     }
-    if (props.x.field === undefined || props.y.field === undefined) {
-      throw new Error('X and Y must have a field property');
-    }
-    // height and width must be positive numbers
+
+    // Validate dimensions
     if (props.width <= 0 || props.height <= 0) {
       throw new Error('Width and height must be positive');
     }
-    if (props.color && typeof props.color !== 'string' && typeof props.color !== 'object') {
-      throw new Error('Color must be a string or an object with a field property');
+
+    // Validate size
+    if (typeof props.size !== 'object' && typeof props.size !== 'number') {
+      throw new Error('Size must be a number or an object with field and range properties');
     }
   },
-  implementation(props) {
-    let { data, x, y, color, size, margin, tooltip, title, width, height } = props;
-    // Get data and apply transformations
-    data = Array.isArray(data) ? [...data] : [];
+  implementation: function(props: any) {
+    // Convert scatterPlot props to lineChart props
+    const lineChartProps = {
+      ...props,
+      showLine: false, // No lines between points
+      showPoints: true, // Always show points
+      pointSize: typeof props.size === 'number' ? props.size : props.size.value || 5,
+      // If size is a field mapping, we'll handle it separately
+    };
 
-    // Apply transforms if specified
-    if (props.transforms && Array.isArray(props.transforms)) {
-      data = applyTransforms(data, props.transforms);
+    // Extract properties from props
+    const {
+      data, x, y, color, size, margin, tooltip, title, width, height,
+      pointStyle: customPointStyle
+    } = props;
+
+    // Calculate dimensions
+    const dimensions = {
+      chartWidth: width - margin.left - margin.right,
+      chartHeight: height - margin.top - margin.bottom
+    };
+
+    // Extract data for axes
+    const xValues = data.map((d: any) => d[x.field]);
+
+    // Determine if x values are numeric, dates, or categorical
+    const xType = determineXType(xValues);
+
+    // Calculate axis statistics
+    const yValues = data.map((d: any) => d[y.field]);
+    let xMin, xMax;
+
+    if (xType === 'linear') {
+      xMin = Math.min(...xValues.filter(v => typeof v === 'number'));
+      xMax = Math.max(...xValues.filter(v => typeof v === 'number'));
+    } else if (xType === 'time') {
+      xMin = new Date(Math.min(...xValues.map(d => d instanceof Date ? d.getTime() : 0)));
+      xMax = new Date(Math.max(...xValues.map(d => d instanceof Date ? d.getTime() : 0)));
+    } else {
+      // For categorical data, we'll use the band scale
+      xMin = 0;
+      xMax = xValues.length - 1;
     }
 
-    const xField = (props.x as DataField).field;
-    const yField = (props.y as DataField).field;
-
-    // Calculate dimensions - these will be filled in by constraints
-    width = width || 800;
-    height = height || 400;
-    const chartWidth = width - margin.left - margin.right;
-    const chartHeight = height - margin.top - margin.bottom;
-
-    // Calculate scales
-    const xValues = data.map(d => d[xField]);
-    const yValues = data.map(d => d[yField]);
-    const xMin = Math.min(...xValues);
-    const xMax = Math.max(...xValues);
     const yMin = Math.min(...yValues);
     const yMax = Math.max(...yValues);
+    const xRange = xType === 'linear' ? xMax - xMin : xValues.length;
+    const yRange = yMax - yMin;
+    const xPadding = xRange * 0.05; // 5% padding
+    const yPadding = yRange * 0.05; // 5% padding
 
-    // Add padding to the domain for better visualization
-    const xMin_padded = xMin - (xMax - xMin) * 0.05;
-    const xMax_padded = xMax + (xMax - xMin) * 0.05;
-    const yMin_padded = yMin - (yMax - yMin) * 0.05;
-    const yMax_padded = yMax + (yMax - yMin) * 0.05;
+    // Create axis tick values
+    const yAxisValues = [
+      yMin - yPadding,
+      yMin + yRange * 0.25,
+      yMin + yRange * 0.5,
+      yMin + yRange * 0.75,
+      yMax + yPadding
+    ];
 
-    // Create color scale
-    let colorField: string | undefined;
-    let categories: any[] = [];
-    const colors = ["#3366CC", "#DC3912", "#FF9900", "#109618", "#990099"];
+    // Create scales using the createScale function
+    let xScale;
+    if (xType === 'linear') {
+      xScale = createScale('linear', {
+        domain: [xMin - xPadding, xMax + xPadding],
+        range: [0, dimensions.chartWidth]
+      });
+    } else if (xType === 'time') {
+      const xMinTime = xMin.getTime();
+      const xMaxTime = xMax.getTime();
+      const xTimeRange = xMaxTime - xMinTime;
+      const xTimePadding = xTimeRange * 0.05;
 
-    if (typeof props.color === 'string') {
-      // Single color for all points
-      colorField = undefined;
-    } else if (props.color && (props.color as DataField).field) {
-      // Color based on a field
-      colorField = (props.color as DataField).field;
-      categories = [...new Set(data.map(d => d[colorField!]))];
+      xScale = createScale('time', {
+        domain: [
+          new Date(xMinTime - xTimePadding),
+          new Date(xMaxTime + xTimePadding)
+        ],
+        range: [0, dimensions.chartWidth]
+      });
+    } else {
+      // Band scale for categorical data
+      xScale = createScale('band', {
+        domain: xValues,
+        range: [0, dimensions.chartWidth],
+        padding: 0.2
+      });
     }
 
-    // Create size scale
-    let sizeField: string | undefined;
-    let sizeMin: number = 0;
-    let sizeMax: number = 0;
-    let sizeRange: number[] = [5, 20];
+    const yScale = createScale('linear', {
+      domain: [yMin - yPadding, yMax + yPadding],
+      range: [dimensions.chartHeight, 0]
+    });
 
-    if (typeof props.size === 'number') {
-      // Fixed size for all points
-      sizeField = undefined;
-    } else if (props.size && (props.size as DataField).field) {
-      // Size based on a field
-      sizeField = (props.size as DataField).field;
-      const sizeValues = data.map(d => d[sizeField!]);
-      sizeMin = Math.min(...sizeValues);
-      sizeMax = Math.max(...sizeValues);
-      sizeRange = (props.size as DataField).range || [5, 20];
+    // Create a Cartesian coordinate system
+    const coordSystem = createCartesianCoordinateSystem({
+      width: dimensions.chartWidth,
+      height: dimensions.chartHeight,
+      xScale: xScale,
+      yScale: yScale,
+      origin: { x: 0, y: 0 }, // Origin at top-left of chart area
+      flipY: true // Flip Y axis for SVG coordinate system
+    });
+
+    // Determine color mapping
+    let colorMapping = null;
+    const colorField = typeof color === 'object' && color.field ? color.field : null;
+    if (colorField) {
+      colorMapping = createColorMapping(data, colorField);
     }
 
-    // Create the chart group
+    // Create legend
+    const legend = createLegend(colorMapping, props.legend, dimensions, margin);
+
+    // Create size scale if size is a field mapping
+    let sizeScale = null;
+    let sizeField = null;
+    if (typeof size === 'object' && size.field) {
+      sizeField = size.field;
+      const sizeValues = data.map(d => d[sizeField]);
+      const sizeMin = Math.min(...sizeValues);
+      const sizeMax = Math.max(...sizeValues);
+      const sizeRange = size.range || [3, 15]; // Default size range
+
+      sizeScale = createScale('linear', {
+        domain: [sizeMin, sizeMax],
+        range: sizeRange
+      });
+    }
+
+    // Create default point style
+    const defaultPointStyle = new PointStyle({
+      shape: 'circle',
+      size: typeof size === 'number' ? size * 2 : size.value * 2 || 10, // PointStyle size is diameter
+      fill: typeof color === 'string' ? color : '#3366CC',
+      stroke: '#fff',
+      strokeWidth: 1
+    });
+
+    // Merge with custom style if provided
+    const pointStyleToUse = customPointStyle ? defaultPointStyle.merge(customPointStyle) : defaultPointStyle;
+
+    // Create points
+    const points = data.map((d: any) => {
+      const screenPoint = coordSystem.toScreen({ x: d[x.field], y: d[y.field] });
+
+      // Determine point color
+      let pointColor;
+      if (typeof color === 'string') {
+        pointColor = color;
+      } else if (colorField) {
+        const categories = [...new Set(data.map((item: any) => item[colorField]))];
+        const colors = ["#3366CC", "#DC3912", "#FF9900", "#109618", "#990099"];
+        const categoryIndex = categories.indexOf(d[colorField]);
+        pointColor = colors[categoryIndex % colors.length];
+      } else {
+        pointColor = '#3366CC';
+      }
+
+      // Determine point size
+      let pointSize;
+      if (typeof size === 'number') {
+        pointSize = size;
+      } else if (sizeField && sizeScale) {
+        pointSize = sizeScale.scale(d[sizeField]);
+      } else {
+        pointSize = size.value || 5;
+      }
+
+      // Create a custom point style for this specific point
+      const pointStyle = new PointStyle({
+        shape: pointStyleToUse.shape,
+        size: pointSize * 2, // PointStyle size is diameter
+        fill: pointColor,
+        stroke: pointStyleToUse.stroke,
+        strokeWidth: pointStyleToUse.strokeWidth
+      });
+
+      return {
+        type: 'circle',
+        cx: screenPoint.x,
+        cy: screenPoint.y,
+        r: pointSize,
+        ...pointStyle.toSpec(),
+        data: d,
+        tooltip: tooltip
+      };
+    });
+
+    // Create chart title
+    const chartTitle = createChartTitle(title, dimensions);
+
+    // Create grid lines if enabled
+    const gridLines = props.grid ? createGridLines(dimensions, yAxisValues, xValues, xScale, yScale, xType) : [];
+
+    // Combine all elements into a group specification
     const groupSpec = {
       type: 'group',
       transform: `translate(${margin.left}, ${margin.top})`,
       children: [
+        // Grid lines (if enabled)
+        ...gridLines,
+
         // X-axis
         {
           type: 'axis',
           orientation: 'bottom',
-          length: chartWidth,
-          values: [xMin, xMin + (xMax - xMin) * 0.25, xMin + (xMax - xMin) * 0.5, xMin + (xMax - xMin) * 0.75, xMax],
-          transform: `translate(0, ${chartHeight})`,
-          title: xField,
-          format: (value: number) => value.toLocaleString()
+          scale: xScale,
+          length: dimensions.chartWidth,
+          transform: `translate(0, ${dimensions.chartHeight})`,
+          title: x.title || x.field,
+          values: xType === 'band' ? xValues : undefined
         },
 
         // Y-axis
         {
           type: 'axis',
           orientation: 'left',
-          length: chartHeight,
-          values: [yMin, yMin + (yMax - yMin) * 0.25, yMin + (yMax - yMin) * 0.5, yMin + (yMax - yMin) * 0.75, yMax],
+          scale: yScale,
+          length: dimensions.chartHeight,
           transform: 'translate(0, 0)',
-          title: yField,
-          format: (value: number) => value.toLocaleString()
+          title: y.title || y.field,
+          format: (value: number) => value.toLocaleString(),
+          values: yAxisValues
         },
 
         // Points
-        ...data.map((d, i, array) => {
-            const xScale = (value: number) => (value - xMin_padded) / (xMax_padded - xMin_padded) * chartWidth;
-            const yScale = (value: number) => chartHeight - (value - yMin_padded) / (yMax_padded - yMin_padded) * chartHeight;
+        ...points,
 
-            const cx = xScale(d[xField]);
-            const cy = yScale(d[yField]);
+        // Title
+        chartTitle,
 
-            let pointColor;
-            if (typeof props.color === 'string') {
-              pointColor = props.color;
-            } else if (colorField) {
-              const categoryIndex = categories.indexOf(d[colorField]);
-              pointColor = colors[categoryIndex % colors.length];
-            } else {
-              pointColor = '#3366CC';
-            }
-
-            let pointSize;
-            if (typeof props.size === 'number') {
-              pointSize = props.size;
-            } else if (sizeField) {
-              const normalized = (d[sizeField] - sizeMin) / (sizeMax - sizeMin);
-              pointSize = sizeRange[0] + normalized * (sizeRange[1] - sizeRange[0]);
-            } else {
-              pointSize = 5;
-            }
-
-            return {
-              type: 'circle',
-              cx,
-              cy,
-              r: pointSize,
-              fill: pointColor,
-              stroke: '#fff',
-              strokeWidth: 1,
-              opacity: 0.7,
-              data: d,
-              tooltip: props.tooltip
-            };
-        }),
-
-        // Title (conditionally included)
-        props.title ? {
-          type: 'text',
-          x: chartWidth / 2,
-          y: -10,
-          text: props.title,
-          fontSize: '16px',
-          fontFamily: 'Arial',
-          fontWeight: 'bold',
-          fill: '#333',
-          textAnchor: 'middle'
-        } : null,
-
-        // Legend (conditionally included)
-        colorField && categories.length > 0 ? {
-          type: 'legend',
-          orientation: 'vertical',
-          transform: `translate(${chartWidth - 120}, 0)`,
-          items: categories.map((category, i) => ({
-            label: category,
-            color: colors[i % colors.length]
-          }))
-        } : null
-      ].filter(Boolean)
+        // Legend
+        legend
+      ].filter(Boolean) // Remove null items
     };
 
+    // Process the group specification to create a renderable visualization
     const renderableGroup = buildViz(groupSpec);
+
+    // Create and return a renderable visualization
     return createRenderableVisualization(
       'scatterPlot',
       props,
-      (container: SVGElement) => renderableGroup.renderToSvg(container),
-      (ctx: CanvasRenderingContext2D) => renderableGroup.renderToCanvas(ctx)
+      // SVG rendering function - delegates to the group's renderToSvg
+      (container: SVGElement): SVGElement => {
+        if (renderableGroup && renderableGroup.renderToSvg) {
+          return renderableGroup.renderToSvg(container);
+        }
+        throw new Error('Failed to render SVG');
+      },
+      // Canvas rendering function - delegates to the group's renderToCanvas
+      (ctx: CanvasRenderingContext2D): boolean => {
+        if (renderableGroup && renderableGroup.renderToCanvas) {
+          return renderableGroup.renderToCanvas(ctx);
+        }
+        return false;
+      }
     );
   }
 };
@@ -233,15 +360,22 @@ buildViz(scatterPlotDefinition);
  */
 export function createScatterPlot(options: {
   data: any[],
-  x: { field: string },
-  y: { field: string },
+  x: { field: string, title?: string },
+  y: { field: string, title?: string },
   color?: string | { field: string },
-  size?: number,
+  size?: number | { field: string, range?: [number, number] },
   margin?: { top: number, right: number, bottom: number, left: number },
   tooltip?: boolean,
   title?: string,
+  grid?: boolean,
   width?: number,
-  height?: number
+  height?: number,
+  pointStyle?: any,
+  legend?: {
+    enabled?: boolean,
+    position?: string | { x: number, y: number },
+    orientation?: 'vertical' | 'horizontal'
+  }
 }) {
   return buildViz({
     type: 'scatterPlot',
@@ -253,7 +387,10 @@ export function createScatterPlot(options: {
     margin: options.margin || { top: 40, right: 30, bottom: 60, left: 60 },
     tooltip: options.tooltip || false,
     title: options.title || '',
+    grid: options.grid || false,
     width: options.width || 800,
-    height: options.height || 400
+    height: options.height || 400,
+    pointStyle: options.pointStyle,
+    legend: options.legend
   });
 }

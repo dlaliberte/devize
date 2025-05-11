@@ -34,12 +34,38 @@
       border-radius: 5px;
       overflow-x: auto;
     }
+    .controls {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 4px;
+    }
+    button {
+      padding: 8px 16px;
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    button:hover {
+      background-color: #0055aa;
+    }
   </style>
 </head>
 <body>
   <h1>Scatter Plot Example</h1>
 
   <div id="chart-container"></div>
+
+  <div class="controls">
+    <h3>Chart Options</h3>
+    <button id="toggle-size-btn">Toggle Size by GDP</button>
+    <button id="toggle-color-btn">Toggle Color by Country</button>
+    <button id="toggle-grid-btn">Toggle Grid</button>
+    <button id="reset-btn">Reset Chart</button>
+  </div>
 
   <h2>Code</h2>
   <pre><code>
@@ -59,8 +85,8 @@ const data = [
 const spec = {
   type: 'scatterPlot',
   data: data,
-  x: { field: 'gdp' },
-  y: { field: 'population' },
+  x: { field: 'gdp', title: 'GDP (Billions USD)' },
+  y: { field: 'population', title: 'Population (Millions)' },
   size: { field: 'gdp', range: [5, 20] },
   color: { field: 'country' },
   title: 'GDP vs Population',
@@ -68,15 +94,15 @@ const spec = {
   grid: true
 };
 
-Devize.createScatterPlot(spec, document.getElementById('chart-container'));
+// Build and render the visualization
+const scatterPlot = Devize.buildViz(spec);
+Devize.renderViz(scatterPlot, document.getElementById('chart-container'));
   </code></pre>
 
   <a href="/examples/" class="back-link">← Back to Examples</a>
 
   <script type="module">
     import * as Devize from '/src/index.ts';
-    // Import Devize library
-    import { buildViz, renderViz, updateViz, registerData } from '/src/index.ts';
 
     const data = [
       { country: 'USA', gdp: 21400, population: 331 },
@@ -91,41 +117,68 @@ Devize.createScatterPlot(spec, document.getElementById('chart-container'));
       { country: 'Canada', gdp: 1700, population: 38 }
     ];
 
-    const spec = {
-      type: 'scatterPlot',
-      data: data,
-      x: { field: 'gdp' },
-      y: { field: 'population' },
-      size: { field: 'gdp', range: [5, 20] },
-      color: { field: 'country' },
-      title: 'GDP vs Population',
-      tooltip: true,
-      grid: true
+    // Chart options state
+    let chartOptions = {
+      sizeByGDP: true,
+      colorByCountry: true,
+      showGrid: true
     };
 
     // Function to create the visualization
-    function createVisualization(data) {
+    function createVisualization(options) {
       // Clear the container
       const container = document.getElementById("chart-container");
       container.innerHTML = '';
 
-      // Create a bar chart specification
+      // Create a scatter plot specification
       const spec = {
-        type: "barChart",
+        type: "scatterPlot",
         data: data,
-        x: { field: "product" },
-        y: { field: "revenue" },
-        color: { field: "category" },
-        title: "Product Revenue by Category"
+        x: { field: "gdp", title: "GDP (Billions USD)" },
+        y: { field: "population", title: "Population (Millions)" },
+        size: options.sizeByGDP ? { field: "gdp", range: [5, 20] } : 8,
+        color: options.colorByCountry ? { field: "country" } : "#3366CC",
+        title: "GDP vs Population",
+        tooltip: true,
+        grid: options.showGrid,
+        width: 800,
+        height: 500
       };
 
       // Build the visualization
-      const viz = buildViz(spec);
+      const viz = Devize.buildViz(spec);
 
       // Render the visualization
-      return renderViz(viz, container);
+      return Devize.renderViz(viz, container);
     }
-    createVisualization(data);
+
+    // Create the initial visualization
+    let currentViz = createVisualization(chartOptions);
+
+    // Add event listeners for the buttons
+    document.getElementById('toggle-size-btn').addEventListener('click', () => {
+      chartOptions.sizeByGDP = !chartOptions.sizeByGDP;
+      currentViz = createVisualization(chartOptions);
+    });
+
+    document.getElementById('toggle-color-btn').addEventListener('click', () => {
+      chartOptions.colorByCountry = !chartOptions.colorByCountry;
+      currentViz = createVisualization(chartOptions);
+    });
+
+    document.getElementById('toggle-grid-btn').addEventListener('click', () => {
+      chartOptions.showGrid = !chartOptions.showGrid;
+      currentViz = createVisualization(chartOptions);
+    });
+
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      chartOptions = {
+        sizeByGDP: true,
+        colorByCountry: true,
+        showGrid: true
+      };
+      currentViz = createVisualization(chartOptions);
+    });
   </script>
 </body>
 </html>
