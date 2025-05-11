@@ -60,6 +60,44 @@ export const scatterPlotDefinition = {
         position: 'top-right', // 'top-right', 'top-left', 'bottom-right', 'bottom-left', or {x, y}
         orientation: 'vertical'
       }
+    },
+    series: {
+      default: null,
+      // Can be a field name to group by, or an array of series definitions
+    },
+    colorSchemes: {
+      default: null,
+      // Array of color schemes for different series
+      // Each scheme can be a single color or a color scale
+    },
+    sizeLegend: {
+      default: {
+        enabled: false,
+        position: 'bottom-right',
+        title: 'Size',
+        format: (value) => value.toString()
+      }
+    },
+    shape: {
+      default: 'circle',
+      // Can be a fixed shape or a field mapping
+      // Supported shapes: 'circle', 'square', 'triangle', 'diamond', 'cross', 'star'
+    },
+    shapeLegend: {
+      default: {
+        enabled: false,
+        position: 'bottom-left',
+        title: 'Shape',
+        format: (value) => value.toString()
+      }
+    },
+    colorLegend: {
+      default: {
+        enabled: true,
+        position: 'top-right',
+        title: 'Color',
+        format: (value) => value.toString()
+      }
     }
   },
   validate: function(props: any) {
@@ -229,52 +267,216 @@ export const scatterPlotDefinition = {
     // Merge with custom style if provided
     const pointStyleToUse = customPointStyle ? defaultPointStyle.merge(customPointStyle) : defaultPointStyle;
 
-    // Create points
-    const points = data.map((d: any) => {
-      const screenPoint = coordSystem.toScreen({ x: d[x.field], y: d[y.field] });
+    // Handle series grouping
+    let seriesData = [];
+    const seriesField = typeof props.series === 'string' ? props.series : null;
 
-      // Determine point color
-      let pointColor;
-      if (typeof color === 'string') {
-        pointColor = color;
-      } else if (colorField) {
-        const categories = [...new Set(data.map((item: any) => item[colorField]))];
-        const colors = ["#3366CC", "#DC3912", "#FF9900", "#109618", "#990099"];
-        const categoryIndex = categories.indexOf(d[colorField]);
-        pointColor = colors[categoryIndex % colors.length];
-      } else {
-        pointColor = '#3366CC';
-      }
-
-      // Determine point size
-      let pointSize;
-      if (typeof size === 'number') {
-        pointSize = size;
-      } else if (sizeField && sizeScale) {
-        pointSize = sizeScale.scale(d[sizeField]);
-      } else {
-        pointSize = size.value || 5;
-      }
-
-      // Create a custom point style for this specific point
-      const pointStyle = new PointStyle({
-        shape: pointStyleToUse.shape,
-        size: pointSize * 2, // PointStyle size is diameter
-        fill: pointColor,
-        stroke: pointStyleToUse.stroke,
-        strokeWidth: pointStyleToUse.strokeWidth
+    if (seriesField) {
+      // Group data by series field
+      const seriesGroups = new Map();
+      data.forEach(d => {
+        const seriesValue = d[seriesField];
+        if (!seriesGroups.has(seriesValue)) {
+          seriesGroups.set(seriesValue, []);
+        }
+        seriesGroups.get(seriesValue).push(d);
       });
 
-      return {
-        type: 'circle',
-        cx: screenPoint.x,
-        cy: screenPoint.y,
-        r: pointSize,
-        ...pointStyle.toSpec(),
-        data: d,
-        tooltip: tooltip
-      };
+      // Convert to array of series
+      seriesData = Array.from(seriesGroups.entries()).map(([name, points]) => ({
+        name,
+        data: points
+      }));
+    } else if (Array.isArray(props.series)) {
+      // Use predefined series
+      seriesData = props.series;
+    } else {
+      // Treat all data as a single series
+      seriesData = [{
+        name: 'default',
+        data: data
+      }];
+    }
+
+    // Create color schemes for each series
+    const colorSchemes = props.colorSchemes || [];
+    const defaultColors = ["#3366CC", "#DC3912", "#FF9900", "#109618", "#990099"];
+
+    // Handle shape mapping
+    let shapeMapping = null;
+    const shapeField = typeof props.shape === 'object' && props.shape.field ? props.shape.field : null;
+    if (shapeField) {
+      const shapeValues = [...new Set(data.map(d => d[shapeField]))];
+      const shapes = ['circle', 'square', 'triangle', 'diamond', 'cross', 'star'];
+
+      shapeMapping = shapeValues.map((value, index) => ({
+        value,
+        shape: shapes[index % shapes.length]
+      }));
+    }
+
+    // Create points for each series
+    const allPoints = [];
+    seriesData.forEach((series, seriesIndex) => {
+      // Determine color for this series
+      let seriesColor;
+      if (colorSchemes[seriesIndex]) {
+        seriesColor = colorSchemes[seriesIndex];
+      } else {
+        seriesColor = defaultColors[seriesIndex % defaultColors.length];
+      }
+
+      // Create points for this series
+      series.data.forEach(d => {
+        const screenPoint = coordSystem.toScreen({ x: d[x.field], y: d[y.field] });
+
+        // Determine point color
+        let pointColor;
+        if (typeof color === 'string') {
+          pointColor = color;
+        } else if (colorField) {
+          const categories = [...new Set(data.map((item: any) => item[colorField]))];
+          const colors = ["#3366CC", "#DC3912", "#FF9900", "#109618", "#990099"];
+          const categoryIndex = categories.indexOf(d[colorField]);
+          pointColor = colors[categoryIndex % colors.length];
+        } else {
+          pointColor = '#3366CC';
+        }
+
+        // Determine point size
+        let pointSize;
+        if (typeof size === 'number') {
+          pointSize = size;
+        } else if (sizeField && sizeScale) {
+          pointSize = sizeScale.scale(d[sizeField]);
+        } else {
+          pointSize = size.value || 5;
+        }
+
+        // Determine point shape
+        let pointShape = 'circle'; // Default shape
+        if (typeof props.shape === 'string') {
+          pointShape = props.shape;
+        } else if (shapeField && shapeMapping) {
+          const shapeValue = d[shapeField];
+          const shapeItem = shapeMapping.find(item => item.value === shapeValue);
+          if (shapeItem) {
+            pointShape = shapeItem.shape;
+          }
+        }
+
+        // Create a custom point style for this specific point
+        const pointStyle = new PointStyle({
+          shape: pointShape,
+          size: pointSize * 2, // PointStyle size is diameter
+          fill: pointColor,
+          stroke: pointStyleToUse.stroke,
+          strokeWidth: pointStyleToUse.strokeWidth
+        });
+
+        // For circle:
+        if (pointShape === 'circle') {
+          allPoints.push({
+            type: 'circle',
+            cx: screenPoint.x,
+            cy: screenPoint.y,
+            r: pointSize,
+            fill: pointColor,
+            stroke: '#fff',
+            strokeWidth: 1,
+            data: d,
+            tooltip: tooltip
+          });
+        } else {
+          // For other shapes, use path
+          const pathData = getShapePath(pointShape, pointSize);
+          allPoints.push({
+            type: 'path',
+            d: pathData,
+            transform: `translate(${screenPoint.x}, ${screenPoint.y})`,
+            fill: pointColor,
+            stroke: '#fff',
+            strokeWidth: 1,
+            data: d,
+            tooltip: tooltip
+          });
+        }
+      });
     });
+
+    // Create size legend if enabled
+    let sizeLegend = null;
+    if (props.sizeLegend && props.sizeLegend.enabled && typeof size === 'object' && size.field) {
+      const sizeField = size.field;
+      const sizeValues = data.map(d => d[sizeField]);
+      const sizeMin = Math.min(...sizeValues);
+      const sizeMax = Math.max(...sizeValues);
+
+      // Create size legend items (e.g., small, medium, large)
+      const sizeLegendItems = [
+        { value: sizeMin, size: sizeScale.scale(sizeMin) },
+        { value: (sizeMin + sizeMax) / 2, size: sizeScale.scale((sizeMin + sizeMax) / 2) },
+        { value: sizeMax, size: sizeScale.scale(sizeMax) }
+      ];
+
+      // Calculate legend position
+      const sizeLegendPosition = calculateLegendPosition(
+        props.sizeLegend.position || 'bottom-right',
+        dimensions,
+        margin
+      );
+
+      sizeLegend = {
+        type: 'legend',
+        legendType: 'size',
+        items: sizeLegendItems,
+        position: sizeLegendPosition,
+        title: props.sizeLegend.title || 'Size',
+        format: props.sizeLegend.format || (value => value.toString()),
+        transform: `translate(${sizeLegendPosition.x},${sizeLegendPosition.y})`
+      };
+    }
+
+    // Create shape legend if enabled
+    let shapeLegend = null;
+    if (props.shapeLegend && props.shapeLegend.enabled && shapeMapping) {
+      // Calculate legend position
+      const shapeLegendPosition = calculateLegendPosition(
+        props.shapeLegend.position || 'bottom-left',
+        dimensions,
+        margin
+      );
+
+      shapeLegend = {
+        type: 'shapeLegend',
+        items: shapeMapping,
+        position: shapeLegendPosition,
+        title: props.shapeLegend.title || 'Shape',
+        format: props.shapeLegend.format || (value => value.toString()),
+        transform: `translate(${shapeLegendPosition.x},${shapeLegendPosition.y})`
+      };
+    }
+
+    // Create color legend if enabled (separate from the existing legend logic)
+    let colorLegend = null;
+    if (props.colorLegend && props.colorLegend.enabled && colorMapping) {
+      // Calculate legend position
+      const colorLegendPosition = calculateLegendPosition(
+        props.colorLegend.position || 'top-right',
+        dimensions,
+        margin
+      );
+
+      colorLegend = {
+        type: 'legend',
+        legendType: 'color',
+        items: colorMapping,
+        position: colorLegendPosition,
+        title: props.colorLegend.title || 'Color',
+        format: props.colorLegend.format || (value => value.toString()),
+        transform: `translate(${colorLegendPosition.x},${colorLegendPosition.y})`
+      };
+    }
 
     // Create chart title
     const chartTitle = createChartTitle(title, dimensions);
@@ -282,47 +484,52 @@ export const scatterPlotDefinition = {
     // Create grid lines if enabled
     const gridLines = props.grid ? createGridLines(dimensions, yAxisValues, xValues, xScale, yScale, xType) : [];
 
-    // Combine all elements into a group specification
-    const groupSpec = {
-      type: 'group',
-      transform: `translate(${margin.left}, ${margin.top})`,
-      children: [
-        // Grid lines (if enabled)
-        ...gridLines,
+    // In the implementation function, after creating all points:
 
-        // X-axis
-        {
-          type: 'axis',
-          orientation: 'bottom',
-          scale: xScale,
-          length: dimensions.chartWidth,
-          transform: `translate(0, ${dimensions.chartHeight})`,
-          title: x.title || x.field,
-          values: xType === 'band' ? xValues : undefined
-        },
+// Combine all elements into a group specification
+const groupSpec = {
+  type: 'group',
+  transform: `translate(${margin.left}, ${margin.top})`,
+  children: [
+    // Grid lines (if enabled)
+    ...gridLines,
 
-        // Y-axis
-        {
-          type: 'axis',
-          orientation: 'left',
-          scale: yScale,
-          length: dimensions.chartHeight,
-          transform: 'translate(0, 0)',
-          title: y.title || y.field,
-          format: (value: number) => value.toLocaleString(),
-          values: yAxisValues
-        },
+    // X-axis
+    {
+      type: 'axis',
+      orientation: 'bottom',
+      scale: xScale,
+      length: dimensions.chartWidth,
+      transform: `translate(0, ${dimensions.chartHeight})`,
+      title: x.title || x.field,
+      values: xType === 'band' ? xValues : undefined
+    },
 
-        // Points
-        ...points,
+    // Y-axis
+    {
+      type: 'axis',
+      orientation: 'left',
+      scale: yScale,
+      length: dimensions.chartHeight,
+      transform: 'translate(0, 0)',
+      title: y.title || y.field,
+      format: (value: number) => value.toLocaleString(),
+      values: yAxisValues
+    },
 
-        // Title
-        chartTitle,
+    // Points
+    ...allPoints,
 
-        // Legend
-        legend
-      ].filter(Boolean) // Remove null items
-    };
+    // Title
+    chartTitle,
+
+    // Legends
+    colorLegend,
+    sizeLegend,
+    shapeLegend
+  ].filter(Boolean) // Remove null items
+};
+
 
     // Process the group specification to create a renderable visualization
     const renderableGroup = buildViz(groupSpec);

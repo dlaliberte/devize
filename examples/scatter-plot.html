@@ -10,10 +10,10 @@
       margin: 0;
       padding: 20px;
     }
-    h1 {
+    h1, h2 {
       color: #333;
     }
-    #chart-container {
+    .chart-container {
       width: 100%;
       height: 500px;
       border: 1px solid #ddd;
@@ -48,27 +48,97 @@
       border-radius: 4px;
       cursor: pointer;
       margin-right: 10px;
+      margin-bottom: 10px;
     }
     button:hover {
       background-color: #0055aa;
     }
+    .example-section {
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #eee;
+    }
+    .tab-buttons {
+      display: flex;
+      margin-bottom: 15px;
+    }
+    .tab-button {
+      padding: 8px 16px;
+      background-color: #f0f0f0;
+      border: 1px solid #ddd;
+      border-bottom: none;
+      cursor: pointer;
+      margin-right: 5px;
+    }
+    .tab-button.active {
+      background-color: #fff;
+      border-bottom: 1px solid #fff;
+      margin-bottom: -1px;
+      font-weight: bold;
+    }
+    .tab-content {
+      display: none;
+      padding: 15px;
+      border: 1px solid #ddd;
+    }
+    .tab-content.active {
+      display: block;
+    }
   </style>
 </head>
 <body>
-  <h1>Scatter Plot Example</h1>
+  <h1>Scatter Plot Examples</h1>
 
-  <div id="chart-container"></div>
+  <div class="example-section">
+    <h2>Basic Scatter Plot</h2>
+    <p>A simple scatter plot showing the relationship between GDP and population for different countries.</p>
+    <div id="basic-chart" class="chart-container"></div>
 
-  <div class="controls">
-    <h3>Chart Options</h3>
-    <button id="toggle-size-btn">Toggle Size by GDP</button>
-    <button id="toggle-color-btn">Toggle Color by Country</button>
-    <button id="toggle-grid-btn">Toggle Grid</button>
-    <button id="reset-btn">Reset Chart</button>
+    <div class="controls">
+      <h3>Chart Options</h3>
+      <button id="toggle-size-btn">Toggle Size by GDP</button>
+      <button id="toggle-color-btn">Toggle Color by Country</button>
+      <button id="toggle-grid-btn">Toggle Grid</button>
+      <button id="reset-basic-btn">Reset Chart</button>
+    </div>
   </div>
 
-  <h2>Code</h2>
-  <pre><code>
+  <div class="example-section">
+    <h2>Series by Category</h2>
+    <p>Group data points into series based on a categorical field (region).</p>
+    <div id="category-chart" class="chart-container"></div>
+
+    <div class="controls">
+      <h3>Visual Encoding</h3>
+      <button id="encode-color-btn" class="active">Encode Region by Color</button>
+      <button id="encode-shape-btn">Encode Region by Shape</button>
+      <button id="encode-both-btn">Encode Region by Both</button>
+    </div>
+  </div>
+
+  <div class="example-section">
+    <h2>Multiple Measures</h2>
+    <p>Compare different relationships in the same chart (GDP vs Population and GDP vs Life Expectancy).</p>
+    <div id="measures-chart" class="chart-container"></div>
+
+    <div class="controls">
+      <h3>Measure Selection</h3>
+      <button id="show-population-btn" class="active">Show Population</button>
+      <button id="show-life-expectancy-btn">Show Life Expectancy</button>
+      <button id="show-both-measures-btn">Show Both Measures</button>
+    </div>
+  </div>
+
+  <h2>Code Examples</h2>
+
+  <div class="tab-buttons">
+    <div class="tab-button active" data-tab="basic-code">Basic Scatter</div>
+    <div class="tab-button" data-tab="category-code">Series by Category</div>
+    <div class="tab-button" data-tab="measures-code">Multiple Measures</div>
+  </div>
+
+  <div id="basic-code" class="tab-content active">
+    <pre><code>
 const data = [
   { country: 'USA', gdp: 21400, population: 331 },
   { country: 'China', gdp: 14300, population: 1400 },
@@ -91,19 +161,129 @@ const spec = {
   color: { field: 'country' },
   title: 'GDP vs Population',
   tooltip: true,
-  grid: true
+  grid: true,
+  sizeLegend: {
+    enabled: true,
+    position: 'bottom-right',
+    title: 'GDP (Billions USD)'
+  }
 };
 
 // Build and render the visualization
 const scatterPlot = Devize.buildViz(spec);
 Devize.renderViz(scatterPlot, document.getElementById('chart-container'));
-  </code></pre>
+    </code></pre>
+  </div>
+
+  <div id="category-code" class="tab-content">
+    <pre><code>
+const dataWithRegions = [
+  { country: 'USA', gdp: 21400, population: 331, region: 'North America' },
+  { country: 'China', gdp: 14300, population: 1400, region: 'Asia' },
+  { country: 'Japan', gdp: 5100, population: 126, region: 'Asia' },
+  { country: 'Germany', gdp: 3800, population: 83, region: 'Europe' },
+  { country: 'UK', gdp: 2800, population: 67, region: 'Europe' },
+  { country: 'India', gdp: 2700, population: 1380, region: 'Asia' },
+  { country: 'France', gdp: 2600, population: 65, region: 'Europe' },
+  { country: 'Italy', gdp: 1900, population: 60, region: 'Europe' },
+  { country: 'Brazil', gdp: 1800, population: 212, region: 'South America' },
+  { country: 'Canada', gdp: 1700, population: 38, region: 'North America' }
+];
+
+// Group by region using color
+const specByRegionColor = {
+  type: 'scatterPlot',
+  data: dataWithRegions,
+  x: { field: 'gdp', title: 'GDP (Billions USD)' },
+  y: { field: 'population', title: 'Population (Millions)' },
+  size: { field: 'gdp', range: [5, 20] },
+  color: { field: 'region' },
+  series: 'region',
+  title: 'GDP vs Population by Region',
+  tooltip: true,
+  grid: true,
+  colorLegend: {
+    enabled: true,
+    position: 'top-right',
+    title: 'Region'
+  },
+  sizeLegend: {
+    enabled: true,
+    position: 'bottom-right',
+    title: 'GDP (Billions USD)'
+  }
+};
+
+// Build and render the visualization
+const regionScatterPlot = Devize.buildViz(specByRegionColor);
+Devize.renderViz(regionScatterPlot, document.getElementById('category-chart'));
+    </code></pre>
+  </div>
+
+  <div id="measures-code" class="tab-content">
+    <pre><code>
+const dataWithLifeExpectancy = [
+  { country: 'USA', gdp: 21400, population: 331, lifeExpectancy: 78.5 },
+  { country: 'China', gdp: 14300, population: 1400, lifeExpectancy: 76.1 },
+  { country: 'Japan', gdp: 5100, population: 126, lifeExpectancy: 84.3 },
+  { country: 'Germany', gdp: 3800, population: 83, lifeExpectancy: 81.0 },
+  { country: 'UK', gdp: 2800, population: 67, lifeExpectancy: 81.2 },
+  { country: 'India', gdp: 2700, population: 1380, lifeExpectancy: 69.4 },
+  { country: 'France', gdp: 2600, population: 65, lifeExpectancy: 82.5 },
+  { country: 'Italy', gdp: 1900, population: 60, lifeExpectancy: 83.4 },
+  { country: 'Brazil', gdp: 1800, population: 212, lifeExpectancy: 75.7 },
+  { country: 'Canada', gdp: 1700, population: 38, lifeExpectancy: 82.3 }
+];
+
+// Create two series: GDP vs Population and GDP vs Life Expectancy
+const specMultipleMeasures = {
+  type: 'scatterPlot',
+  data: dataWithLifeExpectancy,
+  series: [
+    {
+      name: 'Population',
+      data: dataWithLifeExpectancy,
+      x: { field: 'gdp' },
+      y: { field: 'population' },
+      color: '#3366CC'
+    },
+    {
+      name: 'Life Expectancy',
+      data: dataWithLifeExpectancy,
+      x: { field: 'gdp' },
+      y: { field: 'lifeExpectancy' },
+      color: '#DC3912',
+      shape: 'triangle'
+    }
+  ],
+  x: { field: 'gdp', title: 'GDP (Billions USD)' },
+  title: 'GDP vs Multiple Measures',
+  tooltip: true,
+  grid: true,
+  colorLegend: {
+    enabled: true,
+    position: 'top-right',
+    title: 'Measure'
+  },
+  shapeLegend: {
+    enabled: true,
+    position: 'bottom-left',
+    title: 'Measure'
+  }
+};
+
+// Build and render the visualization
+const measuresScatterPlot = Devize.buildViz(specMultipleMeasures);
+Devize.renderViz(measuresScatterPlot, document.getElementById('measures-chart'));
+    </code></pre>
+  </div>
 
   <a href="/examples/" class="back-link">← Back to Examples</a>
 
   <script type="module">
     import * as Devize from '/src/index.ts';
 
+    // Basic data
     const data = [
       { country: 'USA', gdp: 21400, population: 331 },
       { country: 'China', gdp: 14300, population: 1400 },
@@ -117,67 +297,341 @@ Devize.renderViz(scatterPlot, document.getElementById('chart-container'));
       { country: 'Canada', gdp: 1700, population: 38 }
     ];
 
-    // Chart options state
-    let chartOptions = {
-      sizeByGDP: true,
-      colorByCountry: true,
-      showGrid: true
-    };
+    // Data with regions
+    const dataWithRegions = [
+      { country: 'USA', gdp: 21400, population: 331, region: 'North America' },
+      { country: 'China', gdp: 14300, population: 1400, region: 'Asia' },
+      { country: 'Japan', gdp: 5100, population: 126, region: 'Asia' },
+      { country: 'Germany', gdp: 3800, population: 83, region: 'Europe' },
+      { country: 'UK', gdp: 2800, population: 67, region: 'Europe' },
+      { country: 'India', gdp: 2700, population: 1380, region: 'Asia' },
+      { country: 'France', gdp: 2600, population: 65, region: 'Europe' },
+      { country: 'Italy', gdp: 1900, population: 60, region: 'Europe' },
+      { country: 'Brazil', gdp: 1800, population: 212, region: 'South America' },
+      { country: 'Canada', gdp: 1700, population: 38, region: 'North America' }
+    ];
 
-    // Function to create the visualization
-    function createVisualization(options) {
-      // Clear the container
-      const container = document.getElementById("chart-container");
-      container.innerHTML = '';
+    // Data with life expectancy
+    const dataWithLifeExpectancy = [
+      { country: 'USA', gdp: 21400, population: 331, lifeExpectancy: 78.5 },
+      { country: 'China', gdp: 14300, population: 1400, lifeExpectancy: 76.1 },
+      { country: 'Japan', gdp: 5100, population: 126, lifeExpectancy: 84.3 },
+      { country: 'Germany', gdp: 3800, population: 83, lifeExpectancy: 81.0 },
+      { country: 'UK', gdp: 2800, population: 67, lifeExpectancy: 81.2 },
+      { country: 'India', gdp: 2700, population: 1380, lifeExpectancy: 69.4 },
+      { country: 'France', gdp: 2600, population: 65, lifeExpectancy: 82.5 },
+      { country: 'Italy', gdp: 1900, population: 60, lifeExpectancy: 83.4 },
+      { country: 'Brazil', gdp: 1800, population: 212, lifeExpectancy: 75.7 },
+      { country: 'Canada', gdp: 1700, population: 38, lifeExpectancy: 82.3 }
+    ];
 
-      // Create a scatter plot specification
+    // BASIC SCATTER PLOT
+    // Create a basic scatter plot
+    function createBasicScatterPlot() {
       const spec = {
-        type: "scatterPlot",
+        type: 'scatterPlot',
         data: data,
-        x: { field: "gdp", title: "GDP (Billions USD)" },
-        y: { field: "population", title: "Population (Millions)" },
-        size: options.sizeByGDP ? { field: "gdp", range: [5, 20] } : 8,
-        color: options.colorByCountry ? { field: "country" } : "#3366CC",
-        title: "GDP vs Population",
+        x: { field: 'gdp', title: 'GDP (Billions USD)' },
+        y: { field: 'population', title: 'Population (Millions)' },
+        size: { field: 'gdp', range: [5, 20] },
+        color: { field: 'country' },
+        title: 'GDP vs Population',
         tooltip: true,
-        grid: options.showGrid,
-        width: 800,
-        height: 500
+        grid: true,
+        sizeLegend: {
+          enabled: true,
+          position: 'bottom-right',
+          title: 'GDP (Billions USD)'
+        }
       };
 
-      // Build the visualization
-      const viz = Devize.buildViz(spec);
-
-      // Render the visualization
-      return Devize.renderViz(viz, container);
+      return Devize.buildViz(spec);
     }
 
-    // Create the initial visualization
-    let currentViz = createVisualization(chartOptions);
+    // Render the basic scatter plot
+    const basicScatterPlot = createBasicScatterPlot();
+    Devize.renderViz(basicScatterPlot, document.getElementById('basic-chart'));
 
-    // Add event listeners for the buttons
+    // Add event listeners for basic chart controls
     document.getElementById('toggle-size-btn').addEventListener('click', () => {
-      chartOptions.sizeByGDP = !chartOptions.sizeByGDP;
-      currentViz = createVisualization(chartOptions);
+      const container = document.getElementById('basic-chart');
+      container.innerHTML = '';
+
+      const spec = {
+        type: 'scatterPlot',
+        data: data,
+        x: { field: 'gdp', title: 'GDP (Billions USD)' },
+        y: { field: 'population', title: 'Population (Millions)' },
+        size: document.getElementById('toggle-size-btn').classList.toggle('active') ?
+          { field: 'gdp', range: [5, 20] } : 8,
+        color: { field: 'country' },
+        title: 'GDP vs Population',
+        tooltip: true,
+        grid: true
+      };
+
+      const viz = Devize.buildViz(spec);
+      Devize.renderViz(viz, container);
     });
 
     document.getElementById('toggle-color-btn').addEventListener('click', () => {
-      chartOptions.colorByCountry = !chartOptions.colorByCountry;
-      currentViz = createVisualization(chartOptions);
+      const container = document.getElementById('basic-chart');
+      container.innerHTML = '';
+
+      const spec = {
+        type: 'scatterPlot',
+        data: data,
+        x: { field: 'gdp', title: 'GDP (Billions USD)' },
+        y: { field: 'population', title: 'Population (Millions)' },
+        size: { field: 'gdp', range: [5, 20] },
+        color: document.getElementById('toggle-color-btn').classList.toggle('active') ?
+          { field: 'country' } : '#3366CC',
+        title: 'GDP vs Population',
+        tooltip: true,
+        grid: true
+      };
+
+      const viz = Devize.buildViz(spec);
+      Devize.renderViz(viz, container);
     });
 
     document.getElementById('toggle-grid-btn').addEventListener('click', () => {
-      chartOptions.showGrid = !chartOptions.showGrid;
-      currentViz = createVisualization(chartOptions);
+      const container = document.getElementById('basic-chart');
+      container.innerHTML = '';
+
+      const spec = {
+        type: 'scatterPlot',
+        data: data,
+        x: { field: 'gdp', title: 'GDP (Billions USD)' },
+        y: { field: 'population', title: 'Population (Millions)' },
+        size: { field: 'gdp', range: [5, 20] },
+        color: { field: 'country' },
+        title: 'GDP vs Population',
+        tooltip: true,
+        grid: document.getElementById('toggle-grid-btn').classList.toggle('active')
+      };
+
+      const viz = Devize.buildViz(spec);
+      Devize.renderViz(viz, container);
     });
 
-    document.getElementById('reset-btn').addEventListener('click', () => {
-      chartOptions = {
-        sizeByGDP: true,
-        colorByCountry: true,
-        showGrid: true
+    document.getElementById('reset-basic-btn').addEventListener('click', () => {
+      const container = document.getElementById('basic-chart');
+      container.innerHTML = '';
+
+      document.getElementById('toggle-size-btn').classList.remove('active');
+      document.getElementById('toggle-color-btn').classList.remove('active');
+      document.getElementById('toggle-grid-btn').classList.remove('active');
+
+      const viz = createBasicScatterPlot();
+      Devize.renderViz(viz, container);
+    });
+
+    // CATEGORY SERIES SCATTER PLOT
+    // Create a scatter plot with series by category
+    function createCategoryScatterPlot(encodeBy = 'color') {
+      const spec = {
+        type: 'scatterPlot',
+        data: dataWithRegions,
+        x: { field: 'gdp', title: 'GDP (Billions USD)' },
+        y: { field: 'population', title: 'Population (Millions)' },
+        size: { field: 'gdp', range: [5, 20] },
+        series: 'region',
+        title: 'GDP vs Population by Region',
+        tooltip: true,
+        grid: true,
+        sizeLegend: {
+          enabled: true,
+          position: 'bottom-right',
+          title: 'GDP (Billions USD)'
+        }
       };
-      currentViz = createVisualization(chartOptions);
+
+      // Add visual encoding based on selection
+      if (encodeBy === 'color' || encodeBy === 'both') {
+        spec.color = { field: 'region' };
+        spec.colorLegend = {
+          enabled: true,
+          position: 'top-right',
+          title: 'Region'
+        };
+      }
+
+      if (encodeBy === 'shape' || encodeBy === 'both') {
+        spec.shape = { field: 'region' };
+        spec.shapeLegend = {
+          enabled: true,
+          position: 'bottom-left',
+          title: 'Region'
+        };
+      }
+
+      return Devize.buildViz(spec);
+    }
+
+    // Render the category scatter plot
+    const categoryScatterPlot = createCategoryScatterPlot('color');
+    Devize.renderViz(categoryScatterPlot, document.getElementById('category-chart'));
+
+    // Add event listeners for category chart controls
+    document.getElementById('encode-color-btn').addEventListener('click', () => {
+      const container = document.getElementById('category-chart');
+      container.innerHTML = '';
+
+      document.querySelectorAll('.controls button').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('encode-color-btn').classList.add('active');
+
+      const viz = createCategoryScatterPlot('color');
+      Devize.renderViz(viz, container);
+    });
+
+    document.getElementById('encode-shape-btn').addEventListener('click', () => {
+      const container = document.getElementById('category-chart');
+      container.innerHTML = '';
+
+      document.querySelectorAll('.controls button').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('encode-shape-btn').classList.add('active');
+
+      const viz = createCategoryScatterPlot('shape');
+      Devize.renderViz(viz, container);
+    });
+
+    document.getElementById('encode-both-btn').addEventListener('click', () => {
+      const container = document.getElementById('category-chart');
+      container.innerHTML = '';
+
+      document.querySelectorAll('.controls button').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('encode-both-btn').classList.add('active');
+
+      const viz = createCategoryScatterPlot('both');
+      Devize.renderViz(viz, container);
+    });
+
+    // MULTIPLE MEASURES SCATTER PLOT
+    // Create a scatter plot with multiple measures
+    function createMeasuresScatterPlot(measures = 'population') {
+      let series = [];
+      let yAxis = {}; // This will be set based on the active measure
+
+      if (measures === 'population' || measures === 'both') {
+        series.push({
+          name: 'Population',
+          data: dataWithLifeExpectancy,
+          x: { field: 'gdp' },
+          y: { field: 'population' },
+          color: '#3366CC',
+          shape: 'circle'
+        });
+
+        // If only showing population, set the y-axis title accordingly
+        if (measures === 'population') {
+          yAxis = { field: 'population', title: 'Population (Millions)' };
+        }
+      }
+
+      if (measures === 'lifeExpectancy' || measures === 'both') {
+        series.push({
+          name: 'Life Expectancy',
+          data: dataWithLifeExpectancy,
+          x: { field: 'gdp' },
+          y: { field: 'lifeExpectancy' },
+          color: '#DC3912',
+          shape: 'triangle'
+        });
+
+        // If only showing life expectancy, set the y-axis title accordingly
+        if (measures === 'lifeExpectancy') {
+          yAxis = { field: 'lifeExpectancy', title: 'Life Expectancy (Years)' };
+        }
+      }
+
+      // For "both" measures, we need a more generic y-axis title
+      if (measures === 'both') {
+        yAxis = { title: 'Value' };
+      }
+
+      const spec = {
+        type: 'scatterPlot',
+        data: dataWithLifeExpectancy,
+        series: series,
+        x: { field: 'gdp', title: 'GDP (Billions USD)' },
+        y: yAxis, // Use the appropriate y-axis configuration
+        title: 'GDP vs Multiple Measures',
+        tooltip: true,
+        grid: true,
+        colorLegend: {
+          enabled: true,
+          position: 'top-right',
+          title: 'Measure'
+        },
+        shapeLegend: {
+          enabled: true,
+          position: 'bottom-left',
+          title: 'Measure'
+        }
+      };
+
+      return Devize.buildViz(spec);
+    }
+
+    // Render the measures scatter plot
+    const measuresScatterPlot = createMeasuresScatterPlot('population');
+    Devize.renderViz(measuresScatterPlot, document.getElementById('measures-chart'));
+
+    // Add event listeners for measures chart controls
+    document.getElementById('show-population-btn').addEventListener('click', () => {
+      const container = document.getElementById('measures-chart');
+      container.innerHTML = '';
+
+      document.querySelectorAll('.controls button').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('show-population-btn').classList.add('active');
+
+      const viz = createMeasuresScatterPlot('population');
+      Devize.renderViz(viz, container);
+    });
+
+    document.getElementById('show-life-expectancy-btn').addEventListener('click', () => {
+      const container = document.getElementById('measures-chart');
+      container.innerHTML = '';
+
+      document.querySelectorAll('.controls button').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('show-life-expectancy-btn').classList.add('active');
+
+      const viz = createMeasuresScatterPlot('lifeExpectancy');
+      Devize.renderViz(viz, container);
+    });
+
+    document.getElementById('show-both-measures-btn').addEventListener('click', () => {
+      const container = document.getElementById('measures-chart');
+      container.innerHTML = '';
+
+      document.querySelectorAll('.controls button').forEach(btn => btn.classList.remove('active'));
+      document.getElementById('show-both-measures-btn').classList.add('active');
+
+      const viz = createMeasuresScatterPlot('both');
+      Devize.renderViz(viz, container);
+    });
+
+    // Tab switching functionality
+    document.querySelectorAll('.tab-button').forEach(button => {
+      button.addEventListener('click', () => {
+        // Hide all tab contents
+        document.querySelectorAll('.tab-content').forEach(content => {
+          content.classList.remove('active');
+        });
+
+        // Deactivate all buttons
+        document.querySelectorAll('.tab-button').forEach(btn => {
+          btn.classList.remove('active');
+        });
+
+        // Activate the clicked button
+        button.classList.add('active');
+
+        // Show the corresponding tab content
+        const tabId = button.getAttribute('data-tab');
+        document.getElementById(tabId).classList.add('active');
+      });
     });
   </script>
 </body>
