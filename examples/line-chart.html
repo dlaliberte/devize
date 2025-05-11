@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Devize - Line Chart</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    h1, h2 {
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .viz-container {
+      width: 100%;
+      height: 400px;
+      border: 1px solid #ddd;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+
+    pre {
+      background-color: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .controls {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 4px;
+    }
+
+    button {
+      padding: 8px 16px;
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
+    button:hover {
+      background-color: #0055aa;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Line Chart Example</h1>
+    <p>This example demonstrates a line chart with options for area fill and different curve types.</p>
+
+    <div id="visualization-container" class="viz-container"
+      style="width: 800px; height: 500px; border: 1px solid #ccc;"></div>
+
+    <div class="controls">
+      <h3>Chart Options</h3>
+      <button id="toggle-points-btn">Toggle Points</button>
+      <button id="toggle-area-btn">Toggle Area Fill</button>
+      <button id="change-curve-btn">Change Curve Type</button>
+      <button id="reset-btn">Reset Chart</button>
+    </div>
+
+    <h2>Code</h2>
+    <pre><code>// Sample data
+const timeSeriesData = [
+  { month: "Jan", value: 420, trend: "Increasing" },
+  { month: "Feb", value: 380, trend: "Decreasing" },
+  { month: "Mar", value: 450, trend: "Increasing" },
+  { month: "Apr", value: 530, trend: "Increasing" },
+  { month: "May", value: 480, trend: "Decreasing" },
+  { month: "Jun", value: 520, trend: "Increasing" },
+  { month: "Jul", value: 590, trend: "Increasing" },
+  { month: "Aug", value: 640, trend: "Increasing" },
+  { month: "Sep", value: 610, trend: "Decreasing" },
+  { month: "Oct", value: 670, trend: "Increasing" },
+  { month: "Nov", value: 720, trend: "Increasing" },
+  { month: "Dec", value: 680, trend: "Decreasing" }
+];
+
+// Create a line chart specification
+const lineChartSpec = {
+  type: "lineChart",
+  data: timeSeriesData,
+  x: { field: "month" },
+  y: { field: "value" },
+  color: { field: "trend" },
+  title: "Monthly Value Trends",
+  showPoints: true,
+  curve: "linear",
+  grid: true
+};
+
+// Build and render the visualization
+const lineChart = Devize.buildViz(lineChartSpec);
+Devize.renderViz(lineChart, document.getElementById("visualization-container"));</code></pre>
+
+    <a href="/examples/" class="back-link">← Back to Examples</a>
+  </div>
+
+  <script type="module">
+    // Import Devize library
+    import { buildViz, renderViz, updateViz, registerData } from '/src/index.ts';
+
+    // Sample data
+    const timeSeriesData = [
+      { month: "Jan", value: 420, trend: "Increasing" },
+      { month: "Feb", value: 380, trend: "Decreasing" },
+      { month: "Mar", value: 450, trend: "Increasing" },
+      { month: "Apr", value: 530, trend: "Increasing" },
+      { month: "May", value: 480, trend: "Decreasing" },
+      { month: "Jun", value: 520, trend: "Increasing" },
+      { month: "Jul", value: 590, trend: "Increasing" },
+      { month: "Aug", value: 640, trend: "Increasing" },
+      { month: "Sep", value: 610, trend: "Decreasing" },
+      { month: "Oct", value: 670, trend: "Increasing" },
+      { month: "Nov", value: 720, trend: "Increasing" },
+      { month: "Dec", value: 680, trend: "Decreasing" }
+    ];
+
+    // Register data for potential reuse
+    registerData('timeSeriesData', timeSeriesData);
+
+    // Default chart options
+    let chartOptions = {
+      showPoints: true,
+      fillArea: false,
+      curve: 'linear'
+    };
+
+    // Function to create the visualization
+    function createVisualization(options) {
+      // Clear the container
+      const container = document.getElementById("visualization-container");
+      container.innerHTML = '';
+
+      // Create a line chart specification
+      const spec = {
+        type: "lineChart",
+        data: timeSeriesData,
+        x: { field: "month" },
+        y: { field: "value" },
+        color: { field: "trend" },
+        title: "Monthly Value Trends",
+        showPoints: options.showPoints,
+        fillArea: options.fillArea,
+        fillOpacity: 0.3,
+        curve: options.curve,
+        grid: true,
+        lineWidth: 2,
+        pointSize: 5
+      };
+
+      // Build the visualization
+      const viz = buildViz(spec);
+
+      // Render the visualization
+      return renderViz(viz, container);
+    }
+
+    // Create the initial visualization
+    let currentViz = createVisualization(chartOptions);
+
+    // Add event listeners for the buttons
+    document.getElementById('toggle-points-btn').addEventListener('click', () => {
+      chartOptions.showPoints = !chartOptions.showPoints;
+      currentViz = createVisualization(chartOptions);
+    });
+
+    document.getElementById('toggle-area-btn').addEventListener('click', () => {
+      chartOptions.fillArea = !chartOptions.fillArea;
+      currentViz = createVisualization(chartOptions);
+    });
+
+    document.getElementById('change-curve-btn').addEventListener('click', () => {
+      // Cycle through curve types: linear -> cardinal -> step -> linear
+      if (chartOptions.curve === 'linear') {
+        chartOptions.curve = 'cardinal';
+      } else if (chartOptions.curve === 'cardinal') {
+        chartOptions.curve = 'step';
+      } else {
+        chartOptions.curve = 'linear';
+      }
+      currentViz = createVisualization(chartOptions);
+    });
+
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      chartOptions = {
+        showPoints: true,
+        fillArea: false,
+        curve: 'linear'
+      };
+      currentViz = createVisualization(chartOptions);
+    });
+  </script>
+</body>
+</html>

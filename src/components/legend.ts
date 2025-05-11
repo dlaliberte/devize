@@ -1,10 +1,10 @@
 /**
- * Legend Component
+ * Legend Component - Bug Fixes
  *
- * Purpose: Provides legend visualization for charts
- * Author: [Author Name]
- * Creation Date: [Date]
- * Last Modified: [Date]
+ * Issues to fix:
+ * 1. Horizontal orientation layout
+ * 2. Title font size and weight not applying
+ * 3. Label offset not working
  */
 
 import { buildViz } from '../core/builder';
@@ -34,7 +34,12 @@ export const legendDefinition = {
     itemSpacing: { default: 20 },
     labelOffset: { default: 10 },
     symbolSize: { default: 15 },
-    format: { default: value => value ? value.toString() : '' }
+    format: { default: value => value ? value.toString() : '' },
+    titleFontSize: { default: '14px' },
+    titleFontWeight: { default: 'bold' },
+    titleFontFamily: { default: 'Arial' },
+    labelFontSize: { default: '12px' },
+    labelFontFamily: { default: 'Arial' }
   },
   validate: function(props) {
     // Validate legend type
@@ -60,7 +65,22 @@ export const legendDefinition = {
     }
   },
   implementation: function(props) {
-    const { legendType, title, items, orientation, position, itemSpacing, labelOffset, symbolSize, format } = props;
+    const {
+      legendType,
+      title,
+      items,
+      orientation,
+      position,
+      itemSpacing,
+      labelOffset,
+      symbolSize,
+      format,
+      titleFontSize,
+      titleFontWeight,
+      titleFontFamily,
+      labelFontSize,
+      labelFontFamily
+    } = props;
 
     const isHorizontal = orientation === 'horizontal';
 
@@ -80,15 +100,15 @@ export const legendDefinition = {
       }
     }
 
-    // Create legend title with correct positioning
+    // Create legend title with correct positioning and styling
     const legendTitle = title ? {
       type: 'text',
       x: 0, // Relative to the legend group
       y: 0,
       text: title,
-      fontSize: '14px',
-      fontFamily: 'Arial',
-      fontWeight: 'bold',
+      fontSize: titleFontSize, // Use the provided title font size
+      fontFamily: titleFontFamily, // Use the provided title font family
+      fontWeight: titleFontWeight, // Use the provided title font weight
       textAnchor: 'start',
       dominantBaseline: 'hanging',
       class: 'legend-title'
@@ -99,8 +119,9 @@ export const legendDefinition = {
 
     // Create legend items with correct positioning
     const legendItems = items.map((item, i) => {
+      // Calculate position based on orientation
       const itemX = isHorizontal ? i * itemSpacing : 0;
-      const itemY = titleOffset + (isHorizontal ? 0 : i * itemSpacing);
+      const itemY = isHorizontal ? titleOffset : titleOffset + i * itemSpacing;
 
       // Create the appropriate symbol based on legend type
       let symbol;
@@ -163,16 +184,18 @@ export const legendDefinition = {
         }
       }
 
-      // Create label
+      // Create label with proper positioning based on orientation
       const label = {
         type: 'text',
-        x: itemX + (isHorizontal ? symbolSize + labelOffset : symbolSize + 5),
-        y: itemY + (isHorizontal ? symbolSize / 2 : symbolSize / 2),
+        // For horizontal orientation, place label to the right of symbol
+        // For vertical orientation, place label to the right of symbol
+        x: itemX + symbolSize + labelOffset, // Apply label offset correctly
+        y: itemY + (symbolSize / 2), // Center vertically with the symbol
         text: format(item.label || item.value),
-        fontSize: '12px',
-        fontFamily: 'Arial',
+        fontSize: labelFontSize, // Use the provided label font size
+        fontFamily: labelFontFamily, // Use the provided label font family
         textAnchor: 'start',
-        dominantBaseline: 'middle',
+        dominantBaseline: 'middle', // Center text vertically
         class: 'legend-label'
       };
 
@@ -183,6 +206,44 @@ export const legendDefinition = {
         children: [symbol, label].filter(Boolean)
       };
     });
+
+    // For horizontal orientation, we need to calculate the total width
+    // to ensure items don't overlap
+    if (isHorizontal) {
+      // Adjust item positions to prevent overlap
+      let currentX = 0;
+
+      legendItems.forEach((item, index) => {
+        // Update the x position of the symbol
+        const symbol = item.children[0];
+        symbol.x = currentX;
+
+        if (symbol.type === 'circle') {
+          symbol.cx = currentX + symbolSize / 2;
+        } else if (symbol.type === 'polygon') {
+          // Adjust polygon points
+          const halfSize = symbolSize / 2;
+          symbol.points = [
+            { x: currentX + halfSize, y: symbol.points[0].y },
+            { x: currentX, y: symbol.points[1].y },
+            { x: currentX + symbolSize, y: symbol.points[2].y }
+          ];
+        }
+
+        // Update the x position of the label
+        const label = item.children[1];
+        label.x = currentX + symbolSize + labelOffset;
+
+        // Calculate the width of this item (symbol + label + spacing)
+        // Estimate text width based on character count (rough approximation)
+        const textLength = label.text.toString().length;
+        const estimatedTextWidth = textLength * (parseInt(labelFontSize) * 0.6);
+        const itemWidth = symbolSize + labelOffset + estimatedTextWidth + 20; // Add some padding
+
+        // Update the current x position for the next item
+        currentX += itemWidth;
+      });
+    }
 
     // Combine all elements into a group specification with explicit transform
     const groupSpec = {
@@ -249,7 +310,12 @@ export function createLegend(options: {
   itemSpacing?: number,
   labelOffset?: number,
   symbolSize?: number,
-  format?: (value: any) => string
+  format?: (value: any) => string,
+  titleFontSize?: string,
+  titleFontWeight?: string,
+  titleFontFamily?: string,
+  labelFontSize?: string,
+  labelFontFamily?: string
 }) {
   return buildViz({
     type: 'legend',
@@ -261,10 +327,14 @@ export function createLegend(options: {
     itemSpacing: options.itemSpacing || 20,
     labelOffset: options.labelOffset || 10,
     symbolSize: options.symbolSize || 15,
-    format: options.format || (value => value.toString())
+    format: options.format || (value => value.toString()),
+    titleFontSize: options.titleFontSize || '14px',
+    titleFontWeight: options.titleFontWeight || 'bold',
+    titleFontFamily: options.titleFontFamily || 'Arial',
+    labelFontSize: options.labelFontSize || '12px',
+    labelFontFamily: options.labelFontFamily || 'Arial'
   });
 }
-
 
 export function registerLegendComponent() {
   // Make sure define type is registered
@@ -272,7 +342,7 @@ export function registerLegendComponent() {
 
   // Register the legend component with the builder
   buildViz(legendDefinition);
-console.log('Legend component registered');
-
+  console.log('Legend component registered');
 }
+
 registerLegendComponent();

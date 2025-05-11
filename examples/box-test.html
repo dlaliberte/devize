@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Box Layout Test - Devize</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+
+    header {
+      background-color: #333;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.8rem;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .description {
+      background-color: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .dashboard-container {
+      background-color: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    footer {
+      text-align: center;
+      padding: 20px;
+      margin-top: 40px;
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    a {
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Box Layout Test - Devize</h1>
+  </header>
+
+  <div class="container">
+    <a href="/examples/" class="back-link">← Back to Examples</a>
+
+    <div class="description">
+      <h2>Box Layout Components</h2>
+      <p>
+        This example demonstrates the HBox and VBox layout components, which provide flexible box layouts similar to CSS flexbox.
+        Use the controls below to experiment with different layout configurations.
+      </p>
+      <p>
+        <strong>Features:</strong>
+      </p>
+      <ul>
+        <li>Horizontal (HBox) and Vertical (VBox) layouts</li>
+        <li>Flexible alignment and justification options</li>
+        <li>Item wrapping and direction reversal</li>
+        <li>Customizable spacing and padding</li>
+        <li>Dynamic item management</li>
+      </ul>
+    </div>
+
+
+  <div id="test-container"></div>
+
+  <a href="/examples/" class="back-link">← Back to Examples</a>
+
+  <script type="module">
+    import { buildViz, renderViz, updateViz, registerData } from '/src/index.ts';
+
+    import { createBoxLayoutDashboard } from '../src/components/layout/boxLayoutDashboard.ts';
+
+    // Initialize the legend test dashboard when the page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      const container = document.getElementById('test-container');
+      createBoxLayoutDashboard(container);
+    });
+  </script>
+</body>
+</html>

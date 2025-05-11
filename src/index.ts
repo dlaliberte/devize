@@ -23,6 +23,7 @@ initializeLibrary();
 // Import visualization types
 import './components/data/dataExtract';
 import './charts/barChart';
+import './charts/lineChart';
 import './charts/scatterPlot';
 import './components/axis';
 import './components/legend';
