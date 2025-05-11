@@ -43,7 +43,7 @@ export const legendDefinition = {
   },
   validate: function(props) {
     // Validate legend type
-    const validTypes = ['color', 'size', 'symbol'];
+    const validTypes = ['color', 'size', 'symbol', 'shape'];
     if (!validTypes.includes(props.legendType)) {
       throw new Error(`Invalid legend type: ${props.legendType}. Must be one of: ${validTypes.join(', ')}`);
     }
@@ -146,9 +146,9 @@ export const legendDefinition = {
           fill: '#666',
           class: 'legend-symbol'
         };
-      } else if (legendType === 'symbol') {
-        // Default to a circle if no symbol specified
-        const symbolType = item.symbol || 'circle';
+      } else if (legendType === 'symbol' || legendType === 'shape') {
+        // Default to a circle if no symbol/shape specified
+        const symbolType = item.symbol || item.shape || 'circle';
 
         if (symbolType === 'circle') {
           symbol = {
@@ -179,6 +179,33 @@ export const legendDefinition = {
               { x: itemX + symbolSize, y: itemY + symbolSize }
             ],
             fill: item.color || '#666',
+            class: 'legend-symbol'
+          };
+        } else if (symbolType === 'diamond') {
+          const halfSize = symbolSize / 2;
+          symbol = {
+            type: 'polygon',
+            points: [
+              { x: itemX + halfSize, y: itemY },
+              { x: itemX + symbolSize, y: itemY + halfSize },
+              { x: itemX + halfSize, y: itemY + symbolSize },
+              { x: itemX, y: itemY + halfSize }
+            ],
+            fill: item.color || '#666',
+            class: 'legend-symbol'
+          };
+        } else if (symbolType === 'cross' || symbolType === 'star') {
+          // For more complex shapes, we'd need to use a path
+          // This is a simplified version
+          symbol = {
+            type: 'text',
+            x: itemX + symbolSize / 2,
+            y: itemY + symbolSize / 2,
+            text: symbolType === 'cross' ? '✕' : '★',
+            fontSize: symbolSize + 'px',
+            fill: item.color || '#666',
+            textAnchor: 'middle',
+            dominantBaseline: 'middle',
             class: 'legend-symbol'
           };
         }

@@ -511,7 +511,6 @@ Devize.renderViz(measuresScatterPlot, document.getElementById('measures-chart'))
     // Create a scatter plot with multiple measures
     function createMeasuresScatterPlot(measures = 'population') {
       let series = [];
-      let yAxis = {}; // This will be set based on the active measure
 
       if (measures === 'population' || measures === 'both') {
         series.push({
@@ -522,11 +521,6 @@ Devize.renderViz(measuresScatterPlot, document.getElementById('measures-chart'))
           color: '#3366CC',
           shape: 'circle'
         });
-
-        // If only showing population, set the y-axis title accordingly
-        if (measures === 'population') {
-          yAxis = { field: 'population', title: 'Population (Millions)' };
-        }
       }
 
       if (measures === 'lifeExpectancy' || measures === 'both') {
@@ -538,16 +532,6 @@ Devize.renderViz(measuresScatterPlot, document.getElementById('measures-chart'))
           color: '#DC3912',
           shape: 'triangle'
         });
-
-        // If only showing life expectancy, set the y-axis title accordingly
-        if (measures === 'lifeExpectancy') {
-          yAxis = { field: 'lifeExpectancy', title: 'Life Expectancy (Years)' };
-        }
-      }
-
-      // For "both" measures, we need a more generic y-axis title
-      if (measures === 'both') {
-        yAxis = { title: 'Value' };
       }
 
       const spec = {
@@ -555,7 +539,10 @@ Devize.renderViz(measuresScatterPlot, document.getElementById('measures-chart'))
         data: dataWithLifeExpectancy,
         series: series,
         x: { field: 'gdp', title: 'GDP (Billions USD)' },
-        y: yAxis, // Use the appropriate y-axis configuration
+        // Always provide a default y field, even when using series
+        y: { field: measures === 'lifeExpectancy' ? 'lifeExpectancy' : 'population',
+             title: measures === 'both' ? 'Value' :
+                    (measures === 'lifeExpectancy' ? 'Life Expectancy (Years)' : 'Population (Millions)') },
         title: 'GDP vs Multiple Measures',
         tooltip: true,
         grid: true,

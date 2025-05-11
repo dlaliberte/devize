@@ -106,13 +106,34 @@ export const scatterPlotDefinition = {
       throw new Error('Data must be an array');
     }
 
-    // Validate x and y fields
-    if (!props.x || !props.x.field) {
-      throw new Error('X field must be specified');
-    }
+    // Check if we're using series array
+    const usingSeries = Array.isArray(props.series);
 
-    if (!props.y || !props.y.field) {
-      throw new Error('Y field must be specified');
+    // Validate x and y fields - only required if not using series array
+    if (!usingSeries) {
+      if (!props.x || !props.x.field) {
+        throw new Error('X field must be specified');
+      }
+
+      if (!props.y || !props.y.field) {
+        throw new Error('Y field must be specified');
+      }
+    } else {
+      // When using series array, each series should have x and y fields
+      // But we still need a global x field for the axis
+      if (!props.x || !props.x.field) {
+        throw new Error('X field must be specified');
+      }
+
+      // Check that each series has proper x and y fields
+      props.series.forEach((series, index) => {
+        if (!series.x || !series.x.field) {
+          throw new Error(`X field must be specified for series at index ${index}`);
+        }
+        if (!series.y || !series.y.field) {
+          throw new Error(`Y field must be specified for series at index ${index}`);
+        }
+      });
     }
 
     // Validate dimensions
@@ -448,7 +469,8 @@ export const scatterPlotDefinition = {
       );
 
       shapeLegend = {
-        type: 'shapeLegend',
+        type: 'legend',
+        legendType: 'shape',
         items: shapeMapping,
         position: shapeLegendPosition,
         title: props.shapeLegend.title || 'Shape',
@@ -600,4 +622,90 @@ export function createScatterPlot(options: {
     pointStyle: options.pointStyle,
     legend: options.legend
   });
+}
+
+// Add this function to the implementation section of scatterPlot.ts
+function getShapePath(shape, size) {
+  const halfSize = size;
+
+  switch (shape) {
+    case 'square':
+      return `M${-halfSize},${-halfSize}h${2*halfSize}v${2*halfSize}h${-2*halfSize}z`;
+    case 'triangle':
+      return `M0,${-halfSize}L${halfSize},${halfSize}L${-halfSize},${halfSize}z`;
+    case 'diamond':
+      return `M0,${-halfSize}L${halfSize},0L0,${halfSize}L${-halfSize},0z`;
+    case 'cross':
+      const third = halfSize / 1.5;
+      return `M${-third},${-halfSize}h${2*third}v${third}h${third}v${2*third}h${-third}v${third}h${-2*third}v${-third}h${-third}v${-2*third}h${third}z`;
+    case 'star':
+      const outerRadius = halfSize;
+      const innerRadius = halfSize * 0.4;
+      const points = 5;
+      let path = `M${0},${-outerRadius}`;
+
+      for (let i = 1; i < points * 2; i++) {
+        const radius = i % 2 === 0 ? outerRadius : innerRadius;
+        const angle = (Math.PI * i) / points;
+        const x = Math.sin(angle) * radius;
+        const y = -Math.cos(angle) * radius;
+        path += `L${x},${y}`;
+      }
+
+      return path + 'z';
+    default:
+      return ''; // Empty path for unknown shapes
+  }
+}
+
+function createMeasuresScatterPlot(measures = 'population') {
+  let series = [];
+
+  if (measures === 'population' || measures === 'both') {
+    series.push({
+      name: 'Population',
+      data: dataWithLifeExpectancy,
+      x: { field: 'gdp' },
+      y: { field: 'population' },
+      color: '#3366CC',
+      shape: 'circle'
+    });
+  }
+
+  if (measures === 'lifeExpectancy' || measures === 'both') {
+    series.push({
+      name: 'Life Expectancy',
+      data: dataWithLifeExpectancy,
+      x: { field: 'gdp' },
+      y: { field: 'lifeExpectancy' },
+      color: '#DC3912',
+      shape: 'triangle'
+    });
+  }
+
+  const spec = {
+    type: 'scatterPlot',
+    data: dataWithLifeExpectancy,
+    series: series,
+    x: { field: 'gdp', title: 'GDP (Billions USD)' },
+    // Always provide a default y field, even when using series
+    y: { field: measures === 'lifeExpectancy' ? 'lifeExpectancy' : 'population',
+         title: measures === 'both' ? 'Value' :
+                (measures === 'lifeExpectancy' ? 'Life Expectancy (Years)' : 'Population (Millions)') },
+    title: 'GDP vs Multiple Measures',
+    tooltip: true,
+    grid: true,
+    colorLegend: {
+      enabled: true,
+      position: 'top-right',
+      title: 'Measure'
+    },
+    shapeLegend: {
+      enabled: true,
+      position: 'bottom-left',
+      title: 'Measure'
+    }
+  };
+
+  return Devize.buildViz(spec);
 }
