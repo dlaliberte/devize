@@ -79,6 +79,7 @@
 
     <div class="controls">
       <h3>Chart Options</h3>
+      <button id="toggle-lines-btn">Toggle Lines</button>
       <button id="toggle-points-btn">Toggle Points</button>
       <button id="toggle-area-btn">Toggle Area Fill</button>
       <button id="change-curve-btn">Change Curve Type</button>
@@ -110,6 +111,7 @@ const lineChartSpec = {
   y: { field: "value" },
   color: { field: "trend" },
   title: "Monthly Value Trends",
+  showLine: true,
   showPoints: true,
   curve: "linear",
   grid: true
@@ -147,6 +149,7 @@ Devize.renderViz(lineChart, document.getElementById("visualization-container"));
 
     // Default chart options
     let chartOptions = {
+      showLine: true,
       showPoints: true,
       fillArea: false,
       curve: 'linear'
@@ -166,6 +169,7 @@ Devize.renderViz(lineChart, document.getElementById("visualization-container"));
         y: { field: "value" },
         color: { field: "trend" },
         title: "Monthly Value Trends",
+        showLine: options.showLine,
         showPoints: options.showPoints,
         fillArea: options.fillArea,
         fillOpacity: 0.3,
@@ -186,6 +190,11 @@ Devize.renderViz(lineChart, document.getElementById("visualization-container"));
     let currentViz = createVisualization(chartOptions);
 
     // Add event listeners for the buttons
+    document.getElementById('toggle-lines-btn').addEventListener('click', () => {
+      chartOptions.showLine = !chartOptions.showLine;
+      currentViz = createVisualization(chartOptions);
+    });
+
     document.getElementById('toggle-points-btn').addEventListener('click', () => {
       chartOptions.showPoints = !chartOptions.showPoints;
       currentViz = createVisualization(chartOptions);
@@ -210,6 +219,7 @@ Devize.renderViz(lineChart, document.getElementById("visualization-container"));
 
     document.getElementById('reset-btn').addEventListener('click', () => {
       chartOptions = {
+        showLine: true,
         showPoints: true,
         fillArea: false,
         curve: 'linear'

@@ -1,304 +1,231 @@
-import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { registerType, getType, hasType, _resetRegistryForTesting } from '../core/registry';
-import { registerDefineType } from '../core/define';
+/**
+ * Path Primitive Tests
+ *
+ * Purpose: Tests the path primitive visualization
+ * Author: [Author Name]
+ * Creation Date: [Date]
+ * Last Modified: [Date]
+ */
+
+import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
+import { registry, hasType, getType } from '../core/registry';
+import { pathTypeDefinition, registerPathPrimitive } from './path';
 import { buildViz } from '../core/builder';
-
-// Create a mock document object for SVG creation
-global.document = {
-  createElementNS: vi.fn((namespace, tagName) => ({
-    tagName: tagName.toUpperCase(),
-    setAttribute: vi.fn(),
-    appendChild: vi.fn()
-  }))
-} as any;
-
-// Mock buildViz to capture calls
-vi.mock('../core/builder', () => ({
-  buildViz: vi.fn((spec) => {
-    // If this is the define type for path, manually register it
-    if (spec.type === 'define' && spec.name === 'path') {
-      const implementation = spec.implementation;
-
-      registerType({
-        name: 'path',
-        requiredProps: ['d'],
-        optionalProps: {
-          fill: 'none',
-          stroke: 'black',
-          strokeWidth: 1,
-          strokeDasharray: '',
-          opacity: 1
-        },
-        generateConstraints: () => [],
-        decompose: (props, solvedConstraints) => {
-          return implementation(props);
-        }
-      });
-    }
-
-    return { type: 'group', children: [] };
-  })
-}));
-
-// Reset registry and register define type before each test
-beforeEach(() => {
-  _resetRegistryForTesting();
-  registerDefineType();
-
-  // Manually register the path type
-  buildViz({
-    type: "define",
-    name: "path",
-    properties: {
-      d: { required: true },
-      fill: { default: "none" },
-      stroke: { default: "black" },
-      strokeWidth: { default: 1 },
-      strokeDasharray: { default: "" },
-      opacity: { default: 1 }
-    },
-    implementation: props => {
-      // Apply default values for optional properties
-      const fullProps = {
-        ...props,
-        fill: props.fill ?? "none",
-        stroke: props.stroke ?? "black",
-        strokeWidth: props.strokeWidth ?? 1,
-        strokeDasharray: props.strokeDasharray ?? "",
-        opacity: props.opacity ?? 1
-      };
-
-      // Prepare attributes
-      const attributes = {
-        d: fullProps.d,
-        fill: fullProps.fill,
-        stroke: fullProps.stroke,
-        'stroke-width': fullProps.strokeWidth,
-        'stroke-dasharray': fullProps.strokeDasharray || null,
-        opacity: fullProps.opacity
-      };
-
-      // Return a specification with rendering functions
-      return {
-        _renderType: "path",  // Internal rendering type
-        attributes: attributes,
-
-        // Rendering functions for different backends
-        renderToSvg: (container) => {
-          const element = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-          for (const [key, value] of Object.entries(attributes)) {
-            if (value !== undefined && value !== null) {
-              element.setAttribute(key, value.toString());
-            }
-          }
-          if (container) container.appendChild(element);
-          return element;
-        },
-
-        renderToCanvas: (ctx) => {
-          const { d, fill, stroke, 'stroke-width': strokeWidth, 'stroke-dasharray': strokeDasharray, opacity } = attributes;
-
-          // Save the current context state
-          ctx.save();
-
-          // Apply opacity
-          ctx.globalAlpha = opacity;
-
-          // Create a new path
-          ctx.beginPath();
-
-          // Parse the SVG path data and draw to canvas
-          const path = new Path2D(d);
-
-          // Apply fill if not 'none'
-          if (fill && fill !== 'none') {
-            ctx.fillStyle = fill;
-            ctx.fill(path);
-          }
-
-          // Apply stroke
-          if (stroke && stroke !== 'none') {
-            ctx.strokeStyle = stroke;
-            ctx.lineWidth = strokeWidth;
-
-            // Apply stroke dash array if specified
-            if (strokeDasharray) {
-              const dashArray = strokeDasharray.split(',').map(Number);
-              ctx.setLineDash(dashArray);
-            } else {
-              ctx.setLineDash([]);
-            }
-
-            ctx.stroke(path);
-          }
-
-          // Restore the context state
-          ctx.restore();
-
-          return true; // Indicate successful rendering
-        }
-      };
-    }
-  });
-});
+import { registerDefineType } from '../core/define';
+import {
+  resetRegistry,
+  createTestContainer,
+  cleanupTestContainer,
+  testVisualizationRendering,
+  testVisualizationUpdate,
+  testVisualizationProperties,
+  testCanvasRendering
+} from '../test/testUtils';
 
 describe('Path Primitive', () => {
+  let container: HTMLElement;
+
+  // Reset registry before each test
+  beforeEach(() => {
+    // Reset the registry for clean tests
+    resetRegistry();
+
+    // Register the required primitives
+    registerDefineType();
+    registerPathPrimitive();
+
+    // Create a test container
+    container = createTestContainer();
+  });
+
+  // Clean up after each test
+  afterEach(() => {
+    cleanupTestContainer(container);
+  });
+
   test('should register the path type', () => {
     expect(hasType('path')).toBe(true);
 
     const pathType = getType('path');
     expect(pathType).toBeDefined();
-    expect(pathType?.requiredProps).toContain('d');
-    expect(pathType?.optionalProps).toHaveProperty('fill', 'none');
-    expect(pathType?.optionalProps).toHaveProperty('stroke', 'black');
-    expect(pathType?.optionalProps).toHaveProperty('strokeWidth', 1);
-    expect(pathType?.optionalProps).toHaveProperty('strokeDasharray', '');
-    expect(pathType?.optionalProps).toHaveProperty('opacity', 1);
+    expect(pathType?.properties.d.required).toBe(true);
+    expect(pathType?.properties.fill.default).toBe('none');
+    expect(pathType?.properties.stroke.default).toBe('black');
+    expect(pathType?.properties.strokeWidth.default).toBe(1);
+    expect(pathType?.properties.strokeDasharray.default).toBe('none');
+    expect(pathType?.properties.opacity.default).toBe(1);
   });
 
   test('should create a renderable object with correct attributes', () => {
-    const pathType = getType('path');
+    testVisualizationProperties(
+      {
+        type: "path",
+        d: "M10,10 L90,90",
+        fill: "red",
+        stroke: "blue",
+        strokeWidth: 2,
+        strokeDasharray: "5,5",
+        opacity: 0.5
+      },
+      {
+        d: "M10,10 L90,90",
+        fill: "red",
+        stroke: "blue",
+        strokeWidth: 2,
+        strokeDasharray: "5,5",
+        opacity: 0.5
+      }
+    );
+  });
 
-    const result = pathType?.decompose({
-      d: 'M10,10 L90,90',
-      fill: 'red',
-      stroke: 'blue',
-      strokeWidth: 2,
-      strokeDasharray: '5,5',
-      opacity: 0.5
-    }, {});
+  test('should render path to SVG with correct attributes', () => {
+    testVisualizationRendering(
+      {
+        type: 'path',
+        d: 'M10,10 L90,90',
+        fill: 'red',
+        stroke: 'blue',
+        strokeWidth: 2,
+        strokeDasharray: '5,5',
+        opacity: 0.5
+      },
+      container,
+      {
+        'd': 'M10,10 L90,90',
+        'fill': 'red',
+        'stroke': 'blue',
+        'stroke-width': '2',
+        'stroke-dasharray': '5,5',
+        'opacity': '0.5'
+      },
+      'path'
+    );
+  });
 
-    expect(result).toBeDefined();
-    expect(result?._renderType).toBe('path');
-    expect(result?.attributes).toEqual({
-      d: 'M10,10 L90,90',
-      fill: 'red',
-      stroke: 'blue',
-      'stroke-width': 2,
-      'stroke-dasharray': '5,5',
-      opacity: 0.5
+  test('should handle null stroke-dasharray when none is specified', () => {
+    const result = buildViz({
+      type: "path",
+      d: "M10,10 L90,90",
+      strokeDasharray: 'none'
     });
-  });
 
-  test('should handle empty stroke-dasharray', () => {
-    const pathType = getType('path');
+    // Render to SVG
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    const element = result.renderToSvg(svg);
 
-    const result = pathType?.decompose({
-      d: 'M10,10 L90,90',
-      strokeDasharray: ''
-    }, {});
-
-    expect(result?.attributes['stroke-dasharray']).toBeNull();
-  });
-
-  test('should provide SVG rendering function', () => {
-    const pathType = getType('path');
-
-    const result = pathType?.decompose({
-      d: 'M10,10 L90,90'
-    }, {});
-
-    expect(result?.renderToSvg).toBeTypeOf('function');
-
-    // Create a mock container
-    const container = { appendChild: vi.fn() };
-
-    // Call the SVG rendering function
-    const svgElement = result?.renderToSvg(container);
-
-    // Verify the SVG element was created correctly
-    expect(svgElement).toBeDefined();
-    expect(svgElement?.tagName).toBe('PATH');
-    expect(container.appendChild).toHaveBeenCalledWith(svgElement);
-  });
-
-  test('should provide Canvas rendering function', () => {
-    // Mock Path2D constructor
-    global.Path2D = vi.fn(function(path) {
-      this.path = path;
-    }) as any;
-
-    const pathType = getType('path');
-
-    const result = pathType?.decompose({
-      d: 'M10,10 L90,90',
-      fill: 'green',
-      stroke: 'black',
-      strokeWidth: 2
-    }, {});
-
-    expect(result?.renderToCanvas).toBeTypeOf('function');
-
-    // Create a mock canvas context
-    const ctx = {
-      save: vi.fn(),
-      restore: vi.fn(),
-      beginPath: vi.fn(),
-      fill: vi.fn(),
-      stroke: vi.fn(),
-      setLineDash: vi.fn()
-    };
-
-    // Call the Canvas rendering function
-    const canvasResult = result?.renderToCanvas(ctx);
-
-    // Verify the canvas operations were performed correctly
-    expect(canvasResult).toBe(true);
-    expect(ctx.save).toHaveBeenCalled();
-    expect(ctx.beginPath).toHaveBeenCalled();
-    expect(global.Path2D).toHaveBeenCalledWith('M10,10 L90,90');
-    expect(ctx.fill).toHaveBeenCalled();
-    expect(ctx.stroke).toHaveBeenCalled();
-    expect(ctx.restore).toHaveBeenCalled();
-  });
-
-  test('should handle path with only stroke and no fill', () => {
-    // Mock Path2D constructor
-    global.Path2D = vi.fn(function(path) {
-      this.path = path;
-    }) as any;
-
-    const pathType = getType('path');
-
-    const result = pathType?.decompose({
-      d: 'M10,10 L90,90',
-      fill: 'none',
-      stroke: 'black'
-    }, {});
-
-    // Create a mock canvas context
-    const ctx = {
-      save: vi.fn(),
-      restore: vi.fn(),
-      beginPath: vi.fn(),
-      fill: vi.fn(),
-      stroke: vi.fn(),
-      setLineDash: vi.fn()
-    };
-
-    // Call the Canvas rendering function
-    result?.renderToCanvas(ctx);
-
-    // Should not call fill with 'none' fill
-    expect(ctx.fill).not.toHaveBeenCalled();
-    expect(ctx.stroke).toHaveBeenCalled();
+    // Check that stroke-dasharray attribute is not set
+    expect(element.hasAttribute('stroke-dasharray')).toBe(false);
   });
 
   test('should apply default values for optional properties', () => {
-    const pathType = getType('path');
+    testVisualizationRendering(
+      {
+        type: "path",
+        d: "M10,10 L90,90"
+      },
+      container,
+      {
+        'd': 'M10,10 L90,90',
+        'fill': 'none',
+        'stroke': 'black',
+        'stroke-width': '1',
+        'opacity': '1'
+      },
+      'path'
+    );
+  });
 
-    const result = pathType?.decompose({
-      d: 'M10,10 L90,90'
-      // No optional properties specified
-    }, {});
+  test('should update path attributes', () => {
+    testVisualizationUpdate(
+      // Initial spec
+      {
+        type: "path",
+        d: "M10,10 L90,90",
+        fill: 'none',
+        stroke: 'black'
+      },
+      // Update spec
+      {
+        type: "path",
+        d: "M20,20 L80,80",
+        fill: 'red',
+        stroke: 'blue',
+        strokeDasharray: '5,5'
+      },
+      // Container
+      container,
+      // Initial attributes
+      {
+        'd': 'M10,10 L90,90',
+        'fill': 'none',
+        'stroke': 'black',
+        'stroke-width': '1'
+      },
+      // Updated attributes
+      {
+        'd': 'M20,20 L80,80',
+        'fill': 'red',
+        'stroke': 'blue',
+        'stroke-width': '1',
+        'stroke-dasharray': '5,5'
+      },
+      'path'
+    );
+  });
 
-    expect(result?.attributes).toEqual({
-      d: 'M10,10 L90,90',
-      fill: 'none',
-      stroke: 'black',
-      'stroke-width': 1,
-      'stroke-dasharray': null,  // Empty string is converted to null
-      opacity: 1
-    });
+  test('should render to canvas with fill and stroke', () => {
+    testCanvasRendering(
+      {
+        type: "path",
+        d: "M10,10 L90,90",
+        fill: 'blue',
+        stroke: 'red',
+        strokeWidth: 2
+      },
+      {
+        save: true,
+        beginPath: true,
+        fillStyle: 'blue',
+        fill: true,
+        strokeStyle: 'red',
+        lineWidth: 2,
+        setLineDash: [[]],
+        stroke: true,
+        restore: true
+      }
+    );
+  });
+
+  test('should render to canvas with stroke only', () => {
+    testCanvasRendering(
+      {
+        type: "path",
+        d: "M10,10 L90,90",
+        fill: 'none',
+        stroke: 'red',
+        strokeWidth: 2
+      },
+      {
+        save: true,
+        beginPath: true,
+        strokeStyle: 'red',
+        lineWidth: 2,
+        setLineDash: [[]],
+        stroke: true,
+        restore: true
+      }
+    );
+  });
+
+  test('should match the exported type definition', () => {
+    // Verify that the exported type definition matches what's registered
+    expect(pathTypeDefinition.type).toBe('define');
+    expect(pathTypeDefinition.name).toBe('path');
+    expect(pathTypeDefinition.properties).toBeDefined();
+    expect(pathTypeDefinition.implementation).toBeDefined();
+
+    // Compare with the registered type
+    const registeredType = getType('path');
+    expect(registeredType?.properties).toEqual(pathTypeDefinition.properties);
   });
 });

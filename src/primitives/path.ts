@@ -7,15 +7,13 @@
  * Last Modified: [Date]
  */
 
-import { registerDefineType } from '../core/define';
 import { buildViz } from '../core/builder';
+import { registerDefineType } from '../core/define';
 import { createSVGElement, applyAttributes } from '../renderers/svgUtils';
+import { createRenderableVisualization } from '../core/componentUtils';
 
-// Make sure define type is registered
-registerDefineType();
-
-// Define path primitive
-buildViz({
+// Path type definition
+export const pathTypeDefinition = {
   type: "define",
   name: "path",
   properties: {
@@ -23,87 +21,132 @@ buildViz({
     fill: { default: "none" },
     stroke: { default: "black" },
     strokeWidth: { default: 1 },
-    strokeDasharray: { default: "" },
+    strokeDasharray: { default: "none" },
     opacity: { default: 1 }
   },
-  implementation: props => {
+  implementation: function(props) {
+    // Apply default values for optional properties
+    const fullProps = {
+      ...props,
+      fill: props.fill ?? "none",
+      stroke: props.stroke ?? "black",
+      strokeWidth: props.strokeWidth ?? 1,
+      strokeDasharray: props.strokeDasharray ?? "none",
+      opacity: props.opacity ?? 1
+    };
+
     // Prepare attributes
     const attributes = {
-      d: props.d,
-      fill: props.fill,
-      stroke: props.stroke,
-      'stroke-width': props.strokeWidth,
-      'stroke-dasharray': props.strokeDasharray || null,
-      opacity: props.opacity
+      d: fullProps.d,
+      fill: fullProps.fill,
+      stroke: fullProps.stroke,
+      'stroke-width': fullProps.strokeWidth,
+      'stroke-dasharray': fullProps.strokeDasharray === 'none' ? null : fullProps.strokeDasharray,
+      opacity: fullProps.opacity
     };
 
-    // Return a specification with rendering functions
-    return {
-      _renderType: "path",  // Internal rendering type
-      attributes: attributes,
+    // SVG rendering function
+    const renderToSvg = (svg: SVGElement) => {
+      // Create a path element with the correct namespace
+      const element = createSVGElement('path');
 
-      // Rendering functions for different backends
-      renderToSvg: (container) => {
-        const element = createSVGElement('path');
-        applyAttributes(element, attributes);
-        if (container) container.appendChild(element);
-        return element;
-      },
+      // Apply attributes explicitly to ensure they're set correctly for tests
+      element.setAttribute('d', attributes.d);
+      element.setAttribute('fill', attributes.fill);
+      element.setAttribute('stroke', attributes.stroke);
+      element.setAttribute('stroke-width', attributes['stroke-width'].toString());
 
-      renderToCanvas: (ctx) => {
-        const { d, fill, stroke, 'stroke-width': strokeWidth, 'stroke-dasharray': strokeDasharray, opacity } = attributes;
+      if (attributes['stroke-dasharray'] !== null) {
+        element.setAttribute('stroke-dasharray', attributes['stroke-dasharray']);
+      }
 
-        // Save the current context state
-        ctx.save();
+      element.setAttribute('opacity', attributes.opacity.toString());
 
-        // Apply opacity
-        ctx.globalAlpha = opacity;
+      // Add to the SVG
+      if (svg) {
+        svg.appendChild(element);
+      }
 
-        // Create a new path
-        ctx.beginPath();
+      return element;
+    };
 
-        try {
-          // Parse the SVG path data and draw to canvas
-          const path = new Path2D(d);
+    // Canvas rendering function
+    const renderToCanvas = (ctx: CanvasRenderingContext2D) => {
+      const { d, fill, stroke, 'stroke-width': strokeWidth, 'stroke-dasharray': strokeDasharray, opacity } = attributes;
 
-          // Apply fill if not 'none'
-          if (fill && fill !== 'none') {
-            ctx.fillStyle = fill;
-            ctx.fill(path);
-          }
+      // Save the current context state
+      ctx.save();
 
-          // Apply stroke
-          if (stroke && stroke !== 'none') {
-            ctx.strokeStyle = stroke;
-            ctx.lineWidth = strokeWidth;
+      // Apply opacity
+      ctx.globalAlpha = opacity;
 
-            // Apply stroke dash array if specified
-            if (strokeDasharray) {
-              const dashArray = strokeDasharray.split(',').map(Number);
-              ctx.setLineDash(dashArray);
-            } else {
-              ctx.setLineDash([]);
-            }
+      // Create a new path
+      ctx.beginPath();
 
-            ctx.stroke(path);
-          }
-        } catch (error) {
-          console.error('Error rendering path:', error);
+      try {
+        // Parse the SVG path data and draw to canvas
+        const path = new Path2D(d);
+
+        // Apply fill if not 'none'
+        if (fill && fill !== 'none') {
+          ctx.fillStyle = fill;
+          ctx.fill(path);
         }
 
-        // Restore the context state
-        ctx.restore();
+        // Apply stroke
+        if (stroke && stroke !== 'none') {
+          ctx.strokeStyle = stroke;
+          ctx.lineWidth = strokeWidth;
 
-        return true; // Indicate successful rendering
+          // Apply stroke dash array if specified
+          if (strokeDasharray) {
+            const dashArray = strokeDasharray.split(',').map(Number);
+            ctx.setLineDash(dashArray);
+          } else {
+            ctx.setLineDash([]);
+          }
+
+          ctx.stroke(path);
+        }
+      } catch (error) {
+        console.error('Error rendering path:', error);
       }
+
+      // Restore the context state
+      ctx.restore();
+
+      return true; // Indicate successful rendering
     };
+
+    // Create and return a renderable visualization
+    return createRenderableVisualization(
+      'path',
+      props,
+      renderToSvg,
+      renderToCanvas
+    );
   }
-});
+};
+
+/**
+ * Register the path primitive
+ */
+export function registerPathPrimitive() {
+  // Make sure define type is registered
+  registerDefineType();
+
+  // Define the path type using buildViz
+  buildViz(pathTypeDefinition);
+}
+
+// Auto-register when this module is imported
+registerPathPrimitive();
 
 /**
  * References:
  * - Related File: src/core/define.ts
  * - Related File: src/core/registry.ts
+ * - Related File: src/core/builder.ts
  * - Related File: src/core/devize.ts
  * - Related File: src/renderers/svgUtils.js
  * - Related File: src/renderers/canvasUtils.js
