@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Path Primitive Visual Tests</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+
+    .container {
+      margin-bottom: 30px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      width: 300px;
+      height: 200px;
+      position: relative;
+    }
+
+    h2 {
+      margin-top: 30px;
+      margin-bottom: 10px;
+    }
+
+    .style-example {
+      display: inline-block;
+      margin: 10px;
+      text-align: center;
+    }
+
+    .style-label {
+      margin-top: 5px;
+      font-size: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Path Primitive Visual Tests</h1>
+
+  <h2>SVG Rendering</h2>
+  <div id="svg-container" class="container"></div>
+
+  <h2>Canvas Rendering</h2>
+  <div id="canvas-container" class="container"></div>
+
+  <h2>Path Styles</h2>
+  <div id="styles-container">
+    <div class="style-example">
+      <div id="basic-path" class="container" style="width: 150px; height: 150px;"></div>
+      <div class="style-label">Basic Path</div>
+    </div>
+
+    <div class="style-example">
+      <div id="filled-path" class="container" style="width: 150px; height: 150px;"></div>
+      <div class="style-label">Filled Path</div>
+    </div>
+
+    <div class="style-example">
+      <div id="dashed-path" class="container" style="width: 150px; height: 150px;"></div>
+      <div class="style-label">Dashed Path</div>
+    </div>
+
+    <div class="style-example">
+      <div id="complex-path" class="container" style="width: 150px; height: 150px;"></div>
+      <div class="style-label">Complex Path</div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { buildViz, renderViz } from '/src/index.ts';
+
+    // Basic path for SVG and Canvas comparison
+    const basicPathSpec = {
+      type: 'path',
+      d: 'M20,20 C40,60 80,60 100,20 S160,80 180,20 Z',
+      fill: 'lightblue',
+      stroke: 'blue',
+      strokeWidth: 2
+    };
+
+    // Render to SVG
+    const svgViz = buildViz(basicPathSpec);
+    renderViz(svgViz, document.getElementById('svg-container'));
+
+    // Render to Canvas
+    const canvasContainer = document.getElementById('canvas-container');
+    const canvas = document.createElement('canvas');
+    canvas.width = 300;
+    canvas.height = 200;
+    canvasContainer.appendChild(canvas);
+
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      svgViz.renderToCanvas(ctx);
+    }
+
+    // Render different path styles
+
+    // Basic path
+    const basicPath = buildViz({
+      type: 'path',
+      d: 'M20,20 L130,20 L75,130 Z',
+      fill: 'none',
+      stroke: 'black',
+      strokeWidth: 2
+    });
+    renderViz(basicPath, document.getElementById('basic-path'));
+
+    // Filled path
+    const filledPath = buildViz({
+      type: 'path',
+      d: 'M20,20 L130,20 L75,130 Z',
+      fill: 'orange',
+      stroke: 'red',
+      strokeWidth: 2
+    });
+    renderViz(filledPath, document.getElementById('filled-path'));
+
+    // Dashed path
+    const dashedPath = buildViz({
+      type: 'path',
+      d: 'M20,20 L130,20 L75,130 Z',
+      fill: 'none',
+      stroke: 'purple',
+      strokeWidth: 3,
+      strokeDasharray: '5,5'
+    });
+    renderViz(dashedPath, document.getElementById('dashed-path'));
+
+    // Complex path
+    const complexPath = buildViz({
+      type: 'path',
+      d: 'M20,75 C20,20 75,20 75,75 S130,130 130,75 Q130,20 75,50 T20,75',
+      fill: 'lightgreen',
+      stroke: 'green',
+      strokeWidth: 2
+    });
+    renderViz(complexPath, document.getElementById('complex-path'));
+  </script>
+</body>
+</html>
