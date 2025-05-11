@@ -12,6 +12,7 @@ export * from './slider';
 export * from './radioGroup';
 export * from './select';
 export * from './textInput';
+export * from './textArea';
 export * from './checkbox';
 export * from './colorInput';
 export * from './dashboard';
@@ -22,6 +23,7 @@ import { registerSliderComponent } from './slider';
 import { registerRadioGroupComponent } from './radioGroup';
 import { registerSelectComponent } from './select';
 import { registerTextInputComponent } from './textInput';
+import { registerTextAreaComponent } from './textArea';
 import { registerCheckboxComponent } from './checkbox';
 import { registerColorInputComponent } from './colorInput';
 import { registerDashboardComponent } from './dashboard';
@@ -33,7 +35,8 @@ export function registerAllControlComponents() {
   registerSelectComponent();
   registerTextInputComponent();
   registerCheckboxComponent();
-  registerColorInputComponent();
+    registerColorInputComponent();
+  registerTextAreaComponent();
   registerDashboardComponent();
 
   console.log('All UI control components registered');

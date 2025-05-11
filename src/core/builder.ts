@@ -13,6 +13,11 @@ function isRenderableVisualization(obj: any): boolean {
          typeof obj.renderToCanvas === 'function';
 }
 
+
+function isVisualizationSpec(spec: VisualizationSpec | RenderableVisualization): boolean {
+  return spec && typeof spec === 'object' && typeof spec.type === 'string';
+}
+
 /**
  * Process a specification with type definition
  */
@@ -136,7 +141,7 @@ function createRenderableVisualization(spec: VisualizationSpec): RenderableVisua
 /**
  * Build a visualization from a specification
  */
-export function buildViz(spec: VisualizationSpec): RenderableVisualization {
+export function buildViz(spec: VisualizationSpec | RenderableVisualization): RenderableVisualization {
   // If already a RenderableVisualization, return it
   if (isRenderableVisualization(spec)) {
     return spec as RenderableVisualization;
@@ -145,6 +150,11 @@ export function buildViz(spec: VisualizationSpec): RenderableVisualization {
   // Handle null or undefined
   if (!spec) {
     throw new Error('Visualization specification cannot be null or undefined');
+  }
+
+  // Assert spec is now a VisualizationSpec
+  if (!isVisualizationSpec(spec)) {
+    throw new Error('Visualization specification must be an object');
   }
 
   // Handle missing type
@@ -184,6 +194,7 @@ export function buildViz(spec: VisualizationSpec): RenderableVisualization {
     if (typeof impl === 'function') {
       return impl(processedSpec);
     }
+    throw new Error('Implementation must be a function for type: ' + spec.type);
   } else {
     // For other types, call the implementation to validate and process
     const impl = typeDefinition.implementation;
@@ -198,9 +209,6 @@ export function buildViz(spec: VisualizationSpec): RenderableVisualization {
       result.renderableType = typeDefinition.name;
       return result;
     }
+    throw new Error('Implementation must be a function for type: ' + spec.type);
   }
-
-  // Create and return a renderable visualization
-  // The implementation of each viz should create its own renderable.
-  // return createRenderableVisualization(processedSpec);
 }
