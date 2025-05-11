@@ -22,6 +22,11 @@ import {
   testCanvasRendering
 } from '../test/testUtils';
 
+// Mock Path2D for canvas tests
+global.Path2D = vi.fn(function(path) {
+  this.path = path;
+}) as any;
+
 describe('Path Primitive', () => {
   let container: HTMLElement;
 
@@ -131,7 +136,7 @@ describe('Path Primitive', () => {
         'stroke-width': '1',
         'opacity': '1'
       },
-      'path'
+      '.path'
     );
   });
 
@@ -169,52 +174,99 @@ describe('Path Primitive', () => {
         'stroke-width': '1',
         'stroke-dasharray': '5,5'
       },
-      'path'
+      '.path'
     );
   });
 
   test('should render to canvas with fill and stroke', () => {
-    testCanvasRendering(
-      {
-        type: "path",
-        d: "M10,10 L90,90",
-        fill: 'blue',
-        stroke: 'red',
-        strokeWidth: 2
-      },
-      {
-        save: true,
-        beginPath: true,
-        fillStyle: 'blue',
-        fill: true,
-        strokeStyle: 'red',
-        lineWidth: 2,
-        setLineDash: [[]],
-        stroke: true,
-        restore: true
-      }
-    );
+    // Create a mock context with proper property getters/setters
+    const ctx = {
+      save: vi.fn(),
+      restore: vi.fn(),
+      beginPath: vi.fn(),
+      fill: vi.fn(),
+      stroke: vi.fn(),
+      setLineDash: vi.fn(),
+      _fillStyle: '',
+      get fillStyle() { return this._fillStyle; },
+      set fillStyle(value) { this._fillStyle = value; },
+      _strokeStyle: '',
+      get strokeStyle() { return this._strokeStyle; },
+      set strokeStyle(value) { this._strokeStyle = value; },
+      _lineWidth: 1,
+      get lineWidth() { return this._lineWidth; },
+      set lineWidth(value) { this._lineWidth = value; },
+      _globalAlpha: 1,
+      get globalAlpha() { return this._globalAlpha; },
+      set globalAlpha(value) { this._globalAlpha = value; }
+    };
+
+    const viz = buildViz({
+      type: "path",
+      d: "M10,10 L90,90",
+      fill: 'blue',
+      stroke: 'red',
+      strokeWidth: 2
+    });
+
+    // Render to canvas
+    viz.renderToCanvas(ctx);
+
+    // Verify the canvas operations
+    expect(ctx.save).toHaveBeenCalled();
+    expect(ctx.beginPath).toHaveBeenCalled();
+    expect(ctx.fillStyle).toBe('blue');
+    expect(ctx.fill).toHaveBeenCalled();
+    expect(ctx.strokeStyle).toBe('red');
+    expect(ctx.lineWidth).toBe(2);
+    expect(ctx.setLineDash).toHaveBeenCalledWith([]);
+    expect(ctx.stroke).toHaveBeenCalled();
+    expect(ctx.restore).toHaveBeenCalled();
   });
 
   test('should render to canvas with stroke only', () => {
-    testCanvasRendering(
-      {
-        type: "path",
-        d: "M10,10 L90,90",
-        fill: 'none',
-        stroke: 'red',
-        strokeWidth: 2
-      },
-      {
-        save: true,
-        beginPath: true,
-        strokeStyle: 'red',
-        lineWidth: 2,
-        setLineDash: [[]],
-        stroke: true,
-        restore: true
-      }
-    );
+    // Create a mock context with proper property getters/setters
+    const ctx = {
+      save: vi.fn(),
+      restore: vi.fn(),
+      beginPath: vi.fn(),
+      fill: vi.fn(),
+      stroke: vi.fn(),
+      setLineDash: vi.fn(),
+      _fillStyle: '',
+      get fillStyle() { return this._fillStyle; },
+      set fillStyle(value) { this._fillStyle = value; },
+      _strokeStyle: '',
+      get strokeStyle() { return this._strokeStyle; },
+      set strokeStyle(value) { this._strokeStyle = value; },
+      _lineWidth: 1,
+      get lineWidth() { return this._lineWidth; },
+      set lineWidth(value) { this._lineWidth = value; },
+      _globalAlpha: 1,
+      get globalAlpha() { return this._globalAlpha; },
+      set globalAlpha(value) { this._globalAlpha = value; }
+    };
+
+    const viz = buildViz({
+      type: "path",
+      d: "M10,10 L90,90",
+      fill: 'none',
+      stroke: 'red',
+      strokeWidth: 2
+    });
+
+    // Render to canvas
+    viz.renderToCanvas(ctx);
+
+    // Verify the canvas operations
+    expect(ctx.save).toHaveBeenCalled();
+    expect(ctx.beginPath).toHaveBeenCalled();
+    expect(ctx.fill).not.toHaveBeenCalled();
+    expect(ctx.strokeStyle).toBe('red');
+    expect(ctx.lineWidth).toBe(2);
+    expect(ctx.setLineDash).toHaveBeenCalledWith([]);
+    expect(ctx.stroke).toHaveBeenCalled();
+    expect(ctx.restore).toHaveBeenCalled();
   });
 
   test('should match the exported type definition', () => {

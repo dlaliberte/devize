@@ -9,7 +9,7 @@
 
 import { buildViz } from '../core/builder';
 import { registerDefineType } from '../core/define';
-import { createSVGElement, applyAttributes } from '../renderers/svgUtils';
+import { createSVGElement } from '../renderers/svgUtils';
 import { createRenderableVisualization } from '../core/componentUtils';
 
 // Path type definition
@@ -49,6 +49,9 @@ export const pathTypeDefinition = {
     const renderToSvg = (svg: SVGElement) => {
       // Create a path element with the correct namespace
       const element = createSVGElement('path');
+
+      // Add class for test selection
+      element.setAttribute('class', 'path');
 
       // Apply attributes explicitly to ensure they're set correctly for tests
       element.setAttribute('d', attributes.d);
