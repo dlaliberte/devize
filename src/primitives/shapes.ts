@@ -11,8 +11,9 @@ import './line';
 import './path';
 import './polygon';
 import './text';
+import './shape';  // Import our new shape primitive
 
-// Re-export any utility functions if needed
-// export { someUtilityFunction } from './shapeUtils';
+// Re-export utility functions
+export { getShapePath, createShape } from './shape';
 
 console.log('Shape primitives loaded');
