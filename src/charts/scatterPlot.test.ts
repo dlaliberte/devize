@@ -10,6 +10,7 @@ import { scatterPlotDefinition, createScatterPlot } from './scatterPlot';
 import { registerCirclePrimitive } from '../primitives/circle';
 import { registerLinePrimitive } from '../primitives/line';
 import { registerTextPrimitive } from '../primitives/text';
+import { registerShapePrimitive } from '../primitives/shape';
 import { registerGroupPrimitive } from '../primitives/group';
 import { registerAxisComponent } from '../components/axis';
 import { registerLegendComponent } from '../components/legend';

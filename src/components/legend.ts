@@ -15,6 +15,8 @@ import { createRenderableVisualization } from '../core/componentUtils';
 import '../primitives/rectangle';
 import '../primitives/circle';
 import '../primitives/polygon';
+import '../primitives/line';
+import '../primitives/shape';
 import '../primitives/text';
 import '../primitives/group';
 

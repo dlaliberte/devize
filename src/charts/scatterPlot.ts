@@ -386,42 +386,20 @@ export const scatterPlotDefinition = {
           }
         }
 
-        // Create a custom point style for this specific point
-        const pointStyle = new PointStyle({
+        // Create a shape element
+        allPoints.push({
+          type: 'shape',
           shape: pointShape,
-          size: pointSize * 2, // PointStyle size is diameter
+          x: screenPoint.x,
+          y: screenPoint.y,
+          width: pointSize * 2,  // Convert radius to diameter
+          height: pointSize * 2, // Convert radius to diameter
           fill: pointColor,
-          stroke: pointStyleToUse.stroke,
-          strokeWidth: pointStyleToUse.strokeWidth
+          stroke: '#fff',
+          strokeWidth: 1,
+          data: d,
+          tooltip: tooltip
         });
-
-        // For circle:
-        if (pointShape === 'circle') {
-          allPoints.push({
-            type: 'circle',
-            cx: screenPoint.x,
-            cy: screenPoint.y,
-            r: pointSize,
-            fill: pointColor,
-            stroke: '#fff',
-            strokeWidth: 1,
-            data: d,
-            tooltip: tooltip
-          });
-        } else {
-          // For other shapes, use path
-          const pathData = getShapePath(pointShape, pointSize);
-          allPoints.push({
-            type: 'path',
-            d: pathData,
-            transform: `translate(${screenPoint.x}, ${screenPoint.y})`,
-            fill: pointColor,
-            stroke: '#fff',
-            strokeWidth: 1,
-            data: d,
-            tooltip: tooltip
-          });
-        }
       });
     });
 

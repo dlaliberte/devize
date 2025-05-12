@@ -121,8 +121,20 @@ export const shapeDefinition = {
   }
 };
 
-// Register the shape component
-buildViz(shapeDefinition);
+/**
+ * Register the rectangle primitive
+ */
+export function registerShapePrimitive() {
+  // Make sure define type is registered
+  registerDefineType();
+
+  // Define the rectangle type using buildViz
+  buildViz(shapeDefinition);
+}
+
+// Auto-register when this module is imported
+registerShapePrimitive();
+
 
 /**
  * Generate SVG path data for various shapes
@@ -198,7 +210,7 @@ export function createShape(options: {
 }) {
   return buildViz({
     type: 'shape',
-    shape: options.shape || 'circle',
+    shape: options.shape || 'star',
     x: options.x || 0,
     y: options.y || 0,
     width: options.width || 10,

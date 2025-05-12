@@ -105,6 +105,63 @@ A text primitive for labels, annotations, etc.
 - `textAnchor`: Text alignment ("start", "middle", "end")
 - `dominantBaseline`: Vertical alignment
 
+### Path
+
+A path primitive for complex shapes and curves.
+
+**Properties:**
+- `d`: SVG path data string
+- `fill`: Fill color
+- `stroke`: Stroke color
+- `strokeWidth`: Width of the stroke
+- `strokeDasharray`: Pattern of dashes and gaps
+
+### Polygon
+
+A polygon primitive for creating custom closed shapes with straight sides.
+
+**Properties:**
+- `points`: Array of points defining the vertices of the polygon
+- `fill`: Fill color
+- `stroke`: Stroke color
+- `strokeWidth`: Width of the stroke
+- `closed`: Whether the polygon should be closed (default: true)
+
+### Shape
+
+A versatile shape primitive that renders predefined shapes with customizable dimensions.
+
+**Properties:**
+- `shape`: Type of shape ('circle', 'square', 'triangle', 'diamond', 'cross', 'star', 'rect')
+- `x`: X coordinate of the center
+- `y`: Y coordinate of the center
+- `width`: Width of the shape
+- `height`: Height of the shape (allows for non-uniform scaling)
+- `fill`: Fill color
+- `stroke`: Stroke color
+- `strokeWidth`: Width of the stroke
+- `rotation`: Rotation angle in degrees
+- `data`: Optional data to associate with the shape
+- `tooltip`: Whether to show tooltip on hover
+
+## Relationships Between Shape Primitives
+
+While there is some overlap between our shape primitives, each serves a specific purpose:
+
+1. **Basic Primitives** (Rectangle, Circle, Line): Fundamental SVG elements with simple properties.
+
+2. **Path**: Low-level primitive for complex shapes defined by path commands.
+
+3. **Polygon**: Mid-level primitive for custom shapes defined by vertices.
+
+4. **Shape**: High-level primitive for predefined shapes with a simple API.
+
+The choice between these primitives depends on your needs:
+- Use basic primitives for simple geometric elements
+- Use path for complex custom shapes requiring precise control
+- Use polygon for custom straight-sided shapes
+- Use shape for common predefined shapes with minimal configuration
+
 ## Rendering Implementation
 
 The rendering process is separated from the definition to maintain the functional approach:
@@ -192,14 +249,39 @@ function createLabeledCircle(cx, cy, r, label) {
 }
 ```
 
+### Scatter Plot with Different Shapes
+
+```javascript
+function createScatterPlot(data) {
+  return buildViz({
+    type: "group",
+    children: data.map(item => ({
+      type: "shape",
+      shape: item.category === 'A' ? 'circle' :
+             item.category === 'B' ? 'triangle' : 'square',
+      x: item.x,
+      y: item.y,
+      width: item.size * 2,
+      height: item.size * 2,
+      fill: item.color,
+      stroke: "#fff",
+      strokeWidth: 1,
+      data: item,
+      tooltip: true
+    }))
+  });
+}
+```
+
 ## Future Enhancements
 
-1. **Path Primitive**: Add a path primitive for complex shapes
+1. **Custom Shapes**: Support for user-defined shape types
 2. **Image Primitive**: Add support for image elements
 3. **Clipping**: Support for clipping regions
 4. **Filters**: Visual filters like blur, shadow, etc.
 5. **Animations**: Transition specifications for animations
+6. **3D Shapes**: Support for basic 3D shape primitives
 
 ## Conclusion
 
-This design for primitive shapes provides a foundation for building more complex visualizations in Devize. By separating the definition from rendering and maintaining a functional approach, we enable better composability and reusability while simplifying the API.
+This design for primitive shapes provides a foundation for building more complex visualizations in Devize. By separating the definition from rendering and maintaining a functional approach, we enable better composability and reusability while simplifying the API. The hierarchy of shape primitives from basic (rectangle, circle) to high-level (shape) provides flexibility for different use cases.
