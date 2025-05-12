@@ -80,73 +80,78 @@ export function createGetPropertyFunction(props: VisualizationSpec) {
 }
 
 /**
- * Creates a renderable visualization with optional update function
+ * Create a renderable visualization with standard methods
  */
 export function createRenderableVisualization(
-  renderableType: string,
+  type: string,
   props: any,
-  renderToSvg: (svg: SVGElement) => SVGElement,
-  renderToCanvas: (ctx: CanvasRenderingContext2D) => boolean,
-  updateFn?: (element: SVGElement, newProps: any) => SVGElement
-) {
-  // Store the original properties
-  const originalProps = { ...props };
+  renderToSvgFn: (container: SVGElement) => SVGElement,
+  renderToCanvasFn: (ctx: CanvasRenderingContext2D) => boolean
+): RenderableVisualization {
+  return {
+    renderableType: type,
+    spec: props,
 
-  // Create the renderable object
-  const renderable: RenderableVisualization = {
-    renderableType,
-
-    // Property getter
-    getProperty: (name: string) => {
-      return originalProps[name];
+    // Get a property from the spec
+    getProperty: function(key: string) {
+      return props[key];
     },
 
-    // SVG rendering function
-    renderToSvg,
-
-    // Canvas rendering function
-    renderToCanvas,
-
     // Render to a container
-    render: (container: HTMLElement) => {
-      // Create or get SVG element
-      const svg = ensureSvg(container);
+    render: function(container: HTMLElement) {
+      // Create an SVG element if needed
+      let svg = container.querySelector('svg');
+      if (!svg) {
+        svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('width', '100%');
+        svg.setAttribute('height', '100%');
+        container.appendChild(svg);
+      }
 
-      // Render the element
-      const element = renderToSvg(svg);
+      // Clear existing content
+      while (svg.firstChild) {
+        svg.removeChild(svg.firstChild);
+      }
 
-      // Return an object with update method
+      // Render to the SVG
+      const element = this.renderToSvg(svg);
+
+      // Return the result
       return {
         element,
-        update: (newProps: any) => {
-          if (updateFn) {
-            // Use the provided update function
-            updateFn(element, newProps);
-          } else {
-            // Default update behavior
-            // Remove the old element and render a new one
-            if (element.parentNode) {
-              element.parentNode.removeChild(element);
-            }
+        update: (newSpec: any) => {
+          // Create an updated visualization
+          const updatedViz = this.update(newSpec);
 
-            // Create a merged props object
-            const mergedProps = { ...originalProps, ...newProps };
-
-            // Create a new visualization with the merged props
-            const newViz = buildViz({
-              type: renderableType,
-              ...mergedProps
-            });
-
-            // Render the new visualization
-            newViz.renderToSvg(svg);
+          // Render it to the same container
+          return updatedViz.render(container);
+        },
+        cleanup: () => {
+          if (element.parentNode) {
+            element.parentNode.removeChild(element);
           }
         }
       };
+    },
+
+    // Render to an SVG element
+    renderToSvg: renderToSvgFn,
+
+    // Render to a canvas context
+    renderToCanvas: renderToCanvasFn,
+
+    // Update the visualization with new properties
+    update: function(newSpec: any) {
+      // Create a merged spec
+      const mergedSpec = { ...props, ...newSpec };
+
+      // Build a new visualization with the merged spec
+      return buildViz({
+        type,
+        ...mergedSpec
+      });
     }
   };
-
-  return renderable;
 }
 
 /**

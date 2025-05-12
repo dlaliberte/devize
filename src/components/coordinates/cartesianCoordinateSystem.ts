@@ -54,20 +54,29 @@ export class CartesianCoordinateSystem implements CoordinateSystem {
       this.yScale = options.yScale;
     }
   }
-    // In CartesianCoordinateSystem class
-    toScreen(point: { x: any, y: any }): Point {
-    const screenX = this.xScale.scale(point.x) + this.origin.x;
-    // The issue is here - we need to add the origin.y
-    const screenY = this.yScale.scale(point.y) + this.origin.y;
-    return { x: screenX, y: screenY };
-    }
 
-    fromScreen(point: Point): { x: any, y: any } {
-    const domainX = this.xScale.invert(point.x - this.origin.x);
-    // Also need to adjust this to account for origin.y
-    const domainY = this.yScale.invert(point.y - this.origin.y);
-    return { x: domainX, y: domainY };
-    }
+  // Convert data coordinates to container coordinates
+  toContainerCoords(point: { x: any, y: any }): Point {
+    const containerX = this.xScale.scale(point.x) + this.origin.x;
+    const containerY = this.yScale.scale(point.y) + this.origin.y;
+    return { x: containerX, y: containerY };
+  }
+
+  // Convert container coordinates to data coordinates
+  fromContainerCoords(point: Point): { x: any, y: any } {
+    const dataX = this.xScale.invert(point.x - this.origin.x);
+    const dataY = this.yScale.invert(point.y - this.origin.y);
+    return { x: dataX, y: dataY };
+  }
+
+  // Keep the old method names for backward compatibility
+  toScreen(point: { x: any, y: any }): Point {
+    return this.toContainerCoords(point);
+  }
+
+  fromScreen(point: Point): { x: any, y: any } {
+    return this.fromContainerCoords(point);
+  }
 
   getDimensions(): { width: number, height: number } {
     return { width: this.width, height: this.height };

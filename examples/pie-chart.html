@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Devize - Pie Chart</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    h1, h2 {
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .viz-container {
+      width: 100%;
+      height: 400px;
+      border: 1px solid #ddd;
+      margin: 20px 0;
+      border-radius: 4px;
+    }
+
+    pre {
+      background-color: #f5f5f5;
+      padding: 15px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .controls {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 4px;
+    }
+
+    button {
+      padding: 8px 16px;
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+
+    button:hover {
+      background-color: #0055aa;
+    }
+
+    .chart-row {
+      display: flex;
+      flex-wrap: wrap;
+      margin: 0 -10px;
+    }
+
+    .chart-column {
+      flex: 1;
+      min-width: 300px;
+      padding: 0 10px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Pie Chart Example</h1>
+    <p>This example demonstrates pie and donut charts with various configurations.</p>
+
+    <div class="chart-row">
+      <div class="chart-column">
+        <h2>Basic Pie Chart</h2>
+        <div id="basic-pie-container" class="viz-container"></div>
+      </div>
+      <div class="chart-column">
+        <h2>Donut Chart</h2>
+        <div id="donut-container" class="viz-container"></div>
+      </div>
+    </div>
+
+    <div class="chart-row">
+      <div class="chart-column">
+        <h2>Semi-Circle Chart</h2>
+        <div id="semi-circle-container" class="viz-container"></div>
+      </div>
+      <div class="chart-column">
+        <h2>Customized Chart</h2>
+        <div id="custom-container" class="viz-container"></div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <h3>Data Transformations</h3>
+      <button id="filter-btn">Filter (Value > 15)</button>
+      <button id="sort-btn">Sort by Value</button>
+      <button id="reset-btn">Reset Data</button>
+    </div>
+
+    <h2>Code</h2>
+    <pre><code>// Sample data
+const marketShareData = [
+  { company: "Company A", share: 35, revenue: 2.5 },
+  { company: "Company B", share: 25, revenue: 1.8 },
+  { company: "Company C", share: 20, revenue: 1.4 },
+  { company: "Company D", share: 15, revenue: 1.1 },
+  { company: "Others", share: 5, revenue: 0.4 }
+];
+
+// Create a basic pie chart
+const pieChart = Devize.buildViz({
+  type: "pieChart",
+  data: marketShareData,
+  value: { field: "share" },
+  category: { field: "company" },
+  title: "Market Share Distribution",
+  width: 400,
+  height: 400
+});
+
+// Create a donut chart
+const donutChart = Devize.buildViz({
+  type: "pieChart",
+  data: marketShareData,
+  value: { field: "share" },
+  category: { field: "company" },
+  innerRadius: "50%",  // Creates a donut chart
+  title: "Market Share Distribution",
+  width: 400,
+  height: 400
+});
+
+// Create a semi-circle chart
+const semiCircleChart = Devize.buildViz({
+  type: "pieChart",
+  data: marketShareData,
+  value: { field: "share" },
+  category: { field: "company" },
+  startAngle: -Math.PI / 2,  // Start from top (12 o'clock position)
+  endAngle: Math.PI / 2,     // End at bottom (6 o'clock position)
+  title: "Market Share Distribution",
+  width: 400,
+  height: 400
+});
+
+// Create a customized chart
+const customChart = Devize.buildViz({
+  type: "pieChart",
+  data: marketShareData,
+  value: { field: "share" },
+  category: { field: "company" },
+  innerRadius: "30%",
+  outerRadius: "90%",
+  cornerRadius: 5,
+  padAngle: 0.02,
+  color: {
+    field: "company",
+    range: ["#3366CC", "#DC3912", "#FF9900", "#109618", "#990099"]
+  },
+  labels: {
+    enabled: true,
+    type: "percent",
+    position: "inside",
+    fontSize: 14,
+    fontWeight: "bold"
+  },
+  legend: {
+    position: "bottom",
+    orientation: "horizontal"
+  },
+  tooltip: true,
+  title: "Customized Market Share",
+  width: 400,
+  height: 400
+});
+</code></pre>
+
+    <a href="/examples/" class="back-link">← Back to Examples</a>
+  </div>
+
+  <script type="module">
+    // Import Devize library
+    import { buildViz, renderViz, updateViz, registerData } from '/src/index.ts';
+
+    // Sample data
+    const marketShareData = [
+      { company: "Company A", share: 35, revenue: 2.5 },
+      { company: "Company B", share: 25, revenue: 1.8 },
+      { company: "Company C", share: 20, revenue: 1.4 },
+      { company: "Company D", share: 15, revenue: 1.1 },
+      { company: "Others", share: 5, revenue: 0.4 }
+    ];
+
+    // Register data for potential reuse
+    registerData('marketShareData', marketShareData);
+
+    // Create and render the basic pie chart
+    const basicPieChart = buildViz({
+      type: "pieChart",
+      data: marketShareData,
+      value: { field: "share" },
+      category: { field: "company" },
+      outerRadius: "80%",  // Use a larger radius for better visibility
+      title: "Market Share Distribution",
+      width: 400,
+      height: 400
+    });
+    renderViz(basicPieChart, document.getElementById("basic-pie-container"));
+
+    // Create and render the donut chart
+    const donutChart = buildViz({
+      type: "pieChart",
+      data: marketShareData,
+      value: { field: "share" },
+      category: { field: "company" },
+      innerRadius: "40%",  // Creates a donut chart
+      outerRadius: "80%",  // Use a larger radius for better visibility
+      title: "Market Share Distribution",
+      width: 400,
+      height: 400
+    });
+    renderViz(donutChart, document.getElementById("donut-container"));
+
+    // Create and render the semi-circle chart
+    const semiCircleChart = buildViz({
+      type: "pieChart",
+      data: marketShareData,
+      value: { field: "share" },
+      category: { field: "company" },
+      startAngle: -Math.PI / 2,  // Start from top (12 o'clock position)
+      endAngle: Math.PI / 2,     // End at bottom (6 o'clock position)
+      outerRadius: "80%",  // Use a larger radius for better visibility
+      title: "Market Share Distribution",
+      width: 400,
+      height: 400
+    });
+    renderViz(semiCircleChart, document.getElementById("semi-circle-container"));
+
+    // Create and render the customized chart
+    const customChart = buildViz({
+      type: "pieChart",
+      data: marketShareData,
+      value: { field: "share" },
+      category: { field: "company" },
+      innerRadius: "30%",
+      outerRadius: "80%",
+      cornerRadius: 5,
+      padAngle: 0.02,
+      // Use a direct color mapping for each category
+      color: "auto", // Use automatic coloring based on category
+      // Group small slices into an "Others" category
+      groupSmallSlices: true,
+      smallSliceThreshold: 0.1, // Group slices smaller than 10%
+      smallSliceLabel: "Others",
+      labels: {
+        enabled: true,
+        type: "percent",
+        position: "inside",
+        fontSize: 14,
+        fontWeight: "bold"
+      },
+      legend: {
+        position: "bottom",
+        orientation: "horizontal"
+      },
+      tooltip: true,
+      title: "Customized Market Share",
+      width: 400,
+      height: 400
+    });
+    renderViz(customChart, document.getElementById("custom-container"));
+
+    // Add event listeners for the buttons
+    document.getElementById('filter-btn').addEventListener('click', () => {
+      const filteredData = marketShareData.filter(d => d.share > 15);
+
+      // Create new charts with filtered data
+      const newBasicPieChart = buildViz({
+        type: "pieChart",
+        data: filteredData,
+        value: { field: "share" },
+        category: { field: "company" },
+        outerRadius: "80%",
+        title: "Market Share Distribution",
+        width: 400,
+        height: 400
+      });
+
+      const newDonutChart = buildViz({
+        type: "pieChart",
+        data: filteredData,
+        value: { field: "share" },
+        category: { field: "company" },
+        innerRadius: "50%",
+        outerRadius: "80%",
+        title: "Market Share Distribution",
+        width: 400,
+        height: 400
+      });
+
+      const newSemiCircleChart = buildViz({
+        type: "pieChart",
+        data: filteredData,
+        value: { field: "share" },
+        category: { field: "company" },
+        startAngle: -Math.PI / 2,
+        endAngle: Math.PI / 2,
+        outerRadius: "80%",
+        title: "Market Share Distribution",
+        width: 400,
+        height: 400
+      });
+
+      const newCustomChart = buildViz({
+        type: "pieChart",
+        data: filteredData,
+        value: { field: "share" },
+        category: { field: "company" },
+        innerRadius: "30%",
+        outerRadius: "90%",
+        cornerRadius: 5,
+        padAngle: 0.02,
+        color: {
+          field: "company",
+          range: ["#3366CC", "#DC3912", "#FF9900", "#109618", "#990099"]
+        },
+        labels: {
+          enabled: true,
+          type: "percent",
+          position: "inside",
+          fontSize: 14,
+          fontWeight: "bold"
+        },
+        legend: {
+          position: "bottom",
+          orientation: "horizontal"
+        },
+        tooltip: true,
+        title: "Customized Market Share",
+        width: 400,
+        height: 400
+      });
+
+      renderViz(newBasicPieChart, document.getElementById("basic-pie-container"));
+      renderViz(newDonutChart, document.getElementById("donut-container"));
+      renderViz(newSemiCircleChart, document.getElementById("semi-circle-container"));
+      renderViz(newCustomChart, document.getElementById("custom-container"));
+    });
+
+    document.getElementById('sort-btn').addEventListener('click', () => {
+      const sortedData = [...marketShareData].sort((a, b) => b.share - a.share);
+
+      // Create new charts with sorted data
+      const newBasicPieChart = buildViz({
+        type: "pieChart",
+        data: sortedData,
+        value: { field: "share" },
+        category: { field: "company" },
+        outerRadius: "80%",
+        title: "Market Share Distribution",
+        width: 400,
+        height: 400
+      });
+
+      const newDonutChart = buildViz({
+        type: "pieChart",
+        data: sortedData,
+        value: { field: "share" },
+        category: { field: "company" },
+        innerRadius: "40%",
+        outerRadius: "80%",
+        title: "Market Share Distribution",
+        width: 400,
+        height: 400
+      });
+
+      const newSemiCircleChart = buildViz({
+        type: "pieChart",
+        data: sortedData,
+        value: { field: "share" },
+        category: { field: "company" },
+        startAngle: -Math.PI / 2,
+        endAngle: Math.PI / 2,
+        outerRadius: "80%",
+        title: "Market Share Distribution",
+        width: 400,
+        height: 400
+      });
+
+      const newCustomChart = buildViz({
+        type: "pieChart",
+        data: sortedData,
+        value: { field: "share" },
+        category: { field: "company" },
+        innerRadius: "30%",
+        outerRadius: "80%",
+        cornerRadius: 5,
+        padAngle: 0.02,
+        color: "auto",
+        groupSmallSlices: true,
+        smallSliceThreshold: 0.1,
+        smallSliceLabel: "Others",
+        labels: {
+          enabled: true,
+          type: "percent",
+          position: "inside",
+          fontSize: 14,
+          fontWeight: "bold"
+        },
+        legend: {
+          position: "bottom",
+          orientation: "horizontal"
+        },
+        tooltip: true,
+        title: "Customized Market Share",
+        width: 400,
+        height: 400
+      });
+
+      // Render the new charts
+      renderViz(newBasicPieChart, document.getElementById("basic-pie-container"));
+      renderViz(newDonutChart, document.getElementById("donut-container"));
+      renderViz(newSemiCircleChart, document.getElementById("semi-circle-container"));
+      renderViz(newCustomChart, document.getElementById("custom-container"));
+    });
+
+    document.getElementById('reset-btn').addEventListener('click', () => {
+      // Create new charts with original data
+      const newBasicPieChart = buildViz({
+        type: "pieChart",
+        data: marketShareData,
+        value: { field: "share" },
+        category: { field: "company" },
+        outerRadius: "80%",
+        title: "Market Share Distribution",
+        width: 400,
+        height: 400
+      });
+
+      const newDonutChart = buildViz({
+        type: "pieChart",
+        data: marketShareData,
+        value: { field: "share" },
+        category: { field: "company" },
+        innerRadius: "40%",
+        outerRadius: "80%",
+        title: "Market Share Distribution",
+        width: 400,
+        height: 400
+      });
+
+      const newSemiCircleChart = buildViz({
+        type: "pieChart",
+        data: marketShareData,
+        value: { field: "share" },
+        category: { field: "company" },
+        startAngle: -Math.PI / 2,
+        endAngle: Math.PI / 2,
+        outerRadius: "80%",
+        title: "Market Share Distribution",
+        width: 400,
+        height: 400
+      });
+
+      const newCustomChart = buildViz({
+        type: "pieChart",
+        data: marketShareData,
+        value: { field: "share" },
+        category: { field: "company" },
+        innerRadius: "30%",
+        outerRadius: "80%",
+        cornerRadius: 5,
+        padAngle: 0.02,
+        color: "auto",
+        groupSmallSlices: true,
+        smallSliceThreshold: 0.1,
+        smallSliceLabel: "Others",
+        labels: {
+          enabled: true,
+          type: "percent",
+          position: "inside",
+          fontSize: 14,
+          fontWeight: "bold"
+        },
+        legend: {
+          position: "bottom",
+          orientation: "horizontal"
+        },
+        tooltip: true,
+        title: "Customized Market Share",
+        width: 400,
+        height: 400
+      });
+
+      // Render the new charts
+      renderViz(newBasicPieChart, document.getElementById("basic-pie-container"));
+      renderViz(newDonutChart, document.getElementById("donut-container"));
+      renderViz(newSemiCircleChart, document.getElementById("semi-circle-container"));
+      renderViz(newCustomChart, document.getElementById("custom-container"));
+    });
+  </script>
+</body>
+</html>

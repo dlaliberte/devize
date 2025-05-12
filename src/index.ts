@@ -25,6 +25,7 @@ import './components/data/dataExtract';
 import './charts/barChart';
 import './charts/lineChart';
 import './charts/scatterPlot';
+import './charts/pieChart';
 import './components/axis';
 import './components/legend';
 

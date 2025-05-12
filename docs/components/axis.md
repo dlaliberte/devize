@@ -1,209 +1,259 @@
 # Axis Component
 
-## Purpose
-The `axis` component renders a coordinate axis with ticks, labels, and an optional title. It's a fundamental building block for charts and visualizations that require coordinate systems.
+The Axis component provides a visual representation of scales in Devize visualizations, displaying tick marks, labels, and titles to help users interpret data values.
 
-## Properties
+## Overview
 
-| Property | Type | Description | Default | Required |
-|----------|------|-------------|---------|----------|
-| orientation | string | The orientation of the axis ('top', 'right', 'bottom', 'left') | | Yes |
-| length | number | The length of the axis in pixels | | Yes |
-| values | array | The values to display as ticks | | Yes |
-| positions | array | Custom positions for ticks (overrides automatic positioning) | null | No |
-| scale | object | A scale object to use for positioning ticks | null | No |
-| scaleType | string | Type of scale to create ('linear', 'band', etc.) if no scale is provided | null | No |
-| domain | array | Domain for the scale if creating one on the fly | null | No |
-| title | string | Title for the axis | '' | No |
-| format | function | Function to format tick labels | value => value.toString() | No |
-| transform | string | SVG transform to apply to the axis group | '' | No |
-| tickCount | number | Number of ticks to generate when using a scale with a ticks method | 5 | No |
+Axes are essential elements in most data visualizations, providing the reference system that allows viewers to understand the scale and meaning of visual elements. In Devize, the Axis component is highly customizable and can be used with various scale types.
+
+Axes can be oriented horizontally (bottom, top) or vertically (left, right), and they support different scale types including linear, logarithmic, time, and categorical (band) scales.
+
+## Basic Usage
+
+Here's a simple example of creating an axis with Devize:
+
+```javascript
+buildViz({
+  type: "axis",
+  orientation: "bottom",
+  scale: {
+    type: "linear",
+    domain: [0, 100],
+    range: [0, 400]
+  },
+  length: 400,
+  title: "Values",
+  container: document.getElementById("axis-container")
+});
+```
+
+This creates a horizontal axis at the bottom with a linear scale from 0 to 100, rendered across 400 pixels.
+
+## Core Properties
+
+| Property | Type | Description | Default |
+|----------|------|-------------|---------|
+| orientation | string | Position of the axis ("top", "right", "bottom", "left") | "bottom" |
+| scale | object/string | Scale configuration or reference to a registered scale | Required |
+| length | number | Length of the axis in pixels | Required |
+| title | string/object | Axis title configuration | None |
+| tickSize | number | Length of tick marks in pixels | 6 |
+| tickPadding | number | Padding between ticks and labels in pixels | 3 |
+| tickCount | number | Approximate number of ticks to display | Auto |
+| tickValues | array | Specific values to show ticks for | Auto |
+| tickFormat | function | Function to format tick labels | None |
+| transform | string | SVG transform to position the axis | None |
+| grid | boolean/object | Whether to show grid lines | false |
+| labelRotation | number | Rotation angle for tick labels in degrees | 0 |
+
+## Scale Configuration
+
+The `scale` property can be a reference to a registered scale or an inline scale configuration:
+
+```javascript
+// Reference to a registered scale
+scale: "myLinearScale"
+
+// Inline scale configuration
+scale: {
+  type: "linear",
+  domain: [0, 100],
+  range: [0, 400]
+}
+```
+
+For more details on scales, see the [Scales documentation](../scales/scales.md).
+
+## Orientation
+
+The `orientation` property determines where the axis is positioned relative to the visualization:
+
+| Value | Description |
+|-------|-------------|
+| "bottom" | Horizontal axis with ticks and labels below |
+| "top" | Horizontal axis with ticks and labels above |
+| "left" | Vertical axis with ticks and labels to the left |
+| "right" | Vertical axis with ticks and labels to the right |
+
+## Title Configuration
+
+The `title` property can be a simple string or an object for more control:
+
+```javascript
+// Simple title
+title: "Values"
+
+// Detailed title configuration
+title: {
+  text: "Values (in units)",
+  fontSize: 14,
+  fontWeight: "bold",
+  fontFamily: "Arial",
+  color: "#333333",
+  padding: 10,
+  rotation: 0  // Useful for vertical axes
+}
+```
+
+## Tick Configuration
+
+Ticks are the marks and labels that indicate values along the axis. You can customize them in several ways:
+
+```javascript
+buildViz({
+  type: "axis",
+  orientation: "bottom",
+  scale: {
+    type: "linear",
+    domain: [0, 100],
+    range: [0, 400]
+  },
+  length: 400,
+  // Custom tick configuration
+  tickSize: 8,
+  tickPadding: 5,
+  tickCount: 5,  // Approximate number of ticks
+  tickValues: [0, 25, 50, 75, 100],  // Exact tick values (overrides tickCount)
+  tickFormat: value => `$${value}`,  // Format tick labels
+  labelRotation: 45,  // Rotate labels for better fit
+  container: document.getElementById("axis-container")
+});
+```
+
+## Grid Lines
+
+Grid lines extend from the axis ticks across the visualization area, making it easier to read values. Enable them with the `grid` property:
+
+```javascript
+// Simple grid lines
+grid: true
+
+// Customized grid lines
+grid: {
+  stroke: "#e0e0e0",
+  strokeWidth: 1,
+  strokeDasharray: "3,3",
+  length: 300  // Length of grid lines in pixels
+}
+```
+
+## Axis in Charts
+
+Most chart components in Devize (like bar charts, line charts, scatter plots) automatically create and configure axes based on your data. However, you can customize these axes through the chart's configuration:
+
+```javascript
+buildViz({
+  type: "lineChart",
+  data: timeSeriesData,
+  x: {
+    field: "date",
+    title: "Date",
+    tickCount: 5,
+    tickFormat: date => date.toLocaleDateString(),
+    grid: true
+  },
+  y: {
+    field: "value",
+    title: "Value ($)",
+    domain: [0, 100],
+    tickFormat: value => `$${value}`
+  },
+  // ... other chart properties
+});
+```
+
+For more information on how axes are used in charts, see the documentation for specific chart types like [Bar Chart](../charts/barChart.md), [Line Chart](../charts/lineChart.md), and [Scatter Plot](../charts/scatterPlot.md).
 
 ## Examples
 
-### Basic Axis
+### Time Axis
+
 ```javascript
-{
-  type: 'axis',
-  orientation: 'bottom',
+buildViz({
+  type: "axis",
+  orientation: "bottom",
+  scale: {
+    type: "time",
+    domain: [new Date(2023, 0, 1), new Date(2023, 11, 31)],
+    range: [0, 500]
+  },
   length: 500,
-  values: [0, 25, 50, 75, 100],
-  title: 'Values'
-}
+  title: "Date",
+  tickCount: 12,
+  tickFormat: date => date.toLocaleDateString('en-US', { month: 'short' }),
+  labelRotation: 45,
+  container: document.getElementById("time-axis-container")
+});
 ```
 
-### Axis with Scale
+### Categorical Axis
+
 ```javascript
-{
-  type: 'axis',
-  orientation: 'left',
+buildViz({
+  type: "axis",
+  orientation: "bottom",
+  scale: {
+    type: "band",
+    domain: ["Category A", "Category B", "Category C", "Category D", "Category E"],
+    range: [0, 400],
+    padding: 0.2
+  },
+  length: 400,
+  title: "Categories",
+  labelRotation: 30,
+  container: document.getElementById("categorical-axis-container")
+});
+```
+
+### Logarithmic Axis
+
+```javascript
+buildViz({
+  type: "axis",
+  orientation: "left",
+  scale: {
+    type: "log",
+    domain: [1, 10000],
+    range: [300, 0]
+  },
   length: 300,
-  values: [],  // Will be generated from scale
-  scale: linearScale,
-  title: 'Revenue ($)',
-  format: value => '$' + value.toLocaleString()
-}
+  title: "Log Scale",
+  tickFormat: value => value.toExponential(0),
+  grid: true,
+  container: document.getElementById("log-axis-container")
+});
 ```
 
-### Axis with Custom Tick Positions
-```javascript
-{
-  type: 'axis',
-  orientation: 'bottom',
-  length: 500,
-  values: ['Q1', 'Q2', 'Q3', 'Q4'],
-  positions: [50, 150, 350, 450],
-  title: 'Quarters'
-}
-```
+## Accessibility Considerations
+
+When using axes in your visualizations, consider these accessibility best practices:
+
+1. Always provide meaningful axis titles that describe what the values represent
+2. Use sufficient color contrast for axis lines, ticks, and labels
+3. Consider using grid lines to make value comparisons easier
+4. Ensure tick labels are large enough to be readable
+5. Use ARIA attributes when appropriate for screen readers
+
+For more information on creating accessible visualizations, see the [Accessibility Guide](../guides/accessibility.md).
 
 ## Implementation Details
 
-The axis component renders the following elements:
-1. A main axis line
-2. Tick marks at specified positions
-3. Labels for each tick
-4. An optional title
+The Axis component is implemented as a composite visualization that includes:
 
-The component handles different orientations by adjusting the positioning and rotation of these elements. For band scales, it automatically positions ticks at the center of each band.
+1. A line element for the axis line
+2. Tick marks rendered as line elements
+3. Text elements for tick labels
+4. A text element for the axis title
+5. Optional grid lines as path elements
 
-## Usage with Scales
+Under the hood, it uses the constraint system to position all elements correctly based on the orientation and scale.
 
-The axis component works seamlessly with scale components:
+## See Also
 
-```javascript
-// First create a scale
-{
-  type: 'linearScale',
-  domain: [0, 100],
-  range: [0, 500],
-  as: 'yScale'
-},
-
-// Then use it with an axis
-{
-  type: 'axis',
-  orientation: 'left',
-  length: 500,
-  scale: props => props.yScale,
-  title: 'Values'
-}
-```
-
-## Customization
-
-The axis appearance can be customized by modifying the implementation or by wrapping it in a custom component:
-
-```javascript
-// Define a custom axis with different styling
-buildViz({
-  type: "define",
-  name: "customAxis",
-  properties: {
-    // Same properties as the standard axis
-    orientation: { required: true },
-    length: { required: true },
-    values: { required: true },
-    // Additional styling properties
-    tickLength: { default: 6 },
-    tickColor: { default: '#333' },
-    labelFontSize: { default: 12 }
-  },
-  implementation: props => ({
-    type: 'axis',
-    orientation: props.orientation,
-    length: props.length,
-    values: props.values,
-    // Pass through other properties
-    ...props,
-    // Custom implementation details could be added here
-  })
-});
-```
-
-## Rendering Process
-
-The axis component follows the standard two-phase approach:
-1. Definition and composition (using `buildViz`)
-2. Rendering (using `renderViz` at the top level)
-
-This separation allows for easy composition with other components before rendering.
-
-## Component Hierarchy
-
-```mermaid
-graph TD
-    Chart["Chart Components"] --> Axis["Axis Component"]
-    Axis --> Group["Group Primitive"]
-    Axis --> Line["Line Primitive"]
-    Axis --> Text["Text Primitive"]
-```
-
-## Renderable Visualization
-
-The axis component returns a standard renderable visualization with the following methods:
-- `render(container)`: Renders the axis to a DOM container
-- `renderToSvg(svg)`: Renders the axis to an SVG element
-- `renderToCanvas(ctx)`: Renders the axis to a Canvas context
-- `update(newSpec)`: Updates the axis with new properties
-- `getProperty(name)`: Gets a property value
-
-## Complete Chart Example
-
-```javascript
-// Create scales
-const xScale = buildViz({
-  type: 'bandScale',
-  domain: ['A', 'B', 'C', 'D'],
-  range: [0, 400],
-  padding: 0.2
-});
-
-const yScale = buildViz({
-  type: 'linearScale',
-  domain: [0, 100],
-  range: [300, 0]
-});
-
-// Create axes
-const xAxis = buildViz({
-  type: 'axis',
-  orientation: 'bottom',
-  length: 400,
-  scale: xScale,
-  title: 'Categories'
-});
-
-const yAxis = buildViz({
-  type: 'axis',
-  orientation: 'left',
-  length: 300,
-  scale: yScale,
-  title: 'Values'
-});
-
-// Create a chart with axes
-const chart = buildViz({
-  type: 'group',
-  children: [
-    // Position y-axis
-    {
-      type: 'group',
-      x: 50,
-      y: 50,
-      children: [yAxis]
-    },
-    // Position x-axis
-    {
-      type: 'group',
-      x: 50,
-      y: 350,
-      children: [xAxis]
-    },
-    // Add chart content here...
-  ]
-});
-
-// Render the chart
-renderViz(chart, document.getElementById('chart-container'));
-```
+- [Scales](../scales/scales.md)
+- [Linear Scale](../scales/linearScale.md)
+- [Band Scale](../scales/bandScale.md)
+- [Time Scale](../scales/timeScale.md)
+- [Chart Layout](../guides/chart-layout.md)
+- [Bar Chart](../charts/barChart.md)
+- [Line Chart](../charts/lineChart.md)
