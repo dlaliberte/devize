@@ -20,6 +20,8 @@ Or include it directly in your HTML:
 <script src="https://unpkg.com/devize/dist/devize.min.js"></script>
 ```
 
+TODO: Add a section on debugging common setup issues.
+
 ## Your First Visualization
 
 Let's create a simple visualization - a colored rectangle. With Devize, you define visualizations using JavaScript objects that describe what you want to see:
