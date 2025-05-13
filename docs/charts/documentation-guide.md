@@ -19,6 +19,9 @@ The Devize documentation is organized into the following sections:
 ### 1. Getting Started
 
 Introductory material for new users:
+
+TODO: Add a section on how to contribute to the documentation.
+
 - Installation and setup
 - Basic concepts
 - First visualization

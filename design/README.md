@@ -12,7 +12,7 @@ The core philosophy of Devize is to separate the description of visualizations f
 
 Visualizations in Devize are defined using object structures (similar to JSON) that describe the desired visualization properties. Each visualization has a "type" attribute that determines how the rest of the properties are interpreted.
 
-See [basic_spec.js](../examples/basic_spec.js) for an example.
+See [basic_spec.js](../../examples/basic_spec.js) for an example.
 
 ### 2.2 Constraint-Based Layout
 
