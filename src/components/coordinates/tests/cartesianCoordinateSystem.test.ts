@@ -7,8 +7,8 @@
  */
 
 import { describe, test, expect, beforeEach } from 'vitest';
-import { CartesianCoordinateSystem, createCartesianCoordinateSystem } from './cartesianCoordinateSystem';
-import { createScale } from '../scales/scale';
+import { CartesianCoordinateSystem, createCartesianCoordinateSystem } from '../cartesianCoordinateSystem';
+import { createScale } from '../../scales/scale';
 
 describe('CartesianCoordinateSystem', () => {
   let coordSystem: CartesianCoordinateSystem;

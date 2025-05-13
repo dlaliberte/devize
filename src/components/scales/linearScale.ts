@@ -14,6 +14,99 @@ import { Scale } from './scale-interface';
 // Make sure define type is registered
 registerDefineType();
 
+// LinearScale class implementation
+export class LinearScale implements Scale {
+  private domain: [number, number];
+  private range: [number, number];
+  private clamp: boolean;
+  private padding: number;
+  private paddedDomain: [number, number];
+
+  constructor(options: {
+    domain: [number, number];
+    range: [number, number];
+    padding?: number;
+    clamp?: boolean;
+    nice?: boolean;
+  }) {
+    this.domain = [...options.domain];
+    this.range = [...options.range];
+    this.clamp = options.clamp || false;
+    this.padding = options.padding || 0;
+
+    // Apply "nice" adjustment to domain if requested
+    if (options.nice) {
+      // Simple implementation of "nice" - round to nearest 10
+      this.domain = [
+        Math.floor(this.domain[0] / 10) * 10,
+        Math.ceil(this.domain[1] / 10) * 10
+      ];
+    }
+
+    // Calculate padded domain
+    const domainSize = this.domain[1] - this.domain[0];
+    this.paddedDomain = [
+      this.domain[0] - domainSize * this.padding,
+      this.domain[1] + domainSize * this.padding
+    ];
+  }
+
+  scale(value: number): number {
+    const [d0, d1] = this.paddedDomain;
+    const [r0, r1] = this.range;
+
+    // Handle edge case of zero domain size
+    if (d1 === d0) {
+      return r0 + (r1 - r0) / 2;
+    }
+
+    // Calculate the scaled value
+    let t = (value - d0) / (d1 - d0);
+
+    // Apply clamping if specified
+    if (this.clamp) {
+      t = Math.max(0, Math.min(1, t));
+    }
+
+    return r0 + t * (r1 - r0);
+  }
+
+  invert(value: number): number {
+    const [d0, d1] = this.paddedDomain;
+    const [r0, r1] = this.range;
+
+    // Handle edge case of zero range size
+    if (r1 === r0) {
+      return d0 + (d1 - d0) / 2;
+    }
+
+    const t = (value - r0) / (r1 - r0);
+    return d0 + t * (d1 - d0);
+  }
+
+  ticks(count: number = 10): number[] {
+    const [d0, d1] = this.paddedDomain;
+
+    // Handle edge case of zero domain size
+    if (d1 === d0) {
+      return [d0];
+    }
+
+    const step = (d1 - d0) / Math.max(1, count - 1);
+    return Array.from({ length: count }, (_, i) => d0 + i * step);
+  }
+
+  // Getter for domain
+  getDomain(): [number, number] {
+    return [...this.domain];
+  }
+
+  // Getter for range
+  getRange(): [number, number] {
+    return [...this.range];
+  }
+}
+
 // Define a linear scale component
 export const linearScaleDefinition = {
   type: "define",
