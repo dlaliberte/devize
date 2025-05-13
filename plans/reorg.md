@@ -19,6 +19,8 @@ This structure will be replicated at the top level and in each subdirectory cont
 
 ### 1. Inventory Current Documentation
 
+TODO: Verify that all migrated documents have updated references and context.
+
 - Identify all existing documentation files
 - Categorize them according to the new structure (plans, docs, designs, tests)
 - Create an inventory spreadsheet tracking:

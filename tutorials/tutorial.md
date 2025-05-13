@@ -20,6 +20,8 @@ import { buildViz, renderViz, registerType } from 'devize';
 
 Let's start with a simple point visualization:
 
+TODO: Add a section on troubleshooting common issues during setup.
+
 ```typescript
 // Sample data
 const data = [
