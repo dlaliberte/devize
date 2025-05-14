@@ -551,6 +551,11 @@ When testing components that rely on browser APIs or third-party libraries:
 
 - **Use test doubles for integration points**: When you need to isolate a component from its dependencies, prefer spies or stubs over full mocks to verify interactions without replacing behavior.
 
+- Use real libraries instead of mocks when possible
+- Only mock external services or APIs that are unavailable during testing
+- For browser APIs and libraries like Three.js, use the actual library rather than complex mocks
+- When testing 3D visualizations, focus on component configuration rather than rendering details
+
 ### 6. Testing 3D Visualizations
 
 For testing 3D visualizations with Three.js:

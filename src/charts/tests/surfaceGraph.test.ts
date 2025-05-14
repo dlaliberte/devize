@@ -101,23 +101,6 @@ describe('Surface Graph Component', () => {
     // Create a test container
     container = createTestContainer();
 
-    // Mock the validation functions in the surfaceGraph implementation
-    // This is a targeted mock to fix the validation tests
-    vi.spyOn(surfaceGraphDefinition.implementation, 'validate').mockImplementation((props) => {
-      if (props.width <= 0 || props.height <= 0) {
-        throw new Error('Width and height must be positive');
-      }
-
-      if (!props.data || !Array.isArray(props.data.values)) {
-        throw new Error('Data must contain a values array');
-      }
-
-      if (!props.data.values.every(row => Array.isArray(row))) {
-        throw new Error('Data values must be a 2D array');
-      }
-
-      return true;
-    });
   });
 
   // Clean up after each test
@@ -310,7 +293,7 @@ describe('Surface Graph Component', () => {
   });
 
   // Skip this test for now until we have a better way to test Three.js rendering
-  test.skip('should render to Three.js when renderToThreeJS is called', () => {
+  test('should render to Three.js when renderToThreeJS is called', () => {
     const chart = createSurfaceGraph({
       data: sampleData,
       width: 400,
@@ -348,27 +331,27 @@ describe('Surface Graph Component', () => {
     expect(result.getProperty('data').yCoordinates).toBeDefined();
   });
 
-  test('should validate data structure', () => {
+    test('should validate data structure', () => {
     // Should throw when data is not properly structured
     expect(() => {
-      createSurfaceGraph({
+        createSurfaceGraph({
         // @ts-ignore - Testing runtime behavior with invalid input
         data: { values: 'not an array' },
         width: 500,
         height: 300
-      });
-    }).toThrow(/Data values must be a 2D array/);
+        });
+    }).toThrow(/Data must contain a values array/);
 
     // Should throw when data values is not a 2D array
     expect(() => {
-      createSurfaceGraph({
+        createSurfaceGraph({
         // @ts-ignore - Testing runtime behavior with invalid input
         data: { values: [1, 2, 3] },
         width: 500,
         height: 300
-      });
+        });
     }).toThrow(/Data values must be a 2D array/);
-  });
+    });
 
   test('should validate width and height are positive', () => {
     // Should throw when width or height is not positive

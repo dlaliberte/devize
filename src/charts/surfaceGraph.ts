@@ -72,6 +72,19 @@ export const surfaceGraphDefinition = {
     enableZoom: { default: true },
     enablePan: { default: true }
   },
+  validate: function (props: any) {
+    if (props.width <= 0 || props.height <= 0) {
+      throw new Error('Width and height must be positive');
+    }
+
+    if (!props.data || !Array.isArray(props.data.values)) {
+      throw new Error('Data must contain a values array');
+    }
+
+    if (!Array.isArray(props.data.values) || !props.data.values.every((row: any) => Array.isArray(row))) {
+      throw new Error('Data values must be a 2D array');
+    }
+  },
   implementation: function(props: any) {
     const {
       width, height, data, xScale, yScale, zScale,
