@@ -28,38 +28,179 @@ registerDefineType();
 // Add this to the imports
 import { AxesHelper, GridHelper, PlaneGeometry, MeshBasicMaterial, DoubleSide } from 'three';
 
-// Add a function to create axes for the surface graph
+// Enhanced function to create axes with ticks and values
 function createAxes(
   width: number,
   height: number,
   depth: number,
-  coordSystem: Cartesian3DCoordinateSystem
+  coordSystem: Cartesian3DCoordinateSystem,
+  showGrid: boolean
 ): THREE.Object3D {
   // Create a group to hold all axis-related objects
   const axesGroup = new THREE.Group();
 
-  // Create axes helper
-  const axesSize = Math.max(width, height, depth);
-  const axesHelper = new THREE.AxesHelper(axesSize);
-  axesGroup.add(axesHelper);
+  // Get scales from coordinate system
+  const xScale = coordSystem.getXScale();
+  const yScale = coordSystem.getYScale();
+  const zScale = coordSystem.getZScale();
 
-  // Create grid helpers for each plane
-  // XY plane (bottom)
-  const xyGrid = new THREE.GridHelper(width, 10);
-  xyGrid.rotation.x = Math.PI / 2;
-  xyGrid.position.z = 0;
-  axesGroup.add(xyGrid);
+  // Get domains
+  const xDomain = xScale.domain;
+  const yDomain = yScale.domain;
+  const zDomain = zScale.domain;
 
-  // XZ plane (back)
-  const xzGrid = new THREE.GridHelper(width, 10);
-  xzGrid.position.y = 0;
-  axesGroup.add(xzGrid);
+  // Create axes lines
+  const axesLines = new THREE.Group();
 
-  // YZ plane (left)
-  const yzGrid = new THREE.GridHelper(height, 10);
-  yzGrid.rotation.z = Math.PI / 2;
-  yzGrid.position.x = 0;
-  axesGroup.add(yzGrid);
+  // X axis
+  const xAxisGeometry = new THREE.BufferGeometry();
+  xAxisGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+    0, 0, 0, width, 0, 0
+  ], 3));
+  const xAxisMaterial = new THREE.LineBasicMaterial({ color: 0xff0000 });
+  const xAxis = new THREE.Line(xAxisGeometry, xAxisMaterial);
+  axesLines.add(xAxis);
+
+  // Y axis
+  const yAxisGeometry = new THREE.BufferGeometry();
+  yAxisGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+    0, 0, 0, 0, height, 0
+  ], 3));
+  const yAxisMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+  const yAxis = new THREE.Line(yAxisGeometry, yAxisMaterial);
+  axesLines.add(yAxis);
+
+  // Z axis
+  const zAxisGeometry = new THREE.BufferGeometry();
+  zAxisGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+    0, 0, 0, 0, 0, depth
+  ], 3));
+  const zAxisMaterial = new THREE.LineBasicMaterial({ color: 0x0000ff });
+  const zAxis = new THREE.Line(zAxisGeometry, zAxisMaterial);
+  axesLines.add(zAxis);
+
+  axesGroup.add(axesLines);
+
+  // Create ticks and labels
+  const ticksGroup = new THREE.Group();
+
+  // Helper function to create a tick with label
+  const createTick = (axis: 'x' | 'y' | 'z', value: number, position: THREE.Vector3) => {
+    // Create tick mark
+    const tickGeometry = new THREE.BufferGeometry();
+    const tickSize = 2;
+    let vertices: number[] = [];
+
+    if (axis === 'x') {
+      vertices = [
+        position.x, position.y, position.z,
+        position.x, position.y - tickSize, position.z
+      ];
+    } else if (axis === 'y') {
+      vertices = [
+        position.x, position.y, position.z,
+        position.x - tickSize, position.y, position.z
+      ];
+    } else { // z
+      vertices = [
+        position.x, position.y, position.z,
+        position.x, position.y - tickSize, position.z
+      ];
+    }
+
+    tickGeometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+    const tickMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
+    const tick = new THREE.Line(tickGeometry, tickMaterial);
+
+    // Create label
+    const canvas = document.createElement('canvas');
+    canvas.width = 64;
+    canvas.height = 32;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'black';
+      ctx.font = '12px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(value.toFixed(1), canvas.width / 2, canvas.height / 2);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        side: THREE.DoubleSide
+      });
+      const geometry = new THREE.PlaneGeometry(4, 2);
+      const mesh = new THREE.Mesh(geometry, material);
+
+      // Position the label
+      if (axis === 'x') {
+        mesh.position.set(position.x, position.y - tickSize - 2, position.z);
+        mesh.rotation.x = -Math.PI / 2;
+      } else if (axis === 'y') {
+        mesh.position.set(position.x - tickSize - 2, position.y, position.z);
+        mesh.rotation.y = Math.PI / 2;
+      } else { // z
+        mesh.position.set(position.x, position.y - tickSize - 2, position.z);
+        mesh.rotation.x = -Math.PI / 2;
+      }
+
+      const tickGroup = new THREE.Group();
+      tickGroup.add(tick);
+      tickGroup.add(mesh);
+      return tickGroup;
+    }
+
+    return tick;
+  };
+
+  // Create X axis ticks
+  const xTicks = xScale.ticks(5);
+  xTicks.forEach(tick => {
+    const xPos = xScale.scale(tick);
+    const tickObj = createTick('x', tick, new THREE.Vector3(xPos, 0, 0));
+    ticksGroup.add(tickObj);
+  });
+
+  // Create Y axis ticks
+  const yTicks = yScale.ticks(5);
+  yTicks.forEach(tick => {
+    const yPos = yScale.scale(tick);
+    const tickObj = createTick('y', tick, new THREE.Vector3(0, yPos, 0));
+    ticksGroup.add(tickObj);
+  });
+
+  // Create Z axis ticks
+  const zTicks = zScale.ticks(5);
+  zTicks.forEach(tick => {
+    const zPos = zScale.scale(tick);
+    const tickObj = createTick('z', tick, new THREE.Vector3(0, 0, zPos));
+    ticksGroup.add(tickObj);
+  });
+
+  axesGroup.add(ticksGroup);
+
+  // Create grid helpers
+  if (showGrid) {
+    // XY plane (bottom)
+    const xyGrid = new THREE.GridHelper(width, 10);
+    xyGrid.rotation.x = Math.PI / 2;
+    xyGrid.position.z = 0;
+    axesGroup.add(xyGrid);
+
+    // XZ plane (back)
+    const xzGrid = new THREE.GridHelper(width, 10);
+    xzGrid.position.y = 0;
+    axesGroup.add(xzGrid);
+
+    // YZ plane (left)
+    const yzGrid = new THREE.GridHelper(height, 10);
+    yzGrid.rotation.z = Math.PI / 2;
+    yzGrid.position.x = 0;
+    axesGroup.add(yzGrid);
+  }
 
   // Add axis labels
   const createLabel = (text: string, position: THREE.Vector3) => {
@@ -82,28 +223,36 @@ function createAxes(
         transparent: true,
         side: THREE.DoubleSide
       });
-      const geometry = new THREE.PlaneGeometry(1, 0.5);
+      const geometry = new THREE.PlaneGeometry(8, 4);
       const mesh = new THREE.Mesh(geometry, material);
       mesh.position.copy(position);
-      mesh.lookAt(0, 0, 0);
       return mesh;
     }
     return null;
   };
 
   // Add X, Y, Z labels
-  const xLabel = createLabel('X', new THREE.Vector3(axesSize + 0.5, 0, 0));
-  const yLabel = createLabel('Y', new THREE.Vector3(0, axesSize + 0.5, 0));
-  const zLabel = createLabel('Z', new THREE.Vector3(0, 0, axesSize + 0.5));
+  const xLabel = createLabel('X', new THREE.Vector3(width + 5, 0, 0));
+  const yLabel = createLabel('Y', new THREE.Vector3(0, height + 5, 0));
+  const zLabel = createLabel('Z', new THREE.Vector3(0, 0, depth + 5));
 
-  if (xLabel) axesGroup.add(xLabel);
-  if (yLabel) axesGroup.add(yLabel);
-  if (zLabel) axesGroup.add(zLabel);
+  if (xLabel) {
+    xLabel.lookAt(new THREE.Vector3(0, 0, 0));
+    axesGroup.add(xLabel);
+  }
+  if (yLabel) {
+    yLabel.lookAt(new THREE.Vector3(0, 0, 0));
+    axesGroup.add(yLabel);
+  }
+  if (zLabel) {
+    zLabel.lookAt(new THREE.Vector3(0, 0, 0));
+    axesGroup.add(zLabel);
+  }
 
   return axesGroup;
 }
 
-// Add a function to create 2D projections
+// Updated function to create 2D projections centered around the data
 function createProjections(
   data: SurfaceData,
   coordSystem: Cartesian3DCoordinateSystem,
@@ -114,11 +263,23 @@ function createProjections(
 ): THREE.Object3D {
   const projectionsGroup = new THREE.Group();
 
+  // Calculate data center
+  const xScale = coordSystem.getXScale();
+  const yScale = coordSystem.getYScale();
+  const zScale = coordSystem.getZScale();
+
+  const xDomain = xScale.domain;
+  const yDomain = yScale.domain;
+  const zDomain = zScale.domain;
+
+  const xCenter = xScale.scale((xDomain[0] + xDomain[1]) / 2);
+  const yCenter = yScale.scale((yDomain[0] + yDomain[1]) / 2);
+  const zCenter = zScale.scale((zDomain[0] + zDomain[1]) / 2);
+
   // Create projection planes
   const createProjectionPlane = (
     planeType: 'xy' | 'xz' | 'yz',
-    position: THREE.Vector3,
-    rotation: THREE.Euler
+    position: THREE.Vector3
   ) => {
     // Create a plane geometry
     let planeGeometry: THREE.PlaneGeometry;
@@ -180,7 +341,7 @@ function createProjections(
     const material = new THREE.MeshBasicMaterial({
       vertexColors: true,
       transparent: true,
-      opacity: 0.6,
+      opacity: projectionsOpacity,
       side: THREE.DoubleSide
     });
 
@@ -192,24 +353,21 @@ function createProjections(
   // XY plane (bottom)
   const xyProjection = createProjectionPlane(
     'xy',
-    new THREE.Vector3(width / 2, 0, depth / 2),
-    new THREE.Euler(Math.PI / 2, 0, 0)
+    new THREE.Vector3(xCenter, 0, zCenter)
   );
   projectionsGroup.add(xyProjection);
 
   // XZ plane (back)
   const xzProjection = createProjectionPlane(
     'xz',
-    new THREE.Vector3(width / 2, height / 2, 0),
-    new THREE.Euler(0, 0, 0)
+    new THREE.Vector3(xCenter, yCenter, 0)
   );
   projectionsGroup.add(xzProjection);
 
   // YZ plane (left)
   const yzProjection = createProjectionPlane(
     'yz',
-    new THREE.Vector3(0, height / 2, depth / 2),
-    new THREE.Euler(0, Math.PI / 2, 0)
+    new THREE.Vector3(0, yCenter, zCenter)
   );
   projectionsGroup.add(yzProjection);
 
@@ -374,7 +532,7 @@ export const surfaceGraphDefinition = {
 
   // Add axes if enabled
   if (showAxes) {
-    const axesGroup = createAxes(width, height, depth, coordSystem);
+    const axesGroup = createAxes(width, height, depth, coordSystem, showGrid);
     scene.add(axesGroup);
   }
 
