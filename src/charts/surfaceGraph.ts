@@ -25,6 +25,197 @@ import { createColorScale } from '../components/scales/colorScale';
 // Make sure define type is registered
 registerDefineType();
 
+// Add this to the imports
+import { AxesHelper, GridHelper, PlaneGeometry, MeshBasicMaterial, DoubleSide } from 'three';
+
+// Add a function to create axes for the surface graph
+function createAxes(
+  width: number,
+  height: number,
+  depth: number,
+  coordSystem: Cartesian3DCoordinateSystem
+): THREE.Object3D {
+  // Create a group to hold all axis-related objects
+  const axesGroup = new THREE.Group();
+
+  // Create axes helper
+  const axesSize = Math.max(width, height, depth);
+  const axesHelper = new THREE.AxesHelper(axesSize);
+  axesGroup.add(axesHelper);
+
+  // Create grid helpers for each plane
+  // XY plane (bottom)
+  const xyGrid = new THREE.GridHelper(width, 10);
+  xyGrid.rotation.x = Math.PI / 2;
+  xyGrid.position.z = 0;
+  axesGroup.add(xyGrid);
+
+  // XZ plane (back)
+  const xzGrid = new THREE.GridHelper(width, 10);
+  xzGrid.position.y = 0;
+  axesGroup.add(xzGrid);
+
+  // YZ plane (left)
+  const yzGrid = new THREE.GridHelper(height, 10);
+  yzGrid.rotation.z = Math.PI / 2;
+  yzGrid.position.x = 0;
+  axesGroup.add(yzGrid);
+
+  // Add axis labels
+  const createLabel = (text: string, position: THREE.Vector3) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = 128;
+    canvas.height = 64;
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'black';
+      ctx.font = '24px Arial';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+      const texture = new THREE.CanvasTexture(canvas);
+      const material = new THREE.MeshBasicMaterial({
+        map: texture,
+        transparent: true,
+        side: THREE.DoubleSide
+      });
+      const geometry = new THREE.PlaneGeometry(1, 0.5);
+      const mesh = new THREE.Mesh(geometry, material);
+      mesh.position.copy(position);
+      mesh.lookAt(0, 0, 0);
+      return mesh;
+    }
+    return null;
+  };
+
+  // Add X, Y, Z labels
+  const xLabel = createLabel('X', new THREE.Vector3(axesSize + 0.5, 0, 0));
+  const yLabel = createLabel('Y', new THREE.Vector3(0, axesSize + 0.5, 0));
+  const zLabel = createLabel('Z', new THREE.Vector3(0, 0, axesSize + 0.5));
+
+  if (xLabel) axesGroup.add(xLabel);
+  if (yLabel) axesGroup.add(yLabel);
+  if (zLabel) axesGroup.add(zLabel);
+
+  return axesGroup;
+}
+
+// Add a function to create 2D projections
+function createProjections(
+  data: SurfaceData,
+  coordSystem: Cartesian3DCoordinateSystem,
+  colorScale: Scale,
+  width: number,
+  height: number,
+  depth: number
+): THREE.Object3D {
+  const projectionsGroup = new THREE.Group();
+
+  // Create projection planes
+  const createProjectionPlane = (
+    planeType: 'xy' | 'xz' | 'yz',
+    position: THREE.Vector3,
+    rotation: THREE.Euler
+  ) => {
+    // Create a plane geometry
+    let planeGeometry: THREE.PlaneGeometry;
+    if (planeType === 'xy') {
+      planeGeometry = new THREE.PlaneGeometry(width, height, data.values[0].length - 1, data.values.length - 1);
+      planeGeometry.rotateX(Math.PI / 2);
+    } else if (planeType === 'xz') {
+      planeGeometry = new THREE.PlaneGeometry(width, depth, data.values[0].length - 1, data.values.length - 1);
+    } else { // yz
+      planeGeometry = new THREE.PlaneGeometry(depth, height, data.values.length - 1, data.values[0].length - 1);
+      planeGeometry.rotateY(Math.PI / 2);
+    }
+
+    // Position the plane
+    planeGeometry.translate(position.x, position.y, position.z);
+
+    // Create vertex colors for the projection
+    const colors: number[] = [];
+    const rows = data.values.length;
+    const cols = data.values[0].length;
+
+    // Calculate colors based on the projection type
+    if (planeType === 'xy') {
+      // Project onto XY plane (bottom)
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const zCoord = data.values[y][x];
+          const colorValue = colorScale.scale(zCoord) as string;
+          const color = new THREE.Color(colorValue);
+          colors.push(color.r, color.g, color.b);
+        }
+      }
+    } else if (planeType === 'xz') {
+      // Project onto XZ plane (back)
+      for (let z = 0; z < rows; z++) {
+        for (let x = 0; x < cols; x++) {
+          const yCoord = data.values[z][x];
+          const colorValue = colorScale.scale(yCoord) as string;
+          const color = new THREE.Color(colorValue);
+          colors.push(color.r, color.g, color.b);
+        }
+      }
+    } else { // yz
+      // Project onto YZ plane (left)
+      for (let z = 0; z < rows; z++) {
+        for (let y = 0; y < cols; y++) {
+          const xCoord = data.values[z][y];
+          const colorValue = colorScale.scale(xCoord) as string;
+          const color = new THREE.Color(colorValue);
+          colors.push(color.r, color.g, color.b);
+        }
+      }
+    }
+
+    // Set colors attribute
+    planeGeometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+    // Create material with vertex colors
+    const material = new THREE.MeshBasicMaterial({
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.6,
+      side: THREE.DoubleSide
+    });
+
+    // Create and return the mesh
+    return new THREE.Mesh(planeGeometry, material);
+  };
+
+  // Create projections for each plane
+  // XY plane (bottom)
+  const xyProjection = createProjectionPlane(
+    'xy',
+    new THREE.Vector3(width / 2, 0, depth / 2),
+    new THREE.Euler(Math.PI / 2, 0, 0)
+  );
+  projectionsGroup.add(xyProjection);
+
+  // XZ plane (back)
+  const xzProjection = createProjectionPlane(
+    'xz',
+    new THREE.Vector3(width / 2, height / 2, 0),
+    new THREE.Euler(0, 0, 0)
+  );
+  projectionsGroup.add(xzProjection);
+
+  // YZ plane (left)
+  const yzProjection = createProjectionPlane(
+    'yz',
+    new THREE.Vector3(0, height / 2, depth / 2),
+    new THREE.Euler(0, Math.PI / 2, 0)
+  );
+  projectionsGroup.add(yzProjection);
+
+  return projectionsGroup;
+}
+
 // Interface for surface data
 export interface SurfaceData {
   // 2D array of z values
@@ -71,7 +262,13 @@ export const surfaceGraphDefinition = {
     // Interaction options
     enableRotation: { default: true },
     enableZoom: { default: true },
-    enablePan: { default: true }
+    enablePan: { default: true },
+
+    // New properties for axes and grid
+    showAxes: { default: true },
+    showGrid: { default: true },
+    showProjections: { default: false },
+    projectionsOpacity: { default: 0.6 }
   },
   validate: function (props: any) {
     if (props.width <= 0 || props.height <= 0) {
@@ -91,7 +288,8 @@ export const surfaceGraphDefinition = {
       width, height, data, xScale, yScale, zScale,
       xDomain, yDomain, zDomain, colorScale, colorDomain, colorRange,
       wireframe, wireframeColor, surfaceOpacity, projection,
-      cameraPosition, enableRotation, enableZoom, enablePan
+      cameraPosition, enableRotation, enableZoom, enablePan,
+      showAxes, showGrid, showProjections, projectionsOpacity
     } = props;
 
     // Create coordinate system
@@ -142,39 +340,63 @@ export const surfaceGraphDefinition = {
           return true;
         },
         renderToThreeJS: (container: HTMLElement): ThreeJsRenderer => {
-          // Create Three.js renderer
-          const renderer = new ThreeJsRenderer({
-            width,
-            height,
-            backgroundColor: 0xf0f0f0,
-            cameraOptions: {
-              type: projection.type === 'orthographic' ? 'orthographic' : 'perspective',
-              position: cameraPosition || { x: width, y: height, z: width }
-            },
-            controlsOptions: {
-              enableRotate: enableRotation,
-              enableZoom: enableZoom,
-              enablePan: enablePan,
-              dampingFactor: 0.25
-            }
-          });
+  // Create Three.js renderer
+  const renderer = new ThreeJsRenderer({
+    width,
+    height,
+    backgroundColor: 0xf0f0f0,
+    cameraOptions: {
+      type: projection.type === 'orthographic' ? 'orthographic' : 'perspective',
+      position: cameraPosition || { x: width, y: height, z: width }
+    },
+    controlsOptions: {
+      enableRotate: enableRotation,
+      enableZoom: enableZoom,
+      enablePan: enablePan,
+      dampingFactor: 0.25
+    }
+  });
 
-          // Create surface geometry
-          const scene = renderer.getScene();
-          const surfaceMesh = createSurfaceMesh(data, coordSystem, colorScaleObj, surfaceOpacity);
-          scene.add(surfaceMesh);
+  // Get the depth from the coordinate system
+  const dimensions = coordSystem.getDimensions();
+  const depth = dimensions.depth || Math.min(width, height);
 
-          // Add wireframe if enabled
-          if (wireframe) {
-            const wireframeMesh = createWireframeMesh(surfaceMesh.geometry, wireframeColor);
-            scene.add(wireframeMesh);
-          }
+  // Create surface geometry
+  const scene = renderer.getScene();
+  const surfaceMesh = createSurfaceMesh(data, coordSystem, colorScaleObj, surfaceOpacity);
+  scene.add(surfaceMesh);
 
-          // Attach renderer to container
-          renderer.attach(container);
+  // Add wireframe if enabled
+  if (wireframe) {
+    const wireframeMesh = createWireframeMesh(surfaceMesh.geometry, wireframeColor);
+    scene.add(wireframeMesh);
+  }
 
-          return renderer;
-        }
+  // Add axes if enabled
+  if (showAxes) {
+    const axesGroup = createAxes(width, height, depth, coordSystem);
+    scene.add(axesGroup);
+  }
+
+  // Add projections if enabled
+  if (showProjections) {
+    const projections = createProjections(
+      data,
+      coordSystem,
+      colorScaleObj,
+      width,
+      height,
+      depth
+    );
+    scene.add(projections);
+  }
+
+  // Attach renderer to container
+  renderer.attach(container);
+
+  return renderer;
+}
+
       },
       {
         coordinateSystem: coordSystem,

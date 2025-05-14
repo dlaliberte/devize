@@ -133,6 +133,9 @@
     </div>
   </div>
 
+  <button id="toggle-axes-btn">Toggle Axes</button>
+<button id="toggle-projections-btn">Toggle Projections</button>
+
   <h2>Code Examples</h2>
 
   <div class="tab-buttons">
@@ -605,6 +608,34 @@ const populationData = {
       });
     });
   });
+
+  // Add to the example script
+document.getElementById('toggle-axes-btn').addEventListener('click', function() {
+  const newSpec = {
+    ...basicSurfaceSpec,
+    showAxes: !basicSurfaceSpec.showAxes
+  };
+  basicSurfaceSpec.showAxes = !basicSurfaceSpec.showAxes;
+
+  const container = document.getElementById('basic-surface-graph');
+  container.innerHTML = '';
+  const newGraph = Devize.buildViz(newSpec);
+  Devize.renderViz(newGraph, container);
+});
+
+document.getElementById('toggle-projections-btn').addEventListener('click', function() {
+  const newSpec = {
+    ...basicSurfaceSpec,
+    showProjections: !basicSurfaceSpec.showProjections
+  };
+  basicSurfaceSpec.showProjections = !basicSurfaceSpec.showProjections;
+
+  const container = document.getElementById('basic-surface-graph');
+  container.innerHTML = '';
+  const newGraph = Devize.buildViz(newSpec);
+  Devize.renderViz(newGraph, container);
+});
+
 </script>
 
     </body>
