@@ -37,6 +37,10 @@ export class TypeRegistry implements Registry {
     });
     return result;
   }
+
+  getRegisteredTypes(): string[] {
+    return Array.from(this.types.keys());
+  }
 }
 
 // Singleton instance
@@ -47,3 +51,4 @@ export const registerType = (type: TypeDefinition): void => registry.registerTyp
 export const hasType = (name: string): boolean => registry.hasType(name);
 export const getType = (name: string): TypeDefinition | undefined => registry.getType(name);
 export const getAllTypes = (): Record<string, TypeDefinition> => registry.getAllTypes();
+export const getRegisteredTypes = (): string[] => registry.getRegisteredTypes();

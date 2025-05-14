@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simple Surface Graph - Devize</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
+    #surface-container {
+      width: 800px;
+      height: 500px;
+      border: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <h1>Simple Surface Graph Example</h1>
+  <div id="surface-container"></div>
+
+  <script type="module">
+    // Import Devize library
+    import { buildViz, renderViz, updateViz, registerData } from '/src/index.ts';
+
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Devize library loaded:', Devize);
+      // console.log('Available visualization types:', Devize.getRegisteredTypes());
+
+      // Generate a simple sine wave surface
+      function generateSineWaveSurface(size = 30) {
+        const values = [];
+        for (let y = 0; y < size; y++) {
+          const row = [];
+          for (let x = 0; x < size; x++) {
+            const xNorm = x / size * 4 * Math.PI;
+            const yNorm = y / size * 4 * Math.PI;
+            const z = Math.sin(xNorm) * Math.cos(yNorm);
+            row.push(z);
+          }
+          values.push(row);
+        }
+        return { values };
+      }
+
+      // Create surface data
+      const surfaceData = generateSineWaveSurface();
+
+      // Create the visualization specification
+      const spec = {
+        type: 'surfaceGraph',
+        width: 800,
+        height: 500,
+        data: surfaceData,
+        colorRange: ['#0000FF', '#FF0000'],
+        wireframe: true,
+        wireframeColor: '#000000',
+        surfaceOpacity: 0.8
+      };
+
+      try {
+        // Build and render the visualization
+        console.log('Building visualization with spec:', spec);
+        const surfaceGraph = Devize.buildViz(spec);
+        console.log('Visualization built:', surfaceGraph);
+        Devize.renderViz(surfaceGraph, document.getElementById('surface-container'));
+      } catch (error) {
+        console.error('Error creating surface graph:', error);
+        document.getElementById('surface-container').innerHTML =
+          '<div style="color: red; padding: 20px;">Error: ' + error.message + '</div>';
+      }
+    });
+  </script>
+</body>
+</html>

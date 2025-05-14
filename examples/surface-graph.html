@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Surface Graph Example - Devize</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+    h1, h2 {
+      color: #333;
+    }
+    .chart-container {
+      width: 100%;
+      height: 500px;
+      border: 1px solid #ddd;
+      margin-top: 20px;
+    }
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #0066cc;
+      text-decoration: none;
+    }
+    .back-link:hover {
+      text-decoration: underline;
+    }
+    pre {
+      background-color: #f5f5f5;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+    }
+    .controls {
+      margin: 20px 0;
+      padding: 15px;
+      background-color: #f9f9f9;
+      border-radius: 4px;
+    }
+    button {
+      padding: 8px 16px;
+      background-color: #0066cc;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    button:hover {
+      background-color: #0055aa;
+    }
+    button.active {
+      background-color: #004488;
+    }
+    .example-section {
+      margin-bottom: 40px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #eee;
+    }
+    .tab-buttons {
+      display: flex;
+      margin-bottom: 15px;
+    }
+    .tab-button {
+      padding: 8px 16px;
+      background-color: #f0f0f0;
+      border: 1px solid #ddd;
+      border-bottom: none;
+      cursor: pointer;
+      margin-right: 5px;
+    }
+    .tab-button.active {
+      background-color: #fff;
+      border-bottom: 1px solid #fff;
+      margin-bottom: -1px;
+      font-weight: bold;
+    }
+    .tab-content {
+      display: none;
+      padding: 15px;
+      border: 1px solid #ddd;
+    }
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h1>Surface Graph Examples</h1>
+
+  <div class="example-section">
+    <h2>Basic Surface Graph</h2>
+    <p>A simple 3D surface graph showing a mathematical function.</p>
+    <div id="basic-surface-graph" class="chart-container"></div>
+
+    <div class="controls">
+      <h3>Chart Options</h3>
+      <button id="toggle-wireframe-btn">Toggle Wireframe</button>
+      <button id="change-colors-btn">Change Color Scheme</button>
+      <button id="toggle-rotation-btn">Toggle Auto-Rotation</button>
+      <button id="reset-basic-btn">Reset View</button>
+    </div>
+  </div>
+
+  <div class="example-section">
+    <h2>Surface Types</h2>
+    <p>Different types of mathematical surfaces.</p>
+    <div id="surface-types" class="chart-container"></div>
+
+    <div class="controls">
+      <h3>Surface Selection</h3>
+      <button id="sine-wave-btn" class="active">Sine Wave</button>
+      <button id="peaks-btn">Peaks</button>
+      <button id="ripple-btn">Ripple</button>
+    </div>
+  </div>
+
+  <div class="example-section">
+    <h2>Data Visualization</h2>
+    <p>Using surface graphs to visualize data sets.</p>
+    <div id="data-visualization" class="chart-container"></div>
+
+    <div class="controls">
+      <h3>Data Selection</h3>
+      <button id="terrain-btn" class="active">Terrain Data</button>
+      <button id="temperature-btn">Temperature Data</button>
+      <button id="population-btn">Population Density</button>
+    </div>
+  </div>
+
+  <h2>Code Examples</h2>
+
+  <div class="tab-buttons">
+    <div class="tab-button active" data-tab="basic-code">Basic Surface</div>
+    <div class="tab-button" data-tab="surface-types-code">Surface Types</div>
+    <div class="tab-button" data-tab="data-viz-code">Data Visualization</div>
+  </div>
+
+  <div id="basic-code" class="tab-content active">
+    <pre><code>
+// Generate a simple sine wave surface
+function generateSineWaveSurface(size = 50) {
+  const values = [];
+  for (let y = 0; y &lt; size; y++) {
+    const row = [];
+    for (let x = 0; x &lt; size; x++) {
+      const xNorm = x / size * 4 * Math.PI;
+      const yNorm = y / size * 4 * Math.PI;
+      const z = Math.sin(xNorm) * Math.cos(yNorm);
+      row.push(z);
+    }
+    values.push(row);
+  }
+  return { values };
+}
+
+// Create a basic surface graph
+const surfaceData = generateSineWaveSurface();
+
+const spec = {
+  type: 'surfaceGraph',
+  width: 800,
+  height: 500,
+  data: surfaceData,
+  colorRange: ['#0000FF', '#FF0000'],
+  wireframe: true,
+  wireframeColor: '#000000',
+  surfaceOpacity: 0.8,
+  projection: { type: 'perspective', distance: 1000 },
+  enableRotation: true,
+  enableZoom: true,
+  enablePan: true
+};
+
+// Build and render the visualization
+const surfaceGraph = Devize.buildViz(spec);
+Devize.renderViz(surfaceGraph, document.getElementById('basic-surface-graph'));
+    </code></pre>
+  </div>
+
+  <div id="surface-types-code" class="tab-content">
+    <pre><code>
+// Generate different surface types
+
+// Sine wave surface
+function generateSineWaveSurface(size = 50) {
+  const values = [];
+  for (let y = 0; y &lt; size; y++) {
+    const row = [];
+    for (let x = 0; x &lt; size; x++) {
+      const xNorm = x / size * 4 * Math.PI;
+      const yNorm = y / size * 4 * Math.PI;
+      const z = Math.sin(xNorm) * Math.cos(yNorm);
+      row.push(z);
+    }
+    values.push(row);
+  }
+  return { values };
+}
+
+// Peaks surface (based on MATLAB peaks function)
+function generatePeaksSurface(size = 50) {
+  const values = [];
+  for (let y = 0; y &lt; size; y++) {
+    const row = [];
+    for (let x = 0; x &lt; size; x++) {
+      const x1 = (x / size) * 6 - 3;
+      const y1 = (y / size) * 6 - 3;
+      const z = 3 * Math.pow(1 - x1, 2) * Math.exp(-Math.pow(x1, 2) - Math.pow(y1 + 1, 2))
+              - 10 * (x1 / 5 - Math.pow(x1, 3) - Math.pow(y1, 5)) * Math.exp(-Math.pow(x1, 2) - Math.pow(y1, 2))
+              - 1/3 * Math.exp(-Math.pow(x1 + 1, 2) - Math.pow(y1, 2));
+      row.push(z);
+    }
+    values.push(row);
+  }
+  return { values };
+}
+
+// Ripple surface
+function generateRippleSurface(size = 50) {
+  const values = [];
+  for (let y = 0; y &lt; size; y++) {
+    const row = [];
+    for (let x = 0; x &lt; size; x++) {
+      const x1 = (x / size) * 10 - 5;
+      const y1 = (y / size) * 10 - 5;
+      const r = Math.sqrt(x1 * x1 + y1 * y1);
+      const z = Math.sin(r) / (r + 0.01);
+      row.push(z);
+    }
+    values.push(row);
+  }
+  return { values };
+}
+
+// Create a surface graph with the sine wave surface
+const surfaceData = generateSineWaveSurface();
+
+const spec = {
+  type: 'surfaceGraph',
+  width: 800,
+  height: 500,
+  data: surfaceData,
+  colorRange: ['#0000FF', '#FF0000'],
+  wireframe: true,
+  wireframeColor: '#000000',
+  surfaceOpacity: 0.8
+};
+
+// Build and render the visualization
+const surfaceGraph = Devize.buildViz(spec);
+Devize.renderViz(surfaceGraph, document.getElementById('surface-types'));
+
+// Add event listeners to switch between surface types
+document.getElementById('sine-wave-btn').addEventListener('click', () => {
+  updateSurface(generateSineWaveSurface(), 'sine-wave-btn');
+});
+
+document.getElementById('peaks-btn').addEventListener('click', () => {
+  updateSurface(generatePeaksSurface(), 'peaks-btn');
+});
+
+document.getElementById('ripple-btn').addEventListener('click', () => {
+  updateSurface(generateRippleSurface(), 'ripple-btn');
+});
+
+function updateSurface(data, activeButtonId) {
+  // Update active button
+  document.querySelectorAll('.controls button').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  document.getElementById(activeButtonId).classList.add('active');
+
+  // Update the surface graph
+  const container = document.getElementById('surface-types');
+  container.innerHTML = '';
+
+  const newSpec = {
+    ...spec,
+    data: data
+  };
+
+  const newSurfaceGraph = Devize.buildViz(newSpec);
+  Devize.renderViz(newSurfaceGraph, container);
+}
+    </code></pre>
+  </div>
+
+  <div id="data-viz-code" class="tab-content">
+    <pre><code>
+// Sample data for visualization
+const terrainData = {
+  values: [
+    [10, 12, 15, 20, 25, 30, 35, 40, 45, 50],
+    [12, 15, 20, 25, 30, 35, 40, 45, 50, 55],
+    [15, 20, 25, 30, 35, 40, 45, 50, 55, 60],
+    [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+    [25, 30, 35, 40, 45, 50, 55, 60, 65, 70],
+    [30, 35, 40, 45, 50, 55, 60, 65, 70, 75],
+    [35, 40, 45, 50, 55, 60, 65, 70, 75, 80],
+    [40, 45, 50, 55, 60, 65, 70, 75, 80, 85],
+    [45, 50, 55, 60, 65, 70, 75, 80, 85, 90],
+    [50, 55, 60, 65, 70, 75, 80, 85, 90, 95]
+  ],
+  xCoordinates: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  yCoordinates: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+};
+
+const temperatureData = {
+  values: [
+    [15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
+    [16, 17, 18, 19, 20, 21, 22, 23, 24, 25],
+    [17, 18, 19, 20, 21, 22, 23, 24, 25, 26],
+    [18, 19, 20, 21, 22, 23, 24, 25, 26, 27],
+    [19, 20, 21, 22, 23, 24, 25, 26, 27, 28],
+    [20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
+    [21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
+    [22, 23, 24, 25, 26, 27, 28, 29, 30, 31],
+    [23, 24, 25, 26, 27, 28, 29, 30, 31, 32],
+    [24, 25, 26, 27, 28, 29, 30, 31, 32, 33]
+  ],
+  xCoordinates: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+  yCoordinates: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+};
+
+const populationData = {
+  values: [
+    [5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+    [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+    [15, 30, 45, 60, 75, 90, 105, 120, 135, 150],
+    [20, 40, 60, 80, 100, 120, 140, 160, 180, 200],
+    [25, 50, 75, 100, 125, 150, 175, 200, 225, 250],
+    [30, 60, 90
+</code></pre>
+  </div>
+</div>
+
+
+  <script type="module">
+    // Import Devize library
+    import { buildViz, renderViz, updateViz, registerData } from '/src/index.ts';
+
+
+    // Sample data for the data visualization section
+    const terrainData = {
+      values: [
+        [10, 12, 15, 20, 25, 30, 35, 40, 45, 50],
+        [12, 15, 20, 25, 30, 35, 40, 45, 50, 55],
+        [15, 20, 25, 30, 35, 40, 45, 50, 55, 60],
+        [20, 25, 30, 35, 40, 45, 50, 55, 60, 65],
+        [25, 30, 35, 40, 45, 50, 55, 60, 65, 70],
+        [30, 35, 40, 45, 50, 55, 60, 65, 70, 75],
+        [35, 40, 45, 50, 55, 60, 65, 70, 75, 80],
+        [40, 45, 50, 55, 60, 65, 70, 75, 80, 85],
+        [45, 50, 55, 60, 65, 70, 75, 80, 85, 90],
+        [50, 55, 60, 65, 70, 75, 80, 85, 90, 95]
+      ]
+    };
+
+    const temperatureData = {
+      values: [
+        [15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
+        [16, 17, 18, 19, 20, 21, 22, 23, 24, 25],
+        [17, 18, 19, 20, 21, 22, 23, 24, 25, 26],
+        [18, 19, 20, 21, 22, 23, 24, 25, 26, 27],
+        [19, 20, 21, 22, 23, 24, 25, 26, 27, 28],
+        [20, 21, 22, 23, 24, 25, 26, 27, 28, 29],
+        [21, 22, 23, 24, 25, 26, 27, 28, 29, 30],
+        [22, 23, 24, 25, 26, 27, 28, 29, 30, 31],
+        [23, 24, 25, 26, 27, 28, 29, 30, 31, 32],
+        [24, 25, 26, 27, 28, 29, 30, 31, 32, 33]
+      ]
+    };
+
+    const populationData = {
+      values: [
+        [5, 10, 15, 20, 25, 30, 35, 40, 45, 50],
+        [10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+        [15, 30, 45, 60, 75, 90, 105, 120, 135, 150],
+        [20, 40, 60, 80, 100, 120, 140, 160, 180, 200],
+        [25, 50, 75, 100, 125, 150, 175, 200, 225, 250],
+        [30, 60, 90, 120, 150, 180, 210, 240, 270, 300],
+        [35, 70, 105, 140, 175, 210, 245, 280, 315, 350],
+        [40, 80, 120, 160, 200, 240, 280, 320, 360, 400],
+        [45, 90, 135, 180, 225, 270, 315, 360, 405, 450],
+        [50, 100, 150, 200, 250, 300, 350, 400, 450, 500]
+      ]
+    };
+
+  // Wait for DOM to be ready
+  document.addEventListener('DOMContentLoaded', function() {
+    // Generate a simple sine wave surface
+    function generateSineWaveSurface(size = 50) {
+      const values = [];
+      for (let y = 0; y < size; y++) {
+        const row = [];
+        for (let x = 0; x < size; x++) {
+          const xNorm = x / size * 4 * Math.PI;
+          const yNorm = y / size * 4 * Math.PI;
+          const z = Math.sin(xNorm) * Math.cos(yNorm);
+          row.push(z);
+        }
+        values.push(row);
+      }
+      return { values };
+    }
+
+    // Generate a peaks surface
+    function generatePeaksSurface(size = 50) {
+      const values = [];
+      for (let y = 0; y < size; y++) {
+        const row = [];
+        for (let x = 0; x < size; x++) {
+          const x1 = (x / size) * 6 - 3;
+          const y1 = (y / size) * 6 - 3;
+          const z = 3 * Math.pow(1 - x1, 2) * Math.exp(-Math.pow(x1, 2) - Math.pow(y1 + 1, 2))
+                  - 10 * (x1 / 5 - Math.pow(x1, 3) - Math.pow(y1, 5)) * Math.exp(-Math.pow(x1, 2) - Math.pow(y1, 2))
+                  - 1/3 * Math.exp(-Math.pow(x1 + 1, 2) - Math.pow(y1, 2));
+          row.push(z);
+        }
+        values.push(row);
+      }
+      return { values };
+    }
+
+    // Generate a ripple surface
+    function generateRippleSurface(size = 50) {
+      const values = [];
+      for (let y = 0; y < size; y++) {
+        const row = [];
+        for (let x = 0; x < size; x++) {
+          const x1 = (x / size) * 10 - 5;
+          const y1 = (y / size) * 10 - 5;
+          const r = Math.sqrt(x1 * x1 + y1 * y1);
+          const z = Math.sin(r) / (r + 0.01);
+          row.push(z);
+        }
+        values.push(row);
+      }
+      return { values };
+    }
+
+    // Initialize the basic surface graph
+    const basicSurfaceData = generateSineWaveSurface(30);
+    const basicSurfaceSpec = {
+      type: 'surfaceGraph',
+      width: document.getElementById('basic-surface-graph').clientWidth,
+      height: 500,
+      data: basicSurfaceData,
+      colorRange: ['#0000FF', '#FF0000'],
+      wireframe: true,
+      wireframeColor: '#000000',
+      surfaceOpacity: 0.8
+    };
+    const basicSurfaceGraph = Devize.buildViz(basicSurfaceSpec);
+    Devize.renderViz(basicSurfaceGraph, document.getElementById('basic-surface-graph'));
+
+    // Initialize the surface types graph
+    const surfaceTypesData = generateSineWaveSurface(30);
+    const surfaceTypesSpec = {
+      type: 'surfaceGraph',
+      width: document.getElementById('surface-types').clientWidth,
+      height: 500,
+      data: surfaceTypesData,
+      colorRange: ['#0000FF', '#FF0000'],
+      wireframe: true,
+      wireframeColor: '#000000',
+      surfaceOpacity: 0.8
+    };
+    const surfaceTypesGraph = Devize.buildViz(surfaceTypesSpec);
+    Devize.renderViz(surfaceTypesGraph, document.getElementById('surface-types'));
+
+    // Initialize the data visualization graph
+    const dataVizSpec = {
+      type: 'surfaceGraph',
+      width: document.getElementById('data-visualization').clientWidth,
+      height: 500,
+      data: terrainData,
+      colorRange: ['#006400', '#ADFF2F'],
+      wireframe: true,
+      wireframeColor: '#333333',
+      surfaceOpacity: 0.8
+    };
+    const dataVizGraph = Devize.buildViz(dataVizSpec);
+    Devize.renderViz(dataVizGraph, document.getElementById('data-visualization'));
+
+    // Add event listeners for the basic surface graph controls
+    document.getElementById('toggle-wireframe-btn').addEventListener('click', function() {
+      const newSpec = {
+        ...basicSurfaceSpec,
+        wireframe: !basicSurfaceSpec.wireframe
+      };
+      basicSurfaceSpec.wireframe = !basicSurfaceSpec.wireframe;
+
+      const container = document.getElementById('basic-surface-graph');
+      container.innerHTML = '';
+      const newGraph = Devize.buildViz(newSpec);
+      Devize.renderViz(newGraph, container);
+    });
+
+    document.getElementById('change-colors-btn').addEventListener('click', function() {
+      const colorSchemes = [
+        ['#0000FF', '#FF0000'],
+        ['#00FF00', '#FF00FF'],
+        ['#FFFF00', '#00FFFF']
+      ];
+
+      const currentIndex = colorSchemes.findIndex(scheme =>
+        scheme[0] === basicSurfaceSpec.colorRange[0] && scheme[1] === basicSurfaceSpec.colorRange[1]
+      );
+      const nextIndex = (currentIndex + 1) % colorSchemes.length;
+
+      const newSpec = {
+        ...basicSurfaceSpec,
+        colorRange: colorSchemes[nextIndex]
+      };
+      basicSurfaceSpec.colorRange = colorSchemes[nextIndex];
+
+      const container = document.getElementById('basic-surface-graph');
+      container.innerHTML = '';
+      const newGraph = Devize.buildViz(newSpec);
+      Devize.renderViz(newGraph, container);
+    });
+
+    // Add event listeners for the surface types controls
+    document.getElementById('sine-wave-btn').addEventListener('click', function() {
+      updateSurfaceType(generateSineWaveSurface(30), 'sine-wave-btn');
+    });
+
+    document.getElementById('peaks-btn').addEventListener('click', function() {
+      updateSurfaceType(generatePeaksSurface(30), 'peaks-btn');
+    });
+
+    document.getElementById('ripple-btn').addEventListener('click', function() {
+      updateSurfaceType(generateRippleSurface(30), 'ripple-btn');
+    });
+
+    function updateSurfaceType(data, buttonId) {
+      // Update active button
+      document.querySelectorAll('#surface-types + .controls button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.getElementById(buttonId).classList.add('active');
+
+      // Update the surface graph
+      surfaceTypesSpec.data = data;
+
+      const container = document.getElementById('surface-types');
+      container.innerHTML = '';
+      const newGraph = Devize.buildViz(surfaceTypesSpec);
+      Devize.renderViz(newGraph, container);
+    }
+
+    // Add event listeners for the data visualization controls
+    document.getElementById('terrain-btn').addEventListener('click', function() {
+      updateDataVisualization(terrainData, 'terrain-btn', ['#006400', '#ADFF2F']);
+    });
+
+    document.getElementById('temperature-btn').addEventListener('click', function() {
+      updateDataVisualization(temperatureData, 'temperature-btn', ['#0000FF', '#FF0000']);
+    });
+
+    document.getElementById('population-btn').addEventListener('click', function() {
+      updateDataVisualization(populationData, 'population-btn', ['#FFFF00', '#FF4500']);
+    });
+
+    function updateDataVisualization(data, buttonId, colorRange) {
+      // Update active button
+      document.querySelectorAll('#data-visualization + .controls button').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      document.getElementById(buttonId).classList.add('active');
+
+      // Update the data visualization
+      dataVizSpec.data = data;
+      dataVizSpec.colorRange = colorRange;
+
+      const container = document.getElementById('data-visualization');
+      container.innerHTML = '';
+      const newGraph = Devize.buildViz(dataVizSpec);
+      Devize.renderViz(newGraph, container);
+    }
+
+    // Tab switching functionality
+    document.querySelectorAll('.tab-button').forEach(button => {
+      button.addEventListener('click', function() {
+        const tabId = this.getAttribute('data-tab');
+
+        // Update active tab button
+        document.querySelectorAll('.tab-button').forEach(btn => {
+          btn.classList.remove('active');
+        });
+        this.classList.add('active');
+
+        // Update active tab content
+        document.querySelectorAll('.tab-content').forEach(content => {
+          content.classList.remove('active');
+        });
+        document.getElementById(tabId).classList.add('active');
+      });
+    });
+  });
+</script>
+
+    </body>
+    </html>

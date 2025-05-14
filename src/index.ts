@@ -20,21 +20,38 @@ import {
 // Initialize the library
 initializeLibrary();
 
+// TODO: We should instead import these from components/index.ts
 // Import visualization types
 import './components/data/dataExtract';
 import './charts/barChart';
 import './charts/lineChart';
 import './charts/scatterPlot';
 import './charts/pieChart';
+import './charts/surfaceGraph';
 import './components/axis';
 import './components/legend';
+import { colorScaleDefinition, createColorScale } from './components/scales/colorScale';
 
-// Note: Commenting out primitive imports until we confirm the correct paths
-// If these files don't exist yet, they should be created according to the architecture
-// or the imports should be adjusted to match the actual file structure
-// import './primitives/shape';
-// import './primitives/text';
-// import './primitives/container';
+// Add this import to the top of the file
+import { surfaceGraphDefinition, createSurfaceGraph } from './charts/surfaceGraph';
+
+// Make sure to export the surfaceGraph component
+
+export {
+  // ... other exports
+  surfaceGraphDefinition,
+  createSurfaceGraph
+};
+// Add to exports
+export {
+  // ... other exports
+  colorScaleDefinition,
+  createColorScale
+};
+
+// Add this to the initialization section to ensure the component is registered
+  // This should not be needed.
+// buildViz(surfaceGraphDefinition);
 
 console.log('All modules imported');
 

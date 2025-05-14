@@ -5,10 +5,9 @@
  */
 
 // Import core components
-import { registerType, getType, hasType, getAllTypes } from './registry';
+import { registerType, getType, hasType, getAllTypes, getRegisteredTypes } from './registry';
 import { buildViz } from './builder';
 import { renderViz, updateViz, ensureSvg } from './renderer';
-import { VisualizationSpec, RenderableVisualization, RenderedResult } from './types';
 
 // Data registry for storing named data sources
 const dataRegistry: Record<string, any> = {};
@@ -70,17 +69,7 @@ if (typeof window !== 'undefined') {
   initializeLibrary();
 }
 
-// renderer defines renderViz.
-// // Render a visualization to a container
-// export function renderViz(spec: VisualizationSpec | RenderableVisualization, container: HTMLElement): RenderedResult {
-//   // If it's a specification, build it first
-//   const viz = isVisualizationSpec(spec) ? buildViz(spec) : spec;
-
-//   // Render to the container
-//   return viz.render(container);
-// }
-
-// Export core functions
+// Export core functions, adds these as properties of Devize
 export {
   buildViz,
   renderViz,
@@ -89,5 +78,6 @@ export {
   getType,
   hasType,
   getAllTypes,
-  ensureSvg
+  ensureSvg,
+  getRegisteredTypes
 };

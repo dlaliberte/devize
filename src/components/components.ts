@@ -22,6 +22,7 @@ import './charts/barChart';
 import './charts/lineChart';
 import './charts/scatterPlot';
 import './charts/pieChart';
+import './charts/surfaceGraph';
 
 /**
  * Initialize all components

@@ -1,13 +1,9 @@
 /**
  * Three.js Renderer Utility
  *
- * Purpose: Provides shared functionality for Three.js-based visualizations
+ * Purpose: Provides a wrapper around Three.js for 3D rendering
  * Author: Cody
- * Creation Date: 2023-12-22
- *
- * ## References
- * - **Documentation**: /src/utils/docs/three_js_renderer.md
- * - **Related Code**: /src/charts/surfaceGraph.ts, /src/charts/scatter3DChart.ts
+ * Creation Date: 2023-12-20
  */
 
 import * as THREE from 'three';
@@ -16,17 +12,13 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 export interface ThreeJsRendererOptions {
   width: number;
   height: number;
-  backgroundColor?: string | number;
-  alpha?: boolean;
-  antialias?: boolean;
-  enableOrbitControls?: boolean;
+  backgroundColor?: number;
   cameraOptions?: {
-    type: 'perspective' | 'orthographic';
+    type?: 'perspective' | 'orthographic';
+    position?: { x: number, y: number, z: number };
     fov?: number;
     near?: number;
     far?: number;
-    position?: { x: number, y: number, z: number };
-    lookAt?: { x: number, y: number, z: number };
   };
   controlsOptions?: {
     enableRotate?: boolean;
@@ -34,10 +26,8 @@ export interface ThreeJsRendererOptions {
     enablePan?: boolean;
     dampingFactor?: number;
     autoRotate?: boolean;
-    autoRotateSpeed?: number;
   };
 }
-
 export class ThreeJsRenderer {
   private width: number;
   private height: number;

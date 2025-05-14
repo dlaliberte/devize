@@ -20,6 +20,7 @@ import { Cartesian3DCoordinateSystem, createCartesian3DCoordinateSystem } from '
 import { Scale } from '../components/scales/scale';
 import { createScale } from '../components/scales/scale';
 import { ThreeJsRenderer } from '../utils/threeJsRenderer';
+import { createColorScale } from '../components/scales/colorScale';
 
 // Make sure define type is registered
 registerDefineType();
@@ -99,7 +100,7 @@ export const surfaceGraphDefinition = {
     });
 
     // Create color scale
-    const colorScaleObj = createColorScale({
+    const colorScaleObj = createSurfaceColorScale({
       data, colorScale, colorDomain, colorRange
     });
 
@@ -221,16 +222,25 @@ function createCoordinateSystem({
 }
 
 // Helper function to create color scale
-function createColorScale({ data, colorScale, colorDomain, colorRange }: any): Scale {
+function createSurfaceColorScale({ data, colorScale, colorDomain, colorRange }: any): Scale {
   // Calculate color domain if not provided
   const allZValues = data.values.flat();
   const colorDomainValue = colorDomain || [Math.min(...allZValues), Math.max(...allZValues)];
 
-  // Create color scale
-  return createScale(colorScale, {
-    domain: colorDomainValue,
-    range: colorRange
-  });
+  // Default color range (blue to red)
+  const colorRangeValue = colorRange || ['#0000FF', '#FF0000'];
+
+  // If colorScale is a string, create a new color scale
+  if (typeof colorScale === 'string') {
+    return createColorScale(
+      colorDomainValue,
+      colorRangeValue,
+      { mappingType: colorScale, clamp: true }
+    );
+  }
+
+  // If colorScale is already a Scale object, return it
+  return colorScale;
 }
 
 // Helper function to create surface mesh
@@ -263,9 +273,23 @@ function createSurfaceMesh(
       // Add vertex
       vertices.push(point3D.x, point3D.y, point3D.z);
 
-      // Add color
-      const color = new THREE.Color(colorScale.scale(zCoord) as string);
-      colors.push(color.r, color.g, color.b);
+      // Add color - ensure we get a valid color string
+      let colorValue = colorScale.scale(zCoord);
+
+      // Make sure we have a valid color string
+      if (typeof colorValue !== 'string') {
+        colorValue = '#0000FF';
+        console.warn(`Invalid color value for z=${zCoord}, using default color`);
+      }
+
+      try {
+        const color = new THREE.Color(colorValue);
+        colors.push(color.r, color.g, color.b);
+      } catch (e) {
+        console.warn(`Failed to create color from ${colorValue}, using default color`);
+        const defaultColor = new THREE.Color('#0000FF');
+        colors.push(defaultColor.r, defaultColor.g, defaultColor.b);
+      }
     }
   }
 
@@ -310,9 +334,6 @@ function createWireframeMesh(geometry: THREE.BufferGeometry, color: string): THR
   return new THREE.LineSegments(wireframeGeometry, wireframeMaterial);
 }
 
-// Register the surfaceGraph component
-buildViz(surfaceGraphDefinition);
-
 /**
  * Create a surface graph directly
  *
@@ -349,3 +370,12 @@ export function createSurfaceGraph(options: {
     ...options
   });
 }
+
+// Make sure the component is registered when the file is imported
+export function registerSurfaceGraph() {
+  buildViz(surfaceGraphDefinition);
+  console.log('Surface graph component registered');
+}
+
+// Auto-register when imported
+registerSurfaceGraph();
