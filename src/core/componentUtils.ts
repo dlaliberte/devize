@@ -147,7 +147,27 @@ export function createRenderableVisualizationEnhanced(
     },
 
     // Render to a container
-    render: function(container: HTMLElement) {
+    render: function (container: HTMLElement) {
+// +   console.log('Render method called for', type);
+// +
+// +   // Check if we should use Three.js rendering
+// +   if (this.renderToThreeJS && container instanceof HTMLElement && !(container instanceof SVGElement)) {
+// +     console.log('Using Three.js rendering path');
+// +     const renderer = this.renderToThreeJS(container);
+// +     return {
+// +       element: container,
+// +       update: (newSpec: any) => {
+// +         const updatedViz = this.update(newSpec);
+// +         return updatedViz.render(container);
+// +       },
+// +       cleanup: () => {
+// +         if (renderer && renderer.dispose) {
+// +           renderer.dispose();
+// +         }
+// +       }
+// +     };
+// +   }
+
       // Create an SVG element if needed
       let svg = container.querySelector('svg');
       if (!svg) {

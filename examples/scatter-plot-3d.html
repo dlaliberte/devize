@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Scatter Plot Example - Devize</title>
+  <script src="../dist/devize.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .container {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .chart-container {
+      background-color: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    label {
+      font-weight: bold;
+      font-size: 14px;
+    }
+
+    select, input {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      min-width: 150px;
+    }
+
+    button {
+      padding: 8px 16px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .description {
+      background-color: #e9f7ef;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <h1>3D Scatter Plot Example</h1>
+
+  <div class="description">
+    <p>This example demonstrates a 3D scatter plot visualization using Three.js. The scatter plot shows data points in three-dimensional space, with options to customize the appearance and behavior of the visualization.</p>
+    <p>You can rotate the view by clicking and dragging, zoom with the mouse wheel, and pan by right-clicking and dragging.</p>
+  </div>
+
+  <div class="container">
+    <div class="controls">
+      <div class="control-group">
+        <label for="dataset">Dataset:</label>
+        <select id="dataset">
+          <option value="random">Random Data</option>
+          <option value="clusters">Clustered Data</option>
+          <option value="sphere">Sphere Distribution</option>
+          <option value="spiral">3D Spiral</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="points">Number of Points:</label>
+        <input type="number" id="points" min="10" max="5000" value="200">
+      </div>
+
+      <div class="control-group">
+        <label for="shape">Point Shape:</label>
+        <select id="shape">
+          <option value="sphere">Sphere</option>
+          <option value="cube">Cube</option>
+          <option value="cone">Cone</option>
+          <option value="cylinder">Cylinder</option>
+          <option value="tetrahedron">Tetrahedron</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="colorBy">Color By:</label>
+        <select id="colorBy">
+          <option value="none">Single Color</option>
+          <option value="cluster">Cluster</option>
+          <option value="z">Z Value</option>
+          <option value="distance">Distance from Origin</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label for="autoRotate">Auto Rotate:</label>
+        <input type="checkbox" id="autoRotate">
+      </div>
+
+      <button id="updateBtn">Update Visualization</button>
+    </div>
+
+    <div class="chart-container" id="chart" style="height: 600px;"></div>
+  </div>
+
+  <a href="index.html" class="back-link">← Back to Examples</a>
+
+
+  <script type="module">
+    // Import Devize library
+    import { buildViz, renderViz, updateViz, registerData } from '/src/index.ts';
+
+    // Generate random data
+    function generateRandomData(count) {
+      const data = [];
+      for (let i = 0; i < count; i++) {
+        data.push({
+          x: Math.random() * 100 - 50,
+          y: Math.random() * 100 - 50,
+          z: Math.random() * 100 - 50,
+          size: Math.random() * 10 + 5,
+          cluster: Math.floor(Math.random() * 5)
+        });
+      }
+      return data;
+    }
+
+    // Generate clustered data
+    function generateClusteredData(count) {
+      const data = [];
+      const clusters = 5;
+      const pointsPerCluster = Math.floor(count / clusters);
+
+      for (let c = 0; c < clusters; c++) {
+        const centerX = Math.random() * 100 - 50;
+        const centerY = Math.random() * 100 - 50;
+        const centerZ = Math.random() * 100 - 50;
+
+        for (let i = 0; i < pointsPerCluster; i++) {
+          data.push({
+            x: centerX + (Math.random() * 20 - 10),
+            y: centerY + (Math.random() * 20 - 10),
+            z: centerZ + (Math.random() * 20 - 10),
+            size: Math.random() * 5 + 5,
+            cluster: c
+          });
+        }
+      }
+
+      // Add any remaining points
+      const remaining = count - (clusters * pointsPerCluster);
+      for (let i = 0; i < remaining; i++) {
+        data.push({
+          x: Math.random() * 100 - 50,
+          y: Math.random() * 100 - 50,
+          z: Math.random() * 100 - 50,
+          size: Math.random() * 5 + 5,
+          cluster: Math.floor(Math.random() * clusters)
+        });
+      }
+
+      return data;
+    }
+
+    // Generate sphere distribution
+    function generateSphereData(count) {
+      const data = [];
+      const radius = 50;
+
+      for (let i = 0; i < count; i++) {
+        // Generate points on a sphere using spherical coordinates
+        const theta = Math.random() * Math.PI * 2; // Azimuthal angle
+        const phi = Math.acos(2 * Math.random() - 1); // Polar angle
+        const r = radius * (0.8 + Math.random() * 0.2); // Radius with some variation
+
+        const x = r * Math.sin(phi) * Math.cos(theta);
+        const y = r * Math.sin(phi) * Math.sin(theta);
+        const z = r * Math.cos(phi);
+
+        data.push({
+          x: x,
+          y: y,
+          z: z,
+          size: Math.random() * 5 + 3,
+          cluster: Math.floor(phi / (Math.PI / 5)) // Divide into 5 clusters by latitude
+        });
+      }
+
+      return data;
+    }
+
+    // Generate 3D spiral
+    function generateSpiralData(count) {
+      const data = [];
+      const turns = 5;
+
+      for (let i = 0; i < count; i++) {
+        const t = (i / count) * turns * Math.PI * 2;
+        const r = 50 * (i / count);
+
+        const x = r * Math.cos(t);
+        const y = r * Math.sin(t);
+        const z = (i / count) * 100 - 50;
+
+        data.push({
+          x: x,
+          y: y,
+          z: z,
+          size: 5 + (i / count) * 10,
+          cluster: Math.floor((i / count) * 5)
+        });
+      }
+
+      return data;
+    }
+
+    // Calculate distance from origin
+    function calculateDistances(data) {
+      return data.map(d => {
+        const distance = Math.sqrt(d.x * d.x + d.y * d.y + d.z * d.z);
+        return {
+          ...d,
+          distance: distance
+        };
+      });
+    }
+
+    // Create the visualization
+    function createVisualization() {
+      const datasetType = document.getElementById('dataset').value;
+      const pointCount = parseInt(document.getElementById('points').value);
+      const shape = document.getElementById('shape').value;
+      const colorBy = document.getElementById('colorBy').value;
+      const autoRotate = document.getElementById('autoRotate').checked;
+
+      // Generate data based on selected type
+      let data;
+      switch (datasetType) {
+        case 'clusters':
+          data = generateClusteredData(pointCount);
+          break;
+        case 'sphere':
+          data = generateSphereData(pointCount);
+          break;
+        case 'spiral':
+          data = generateSpiralData(pointCount);
+          break;
+        case 'random':
+        default:
+          data = generateRandomData(pointCount);
+          break;
+      }
+
+      // Add distance if needed
+      if (colorBy === 'distance') {
+        data = calculateDistances(data);
+      }
+
+      // Clear previous chart
+      // Clear previous chart
+      const chartContainer = document.getElementById('chart');
+      chartContainer.innerHTML = '';
+
+      // Configure visualization based on color selection
+      let vizConfig;
+
+      if (colorBy === 'none') {
+        // Single color configuration
+        vizConfig = {
+          type: 'scatterPlot3D',
+          data: data,
+          x: { field: 'x' },
+          y: { field: 'y' },
+          z: { field: 'z' },
+          size: { field: 'size' },
+          color: '#3366CC',
+          shape: shape,
+          width: chartContainer.clientWidth,
+          height: chartContainer.clientHeight,
+          showAxes: true,
+          showGrid: true,
+          animation: {
+            enabled: true,
+            autoRotate: autoRotate,
+            rotateSpeed: 1.0
+          }
+        };
+      } else if (colorBy === 'cluster') {
+        // Color by cluster
+        vizConfig = {
+          type: 'scatterPlot3D',
+          data: data,
+          x: { field: 'x' },
+          y: { field: 'y' },
+          z: { field: 'z' },
+          size: { field: 'size' },
+          series: 'cluster',
+          shape: shape,
+          width: chartContainer.clientWidth,
+          height: chartContainer.clientHeight,
+          showAxes: true,
+          showGrid: true,
+          animation: {
+            enabled: true,
+            autoRotate: autoRotate,
+            rotateSpeed: 1.0
+          }
+        };
+      } else if (colorBy === 'z') {
+        // Color by z value
+        vizConfig = {
+          type: 'scatterPlot3D',
+          data: data,
+          x: { field: 'x' },
+          y: { field: 'y' },
+          z: { field: 'z' },
+          size: { field: 'size' },
+          color: {
+            field: 'z',
+            scale: 'sequential',
+            range: ['#0000FF', '#00FF00', '#FF0000']
+          },
+          shape: shape,
+          width: chartContainer.clientWidth,
+          height: chartContainer.clientHeight,
+          showAxes: true,
+          showGrid: true,
+          animation: {
+            enabled: true,
+            autoRotate: autoRotate,
+            rotateSpeed: 1.0
+          }
+        };
+      } else if (colorBy === 'distance') {
+        // Color by distance from origin
+        vizConfig = {
+          type: 'scatterPlot3D',
+          data: data,
+          x: { field: 'x' },
+          y: { field: 'y' },
+          z: { field: 'z' },
+          size: { field: 'size' },
+          color: {
+            field: 'distance',
+            scale: 'sequential',
+            range: ['#0000FF', '#00FF00', '#FF0000']
+          },
+          shape: shape,
+          width: chartContainer.clientWidth,
+          height: chartContainer.clientHeight,
+          showAxes: true,
+          showGrid: true,
+          animation: {
+            enabled: true,
+            autoRotate: autoRotate,
+            rotateSpeed: 1.0
+          }
+        };
+      }
+
+      // Create the visualization
+      const viz = buildViz(vizConfig);
+
+      // Render to container
+      renderViz(viz, chartContainer);
+    }
+
+    // Initialize the visualization
+    document.addEventListener('DOMContentLoaded', () => {
+      createVisualization();
+
+      // Add event listener for update button
+      document.getElementById('updateBtn').addEventListener('click', createVisualization);
+
+      // Handle window resize
+      window.addEventListener('resize', () => {
+        const chartContainer = document.getElementById('chart');
+        if (chartContainer.__viz) {
+          chartContainer.__viz.resize(
+            chartContainer.clientWidth,
+            chartContainer.clientHeight
+          );
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -35,6 +35,11 @@ import { colorScaleDefinition, createColorScale } from './components/scales/colo
 // Add this import to the top of the file
 import { surfaceGraphDefinition, createSurfaceGraph } from './charts/surfaceGraph';
 
+// Import scatterPlot 3D component
+import './charts/scatterPlot3D';
+// import { scatterPlot3DDefinition } from './charts/scatterPlot3D';
+
+
 // Make sure to export the surfaceGraph component
 
 export {
