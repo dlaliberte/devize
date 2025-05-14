@@ -80,14 +80,63 @@ export function createGetPropertyFunction(props: VisualizationSpec) {
 }
 
 /**
- * Create a renderable visualization with standard methods
+ * Enhanced version of createRenderableVisualization that accepts an object with render functions
+ *
+ * @param type The type of the visualization
+ * @param props The visualization properties
+ * @param renderFunctions Object containing render functions for different backends
+ * @param additionalProps Additional properties to include in the renderable visualization
+ * @returns A renderable visualization
  */
-export function createRenderableVisualization(
+export function createRenderableVisualizationEnhanced(
   type: string,
   props: any,
-  renderToSvgFn: (container: SVGElement) => SVGElement,
-  renderToCanvasFn: (ctx: CanvasRenderingContext2D) => boolean
+  renderFunctions: {
+    renderToSvg?: (container: SVGElement) => SVGElement;
+    renderToCanvas?: (ctx: CanvasRenderingContext2D) => boolean;
+    renderToThreeJS?: (container: HTMLElement) => any;
+    // Could add more render functions in the future (e.g., renderToWebGPU)
+  },
+  additionalProps: Record<string, any> = {}
 ): RenderableVisualization {
+  // Default render functions that provide fallbacks
+  const defaultRenderToSvg = (container: SVGElement): SVGElement => {
+    // Create a placeholder with a message
+    const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+    foreignObject.setAttribute('width', props.width?.toString() || '100%');
+    foreignObject.setAttribute('height', props.height?.toString() || '100%');
+
+    const div = document.createElement('div');
+    div.style.width = '100%';
+    div.style.height = '100%';
+    div.style.display = 'flex';
+    div.style.alignItems = 'center';
+    div.style.justifyContent = 'center';
+    div.style.backgroundColor = '#f0f0f0';
+    div.textContent = `${type} visualization cannot be rendered to SVG`;
+
+    foreignObject.appendChild(div);
+    container.appendChild(foreignObject);
+
+    return container;
+  };
+
+  const defaultRenderToCanvas = (ctx: CanvasRenderingContext2D): boolean => {
+    // Display a message in the canvas
+    const width = props.width || ctx.canvas.width;
+    const height = props.height || ctx.canvas.height;
+
+    ctx.fillStyle = '#f0f0f0';
+    ctx.fillRect(0, 0, width, height);
+    ctx.fillStyle = '#333333';
+    ctx.font = '14px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(`${type} visualization cannot be rendered to Canvas`, width / 2, height / 2);
+
+    return true;
+  };
+
   return {
     renderableType: type,
     spec: props,
@@ -135,10 +184,13 @@ export function createRenderableVisualization(
     },
 
     // Render to an SVG element
-    renderToSvg: renderToSvgFn,
+    renderToSvg: renderFunctions.renderToSvg || defaultRenderToSvg,
 
     // Render to a canvas context
-    renderToCanvas: renderToCanvasFn,
+    renderToCanvas: renderFunctions.renderToCanvas || defaultRenderToCanvas,
+
+    // Render to Three.js (if provided)
+    ...(renderFunctions.renderToThreeJS ? { renderToThreeJS: renderFunctions.renderToThreeJS } : {}),
 
     // Update the visualization with new properties
     update: function(newSpec: any) {
@@ -150,8 +202,38 @@ export function createRenderableVisualization(
         type,
         ...mergedSpec
       });
-    }
+    },
+
+    // Include any additional properties
+    ...additionalProps
   };
+}
+
+/**
+ * Create a renderable visualization with standard methods
+ * (Maintained for backward compatibility)
+ */
+export function createRenderableVisualization(
+  type: string,
+  props: any,
+  renderToSvgFn: (container: SVGElement) => SVGElement,
+  renderToCanvasFn: (ctx: CanvasRenderingContext2D) => boolean,
+  additionalProps: Record<string, any> = {}
+): RenderableVisualization {
+  return createRenderableVisualizationEnhanced(
+    type,
+    props,
+    {
+      renderToSvg: renderToSvgFn,
+      renderToCanvas: renderToCanvasFn,
+      // If additionalProps contains renderToThreeJS, extract it
+      renderToThreeJS: additionalProps.renderToThreeJS
+    },
+    // Filter out renderToThreeJS from additionalProps to avoid duplication
+    Object.fromEntries(
+      Object.entries(additionalProps).filter(([key]) => key !== 'renderToThreeJS')
+    )
+  );
 }
 
 /**

@@ -537,15 +537,30 @@ test('can define and use a custom visualization in the same group', () => {
 });
 ```
 
-## Conclusion
+### 5. Avoid Mocking Libraries and Browser APIs
 
-By creating a dedicated testing module that initializes the core system, using interfaces for decoupling, and implementing a robust bootstrapping process, we can test Devize components without excessive mocking or duplicate code. This approach ensures that tests reflect real usage patterns while still allowing us to test individual components in isolation when needed.
+When testing components that rely on browser APIs or third-party libraries:
 
-The key insights are:
-1. Initialize the core system once for all tests
-2. Use interfaces to decouple components
-3. Handle the "define" type specially during bootstrapping
-4. Test real behavior rather than implementation details
-5. Use integration tests for complex interactions
+- **Use real libraries instead of mocks**: For libraries like Three.js, D3, etc., use the actual libraries in tests rather than creating complex mocks. This ensures your tests validate real behavior.
 
-This approach provides a balance between testing components in isolation and ensuring they work together correctly
+- **Use browser-like environments**: Tools like JSDOM provide a browser-like environment for testing DOM interactions without a real browser.
+
+- **Consider headless browsers for complex rendering**: For tests that require full rendering capabilities, consider using headless browsers like Puppeteer or Playwright.
+
+- **Only mock what you can't control**: External services, network requests, or time-dependent operations are appropriate to mock. Core libraries and APIs that your code directly depends on should be used directly.
+
+- **Use test doubles for integration points**: When you need to isolate a component from its dependencies, prefer spies or stubs over full mocks to verify interactions without replacing behavior.
+
+### 6. Testing 3D Visualizations
+
+For testing 3D visualizations with Three.js:
+
+- **Test the component configuration**: Verify that the component is configured correctly with the right properties.
+
+- **Test the scene setup**: Verify that objects are added to the scene with the correct properties.
+
+- **Test interactions**: Verify that user interactions produce the expected changes.
+
+- **Visual regression testing**: For critical 3D components, consider visual regression testing with screenshot comparisons.
+
+- **Avoid testing WebGL directly**: Focus on testing your component's logic rather than WebGL rendering, which is handled by Three.js.

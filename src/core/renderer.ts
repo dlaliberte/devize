@@ -9,6 +9,7 @@
 
 import { VisualizationSpec, RenderableVisualization, RenderedResult } from './types';
 import { buildViz } from './builder';
+// import { ThreeJsRenderer } from '../utils/threeJsRenderer';
 
 /**
  * Ensure an SVG element exists in a container
@@ -69,6 +70,46 @@ export function renderViz(
     : buildViz(viz as VisualizationSpec);
 
   console.log('Renderable visualization:', renderable);
+
+  // Check if this is a Three.js visualization
+  if (renderable.renderToThreeJS && !isSVGContainer(container) && !isCanvasContainer(container)) {
+    console.log('Rendering with Three.js');
+
+    // Clear existing content
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
+
+    // Render using Three.js
+    const threeJsRenderer = renderable.renderToThreeJS(container);
+
+    // Return result
+    return {
+      element: container,
+      update: (newSpec: VisualizationSpec) => {
+        const updatedViz = renderable.update(newSpec);
+
+        // Clean up existing Three.js renderer
+        if (threeJsRenderer && threeJsRenderer.dispose) {
+          threeJsRenderer.dispose();
+        }
+
+        // Re-render with updated spec
+        return renderViz(updatedViz, container);
+      },
+      cleanup: () => {
+        // Dispose Three.js resources
+        if (threeJsRenderer && threeJsRenderer.dispose) {
+          threeJsRenderer.dispose();
+        }
+
+        // Clear container
+        while (container.firstChild) {
+          container.removeChild(container.firstChild);
+        }
+      }
+    };
+  }
 
   // Determine the rendering backend based on the container
   if (isSVGContainer(container)) {
