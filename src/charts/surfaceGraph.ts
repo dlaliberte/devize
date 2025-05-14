@@ -252,7 +252,7 @@ function createAxes(
   return axesGroup;
 }
 
-// Updated function to create 2D projections centered around the data
+// Updated function to create 2D projections with better positioning
 function createProjections(
   data: SurfaceData,
   coordSystem: Cartesian3DCoordinateSystem,
@@ -263,37 +263,62 @@ function createProjections(
 ): THREE.Object3D {
   const projectionsGroup = new THREE.Group();
 
-  // Calculate data center
+  // Get scales from coordinate system
   const xScale = coordSystem.getXScale();
   const yScale = coordSystem.getYScale();
   const zScale = coordSystem.getZScale();
 
+  // Get domains
   const xDomain = xScale.domain;
   const yDomain = yScale.domain;
   const zDomain = zScale.domain;
 
-  const xCenter = xScale.scale((xDomain[0] + xDomain[1]) / 2);
-  const yCenter = yScale.scale((yDomain[0] + yDomain[1]) / 2);
-  const zCenter = zScale.scale((zDomain[0] + zDomain[1]) / 2);
+  // Calculate the full range in space coordinates
+  const xMin = xScale.scale(xDomain[0]);
+  const xMax = xScale.scale(xDomain[1]);
+  const yMin = yScale.scale(yDomain[0]);
+  const yMax = yScale.scale(yDomain[1]);
+  const zMin = zScale.scale(zDomain[0]);
+  const zMax = zScale.scale(zDomain[1]);
 
   // Create projection planes
   const createProjectionPlane = (
     planeType: 'xy' | 'xz' | 'yz',
-    position: THREE.Vector3
+    position: THREE.Vector3,
+    dimensions: { width: number, height: number }
   ) => {
-    // Create a plane geometry
+    // Create a plane geometry with the exact dimensions needed
     let planeGeometry: THREE.PlaneGeometry;
+
     if (planeType === 'xy') {
-      planeGeometry = new THREE.PlaneGeometry(width, height, data.values[0].length - 1, data.values.length - 1);
+      // XY plane at z=0
+      planeGeometry = new THREE.PlaneGeometry(
+        dimensions.width,
+        dimensions.height,
+        data.values[0].length - 1,
+        data.values.length - 1
+      );
       planeGeometry.rotateX(Math.PI / 2);
     } else if (planeType === 'xz') {
-      planeGeometry = new THREE.PlaneGeometry(width, depth, data.values[0].length - 1, data.values.length - 1);
+      // XZ plane at y=0
+      planeGeometry = new THREE.PlaneGeometry(
+        dimensions.width,
+        dimensions.height,
+        data.values[0].length - 1,
+        data.values.length - 1
+      );
     } else { // yz
-      planeGeometry = new THREE.PlaneGeometry(depth, height, data.values.length - 1, data.values[0].length - 1);
+      // YZ plane at x=0
+      planeGeometry = new THREE.PlaneGeometry(
+        dimensions.width,
+        dimensions.height,
+        data.values.length - 1,
+        data.values[0].length - 1
+      );
       planeGeometry.rotateY(Math.PI / 2);
     }
 
-    // Position the plane
+    // Position the plane at the center of its area
     planeGeometry.translate(position.x, position.y, position.z);
 
     // Create vertex colors for the projection
@@ -350,24 +375,27 @@ function createProjections(
   };
 
   // Create projections for each plane
-  // XY plane (bottom)
+  // XY plane (bottom) - at z=0
   const xyProjection = createProjectionPlane(
     'xy',
-    new THREE.Vector3(xCenter, 0, zCenter)
+    new THREE.Vector3((xMax + xMin) / 2, (yMax + yMin) / 2, 0),
+    { width: xMax - xMin, height: yMax - yMin }
   );
   projectionsGroup.add(xyProjection);
 
-  // XZ plane (back)
+  // XZ plane (back) - at y=0
   const xzProjection = createProjectionPlane(
     'xz',
-    new THREE.Vector3(xCenter, yCenter, 0)
+    new THREE.Vector3((xMax + xMin) / 2, 0, (zMax + zMin) / 2),
+    { width: xMax - xMin, height: zMax - zMin }
   );
   projectionsGroup.add(xzProjection);
 
-  // YZ plane (left)
+  // YZ plane (left) - at x=0
   const yzProjection = createProjectionPlane(
     'yz',
-    new THREE.Vector3(0, yCenter, zCenter)
+    new THREE.Vector3(0, (yMax + yMin) / 2, (zMax + zMin) / 2),
+    { width: zMax - zMin, height: yMax - yMin }
   );
   projectionsGroup.add(yzProjection);
 

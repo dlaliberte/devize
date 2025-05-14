@@ -636,6 +636,47 @@ document.getElementById('toggle-projections-btn').addEventListener('click', func
   Devize.renderViz(newGraph, container);
 });
 
+// Add this somewhere:
+// // Store the current spec for toggling
+// let currentSpec = {
+//   type: 'surfaceGraph',
+//   width: 800,
+//   height: 500,
+//   data: generateSineWaveSurface(),
+//   colorRange: ['#0000FF', '#FF0000'],
+//   wireframe: true,
+//   wireframeColor: '#000000',
+//   surfaceOpacity: 0.8,
+//   showAxes: true,
+//   showGrid: true,
+//   showProjections: false
+// };
+
+// // Initial render
+// const surfaceGraph = Devize.buildViz(currentSpec);
+// Devize.renderViz(surfaceGraph, document.getElementById('surface-container'));
+
+// // Toggle axes button
+// document.getElementById('toggle-axes-btn').addEventListener('click', function() {
+//   currentSpec.showAxes = !currentSpec.showAxes;
+
+//   const container = document.getElementById('surface-container');
+//   container.innerHTML = '';
+//   const newGraph = Devize.buildViz(currentSpec);
+//   Devize.renderViz(newGraph, container);
+// });
+
+// // Toggle projections button
+// document.getElementById('toggle-projections-btn').addEventListener('click', function() {
+//   currentSpec.showProjections = !currentSpec.showProjections;
+
+//   const container = document.getElementById('surface-container');
+//   container.innerHTML = '';
+//   const newGraph = Devize.buildViz(currentSpec);
+//   Devize.renderViz(newGraph, container);
+// });
+
+
 </script>
 
     </body>
