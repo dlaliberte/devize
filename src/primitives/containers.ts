@@ -6,7 +6,7 @@
 
 // Import individual container primitives to ensure they're registered
 import './group';
-import './layer';
+import './layers';
 
 // Re-export any utility functions if needed
 // export { someUtilityFunction } from './containerUtils';

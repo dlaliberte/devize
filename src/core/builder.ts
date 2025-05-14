@@ -203,6 +203,10 @@ export function buildViz(spec: VisualizationSpec | RenderableVisualization): Ren
       // If the implementation returns a spec, process it recursively
       // For recursive processing, the type must be from the result of
       // calling the implementation function or using the implementation object.
+      // For now, prohibit direct recursive types.
+      if (result && result.type && result.type == spec.type) {
+        throw new Error('This is the start of an infinte loop.')
+      }
       if (result && result.type) {
         return buildViz(result);
       }
