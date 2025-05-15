@@ -1,91 +1,27 @@
-// Initialize core modules first
-console.log('Devize library initializing');
-import './core/registry';
+/**
+ * Devize Library Entry Point
+ *
+ * This file imports all visualization components to ensure they're registered,
+ * and exports the public API of the library.
+ */
+
+// Import core functionality
 import './core/define';
+import './core/registry';
+import './core/builder';
 
-// Import core components
-import {
-  buildViz,
-  renderViz,
-  updateViz,
-  initializeLibrary,
-  registerType,
-  hasType,
-  getType,
-  registerData,
-  getData,
-  ensureSvg
-} from './core/devize';
+// Import all component types through their index files
+import './primitives';
+import './components';
+import './charts';
 
-// Initialize the library
-initializeLibrary();
+// Re-export core functionality
+export * from './core/define';
+export * from './core/registry';
+export * from './core/builder';
+export * from './core/componentUtils';
 
-// TODO: We should instead import these from components/index.ts
-// Import visualization types
-import './components/data/dataExtract';
-import './charts/barChart';
-import './charts/lineChart';
-import './charts/scatterPlot';
-import './charts/pieChart';
-import './charts/surfaceGraph';
-import './components/axes/axis';
-import './components/legend';
-import { colorScaleDefinition, createColorScale } from './components/scales/colorScale';
-
-// Add this import to the top of the file
-import { surfaceGraphDefinition, createSurfaceGraph } from './charts/surfaceGraph';
-
-// Import scatterPlot 3D component
-import './charts/scatterPlot3D';
-// import { scatterPlot3DDefinition } from './charts/scatterPlot3D';
-
-
-// Make sure to export the surfaceGraph component
-
-export {
-  // ... other exports
-  surfaceGraphDefinition,
-  createSurfaceGraph
-};
-// Add to exports
-export {
-  // ... other exports
-  colorScaleDefinition,
-  createColorScale
-};
-
-// Add this to the initialization section to ensure the component is registered
-  // This should not be needed.
-// buildViz(surfaceGraphDefinition);
-
-console.log('All modules imported');
-
-// Export public API
-export {
-  buildViz,
-  renderViz,
-  updateViz,
-  registerType,
-  hasType,
-  getType,
-  registerData,
-  getData,
-  ensureSvg
-};
-
-// If you want to expose the library globally (for script tags)
-if (typeof window !== 'undefined') {
-  (window as any).Devize = {
-    buildViz,
-    renderViz,
-    updateViz,
-    registerType,
-    hasType,
-    getType,
-    registerData,
-    getData,
-    ensureSvg
-  };
-}
-
-console.log('Devize library initialization complete');
+// Re-export all component types
+export * from './primitives';
+export * from './components';
+export * from './charts';

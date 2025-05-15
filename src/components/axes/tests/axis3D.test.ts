@@ -35,10 +35,6 @@ describe('Axis3D Component', () => {
 
     // Register the axis3D component
     registerAxis3DComponent();
-
-    // Mock THREE.Object3D methods
-    vi.spyOn(THREE.Object3D.prototype, 'add');
-    vi.spyOn(THREE.Object3D.prototype, 'remove');
   });
 
   afterEach(() => {
@@ -241,12 +237,6 @@ describe('Axis3D Component', () => {
       zDomain: [0, 100]
     });
 
-    // Spy on THREE.Line constructor
-    const lineSpy = vi.spyOn(THREE, 'Line');
-
-    // Spy on THREE.Mesh constructor (for text labels)
-    const meshSpy = vi.spyOn(THREE, 'Mesh');
-
     // Create a simple axis
     const result = buildViz({
       type: 'axis3D',
@@ -258,14 +248,19 @@ describe('Axis3D Component', () => {
     // Get the THREE.Object3D
     const object3D = result.getObject3D();
 
-    // Check that Line was called for the axis line
-    expect(lineSpy).toHaveBeenCalled();
+    // Check that it's a group
+    expect(object3D).toBeInstanceOf(THREE.Group);
 
-    // Check that Mesh was called for the labels
-    expect(meshSpy).toHaveBeenCalled();
+    // Check that the group has children (axis line, ticks, labels)
+    expect(object3D.children.length).toBeGreaterThan(0);
 
-    // We should have at least tickCount + 1 calls to Mesh (for tick labels)
-    expect(meshSpy.mock.calls.length).toBeGreaterThanOrEqual(5);
+    // Count the number of lines (axis line + ticks)
+    const lines = object3D.children.filter(child => child instanceof THREE.Line);
+    expect(lines.length).toBeGreaterThanOrEqual(1); // At least the axis line
+
+    // Count the number of meshes (labels)
+    const meshes = object3D.children.filter(child => child instanceof THREE.Mesh);
+    expect(meshes.length).toBeGreaterThanOrEqual(5); // At least tickCount meshes for tick labels
   });
 
   test('should create grid lines when showGrid is true', () => {
@@ -282,11 +277,17 @@ describe('Axis3D Component', () => {
       zDomain: [0, 100]
     });
 
-    // Spy on THREE.Line constructor
-    const lineSpy = vi.spyOn(THREE, 'Line');
+    // Create an axis without grid
+    const resultWithoutGrid = buildViz({
+      type: 'axis3D',
+      axisType: 'x',
+      coordinateSystem: coordSystem,
+      tickCount: 5,
+      showGrid: false
+    });
 
     // Create an axis with grid
-    const result = buildViz({
+    const resultWithGrid = buildViz({
       type: 'axis3D',
       axisType: 'x',
       coordinateSystem: coordSystem,
@@ -295,12 +296,16 @@ describe('Axis3D Component', () => {
       gridColor: '#cccccc'
     });
 
-    // Get the THREE.Object3D
-    const object3D = result.getObject3D();
+    // Get the THREE.Object3D for both
+    const objectWithoutGrid = resultWithoutGrid.getObject3D();
+    const objectWithGrid = resultWithGrid.getObject3D();
 
-    // Check that Line was called for the grid lines
-    // We should have at least tickCount + 1 calls to Line (axis line + grid lines)
-    expect(lineSpy.mock.calls.length).toBeGreaterThanOrEqual(6);
+    // Count the number of lines in each
+    const linesWithoutGrid = objectWithoutGrid.children.filter(child => child instanceof THREE.Line);
+    const linesWithGrid = objectWithGrid.children.filter(child => child instanceof THREE.Line);
+
+    // The version with grid should have more lines
+    expect(linesWithGrid.length).toBeGreaterThan(linesWithoutGrid.length);
   });
 
   test('should update the axis when properties change', () => {

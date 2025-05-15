@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>3D Axis Test Dashboard - Devize</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    #dashboard-container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 20px;
+    }
+
+    .control-panel {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .control-group h3 {
+      margin: 0;
+      font-size: 16px;
+      color: #333;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    label {
+      font-size: 14px;
+      min-width: 100px;
+    }
+
+    select, input, button {
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    input[type="number"] {
+      width: 80px;
+    }
+
+    input[type="color"] {
+      width: 40px;
+      height: 30px;
+      padding: 0;
+      border: none;
+    }
+
+    input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      padding: 10px 15px;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .visualization-container {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      overflow: hidden;
+      height: 600px;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      color: #0066cc;
+      text-decoration: none;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid #ccc;
+      margin-bottom: 15px;
+    }
+
+    .tab {
+      padding: 10px 15px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      border-bottom: none;
+      border-radius: 4px 4px 0 0;
+      margin-right: 5px;
+    }
+
+    .tab.active {
+      background-color: #f0f0f0;
+      border-color: #ccc;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h1>3D Axis Test Dashboard</h1>
+
+  <div id="dashboard-container">
+    <div class="control-panel">
+      <div class="tabs">
+        <div class="tab active" data-tab="general">General</div>
+        <div class="tab" data-tab="x-axis">X Axis</div>
+        <div class="tab" data-tab="y-axis">Y Axis</div>
+        <div class="tab" data-tab="z-axis">Z Axis</div>
+      </div>
+
+      <!-- General Settings -->
+      <div class="tab-content active" id="general-tab">
+        <div class="control-group">
+          <h3>Coordinate System</h3>
+          <div class="control-row">
+            <label for="width">Width:</label>
+            <input type="number" id="width" min="100" max="1000" value="500">
+          </div>
+          <div class="control-row">
+            <label for="height">Height:</label>
+            <input type="number" id="height" min="100" max="1000" value="500">
+          </div>
+          <div class="control-row">
+            <label for="depth">Depth:</label>
+            <input type="number" id="depth" min="100" max="1000" value="500">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>Domains</h3>
+          <div class="control-row">
+            <label for="x-domain-min">X Min:</label>
+            <input type="number" id="x-domain-min" value="0">
+            <label for="x-domain-max">Max:</label>
+            <input type="number" id="x-domain-max" value="100">
+          </div>
+          <div class="control-row">
+            <label for="y-domain-min">Y Min:</label>
+            <input type="number" id="y-domain-min" value="0">
+            <label for="y-domain-max">Max:</label>
+            <input type="number" id="y-domain-max" value="100">
+          </div>
+          <div class="control-row">
+            <label for="z-domain-min">Z Min:</label>
+            <input type="number" id="z-domain-min" value="0">
+            <label for="z-domain-max">Max:</label>
+            <input type="number" id="z-domain-max" value="100">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>Projection</h3>
+          <div class="control-row">
+            <label for="projection-type">Type:</label>
+            <select id="projection-type">
+              <option value="perspective">Perspective</option>
+              <option value="orthographic">Orthographic</option>
+              <option value="isometric">Isometric</option>
+            </select>
+          </div>
+          <div class="control-row">
+            <label for="camera-distance">Distance:</label>
+            <input type="number" id="camera-distance" min="500" max="5000" value="2000">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <h3>Animation</h3>
+          <div class="control-row">
+            <label for="auto-rotate">Auto Rotate:</label>
+            <input type="checkbox" id="auto-rotate" checked>
+          </div>
+          <div class="control-row">
+            <label for="rotate-speed">Speed:</label>
+            <input type="number" id="rotate-speed" min="0.1" max="5" step="0.1" value="1.0">
+          </div>
+        </div>
+      </div>
+
+      <!-- X Axis Settings -->
+      <div class="tab-content" id="x-axis-tab">
+        <div class="control-group">
+          <h3>X Axis</h3>
+          <div class="control-row">
+            <label for="x-enabled">Enabled:</label>
+            <input type="checkbox" id="x-enabled" checked>
+          </div>
+          <div class="control-row">
+            <label for="x-color">Color:</label>
+            <input type="color" id="x-color" value="#ff0000">
+          </div>
+          <div class="control-row">
+            <label for="x-tick-count">Tick Count:</label>
+            <input type="number" id="x-tick-count" min="2" max="20" value="5">
+          </div>
+          <div class="control-row">
+            <label for="x-tick-size">Tick Size:</label>
+            <input type="number" id="x-tick-size" min="1" max="20" value="5">
+          </div>
+          <div class="control-row">
+            <label for="x-show-grid">Show Grid:</label>
+            <input type="checkbox" id="x-show-grid" checked>
+          </div>
+          <div class="control-row">
+            <label for="x-grid-color">Grid Color:</label>
+            <input type="color" id="x-grid-color" value="#ffcccc">
+          </div>
+          <div class="control-row">
+            <label for="x-label">Axis Label:</label>
+            <input type="text" id="x-label" value="X Axis">
+          </div>
+        </div>
+      </div>
+
+      <!-- Y Axis Settings -->
+      <div class="tab-content" id="y-axis-tab">
+        <div class="control-group">
+          <h3>Y Axis</h3>
+          <div class="control-row">
+            <label for="y-enabled">Enabled:</label>
+            <input type="checkbox" id="y-enabled" checked>
+          </div>
+          <div class="control-row">
+            <label for="y-color">Color:</label>
+            <input type="color" id="y-color" value="#00ff00">
+          </div>
+          <div class="control-row">
+            <label for="y-tick-count">Tick Count:</label>
+            <input type="number" id="y-tick-count" min="2" max="20" value="5">
+          </div>
+          <div class="control-row">
+            <label for="y-tick-size">Tick Size:</label>
+            <input type="number" id="y-tick-size" min="1" max="20" value="5">
+          </div>
+          <div class="control-row">
+            <label for="y-show-grid">Show Grid:</label>
+            <input type="checkbox" id="y-show-grid" checked>
+          </div>
+          <div class="control-row">
+            <label for="y-grid-color">Grid Color:</label>
+            <input type="color" id="y-grid-color" value="#ccffcc">
+          </div>
+          <div class="control-row">
+            <label for="y-label">Axis Label:</label>
+            <input type="text" id="y-label" value="Y Axis">
+          </div>
+        </div>
+      </div>
+
+      <!-- Z Axis Settings -->
+      <div class="tab-content" id="z-axis-tab">
+        <div class="control-group">
+          <h3>Z Axis</h3>
+          <div class="control-row">
+            <label for="z-enabled">Enabled:</label>
+            <input type="checkbox" id="z-enabled" checked>
+          </div>
+          <div class="control-row">
+            <label for="z-color">Color:</label>
+            <input type="color" id="z-color" value="#0000ff">
+          </div>
+          <div class="control-row">
+            <label for="z-tick-count">Tick Count:</label>
+            <input type="number" id="z-tick-count" min="2" max="20" value="5">
+          </div>
+          <div class="control-row">
+            <label for="z-tick-size">Tick Size:</label>
+            <input type="number" id="z-tick-size" min="1" max="20" value="5">
+          </div>
+          <div class="control-row">
+            <label for="z-show-grid">Show Grid:</label>
+            <input type="checkbox" id="z-show-grid" checked>
+          </div>
+          <div class="control-row">
+            <label for="z-grid-color">Grid Color:</label>
+            <input type="color" id="z-grid-color" value="#ccccff">
+          </div>
+          <div class="control-row">
+            <label for="z-label">Axis Label:</label>
+            <input type="text" id="z-label" value="Z Axis">
+          </div>
+        </div>
+      </div>
+
+      <button id="update-btn">Update Visualization</button>
+    </div>
+
+    <div class="visualization-container" id="visualization"></div>
+  </div>
+
+  <a href="/examples/" class="back-link">← Back to Examples</a>
+
+  <script type="module">
+    // Import Devize library
+    import { buildViz } from '/src/index.ts';
+import { Cartesian3DCoordinateSystem, createCartesian3DCoordinateSystem } from '/src/components/coordinates/cartesian3DCoordinateSystem';
+
+    // Function to create the 3D axis visualization
+    function createAxisVisualization() {
+      // Get all the settings from the form
+      const width = parseInt(document.getElementById('width').value);
+      const height = parseInt(document.getElementById('height').value);
+      const depth = parseInt(document.getElementById('depth').value);
+
+      const xDomainMin = parseFloat(document.getElementById('x-domain-min').value);
+      const xDomainMax = parseFloat(document.getElementById('x-domain-max').value);
+      const yDomainMin = parseFloat(document.getElementById('y-domain-min').value);
+      const yDomainMax = parseFloat(document.getElementById('y-domain-max').value);
+      const zDomainMin = parseFloat(document.getElementById('z-domain-min').value);
+      const zDomainMax = parseFloat(document.getElementById('z-domain-max').value);
+
+      const projectionType = document.getElementById('projection-type').value;
+      const cameraDistance = parseInt(document.getElementById('camera-distance').value);
+
+      const autoRotate = document.getElementById('auto-rotate').checked;
+      const rotateSpeed = parseFloat(document.getElementById('rotate-speed').value);
+
+      // Axis settings
+      const xEnabled = document.getElementById('x-enabled').checked;
+      const xColor = document.getElementById('x-color').value;
+      const xTickCount = parseInt(document.getElementById('x-tick-count').value);
+      const xTickSize = parseInt(document.getElementById('x-tick-size').value);
+      const xShowGrid = document.getElementById('x-show-grid').checked;
+      const xGridColor = document.getElementById('x-grid-color').value;
+      const xLabel = document.getElementById('x-label').value;
+
+      const yEnabled = document.getElementById('y-enabled').checked;
+      const yColor = document.getElementById('y-color').value;
+      const yTickCount = parseInt(document.getElementById('y-tick-count').value);
+      const yTickSize = parseInt(document.getElementById('y-tick-size').value);
+      const yShowGrid = document.getElementById('y-show-grid').checked;
+      const yGridColor = document.getElementById('y-grid-color').value;
+      const yLabel = document.getElementById('y-label').value;
+
+      const zEnabled = document.getElementById('z-enabled').checked;
+      const zColor = document.getElementById('z-color').value;
+      const zTickCount = parseInt(document.getElementById('z-tick-count').value);
+      const zTickSize = parseInt(document.getElementById('z-tick-size').value);
+
+      const zShowGrid = document.getElementById('z-show-grid').checked;
+      const zGridColor = document.getElementById('z-grid-color').value;
+      const zLabel = document.getElementById('z-label').value;
+
+      // Create coordinate system
+      const coordSystem = createCartesian3DCoordinateSystem({
+        width: width,
+        height: height,
+        depth: depth,
+        xScale: 'linear',
+        yScale: 'linear',
+        zScale: 'linear',
+        xDomain: [xDomainMin, xDomainMax],
+        yDomain: [yDomainMin, yDomainMax],
+        zDomain: [zDomainMin, zDomainMax],
+        projection: {
+          type: projectionType,
+          distance: cameraDistance
+        }
+      });
+
+      // Create the visualization
+      const children = [];
+
+      // Add X axis if enabled
+      if (xEnabled) {
+        children.push({
+          type: 'axis3D',
+          axisType: 'x',
+          coordinateSystem: coordSystem,
+          color: xColor,
+          tickCount: xTickCount,
+          tickSize: xTickSize,
+          showGrid: xShowGrid,
+          gridColor: xGridColor,
+          label: xLabel,
+          tickFormat: (value) => value.toFixed(0)
+        });
+      }
+
+      // Add Y axis if enabled
+      if (yEnabled) {
+        children.push({
+          type: 'axis3D',
+          axisType: 'y',
+          coordinateSystem: coordSystem,
+          color: yColor,
+          tickCount: yTickCount,
+          tickSize: yTickSize,
+          showGrid: yShowGrid,
+          gridColor: yGridColor,
+          label: yLabel,
+          tickFormat: (value) => value.toFixed(0)
+        });
+      }
+
+      // Add Z axis if enabled
+      if (zEnabled) {
+        children.push({
+          type: 'axis3D',
+          axisType: 'z',
+          coordinateSystem: coordSystem,
+          color: zColor,
+          tickCount: zTickCount,
+          tickSize: zTickSize,
+          showGrid: zShowGrid,
+          gridColor: zGridColor,
+          label: zLabel,
+          tickFormat: (value) => value.toFixed(0)
+        });
+      }
+
+      // Create the 3D group
+      const vizConfig = {
+        type: 'group',
+        children: children,
+        width: document.getElementById('visualization').clientWidth,
+        height: document.getElementById('visualization').clientHeight,
+        animation: {
+          enabled: true,
+          autoRotate: autoRotate,
+          rotateSpeed: rotateSpeed
+        }
+      };
+
+      // Clear previous visualization
+      const container = document.getElementById('visualization');
+      container.innerHTML = '';
+
+      // Build and render the visualization
+      const viz = buildViz(vizConfig);
+      viz.render(container);
+
+      // Store the visualization for resize handling
+      container.__viz = viz;
+    }
+
+    // Initialize the visualization when the page loads
+    document.addEventListener('DOMContentLoaded', () => {
+      // Set up tab switching
+      const tabs = document.querySelectorAll('.tab');
+      tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+          // Remove active class from all tabs and tab contents
+          document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+          // Add active class to clicked tab
+          tab.classList.add('active');
+
+          // Show corresponding tab content
+          const tabName = tab.getAttribute('data-tab');
+          document.getElementById(`${tabName}-tab`).classList.add('active');
+        });
+      });
+
+      // Create initial visualization
+      createAxisVisualization();
+
+      // Set up update button
+      document.getElementById('update-btn').addEventListener('click', createAxisVisualization);
+
+      // Handle window resize
+      window.addEventListener('resize', () => {
+        const container = document.getElementById('visualization');
+        if (container.__viz) {
+          container.__viz.resize(
+            container.clientWidth,
+            container.clientHeight
+          );
+        }
+      });
+    });
+  </script>
+</body>
+</html>
