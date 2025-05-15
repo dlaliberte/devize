@@ -7,17 +7,17 @@
  * Last Modified: [Date]
  */
 
-import { buildViz } from '../core/builder';
-import { registerDefineType } from '../core/define';
-import { createScale } from './scales/scale';
-import { Scale } from './scales/scale-interface';
+import { buildViz } from '../../core/builder';
+import { registerDefineType } from '../../core/define';
+import { createScale } from '../scales/scale';
+import { Scale } from '../scales/scale-interface';
 
-import { createRenderableVisualization } from '../core/componentUtils';
+import { createRenderableVisualization } from '../../core/componentUtils';
 
 // Import required primitives
-import '../primitives/group';
-import '../primitives/line';
-import '../primitives/text';
+import '../../primitives/group';
+import '../../primitives/line';
+import '../../primitives/text';
 
 // Make sure define type is registered
 registerDefineType();

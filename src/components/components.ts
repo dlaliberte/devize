@@ -13,7 +13,7 @@ import './scales/logScale';
 import './scales/timeScale';
 
 // Import visualization components
-import './axis';
+import './axes/axis';
 import './legend';
 import './grid';
 

@@ -21,10 +21,10 @@ import { registerTextPrimitive } from '../primitives/text';
 import { registerGroupPrimitive } from '../primitives/group';
 import { registerLinePrimitive } from '../primitives/line';
 import { registerScaleComponents } from '../components/scales/scale';
-import { registerAxisComponent } from '../components/axis';
+import { registerAxisComponent } from '../components/axes/axis';
 import { registerLegendComponent } from '../components/legend';
 
-import '../components/axis';
+import '../components/axes/axis';
 import '../components/legend';
 import '../components/scales/linearScale';
 import '../components/scales/bandScale';

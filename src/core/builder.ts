@@ -200,17 +200,20 @@ export function buildViz(spec: VisualizationSpec | RenderableVisualization): Ren
     const impl = typeDefinition.implementation;
     if (typeof impl === 'function') {
       const result = impl(processedSpec);
+      if (!result) {
+        throw new Error('Implementation must return a specification for type: ' + spec.type);
+      }
+      result.renderableType = typeDefinition.name;
       // If the implementation returns a spec, process it recursively
       // For recursive processing, the type must be from the result of
       // calling the implementation function or using the implementation object.
       // For now, prohibit direct recursive types.
-      if (result && result.type && result.type == spec.type) {
+      if (result.type && result.type == spec.type) {
         throw new Error('This is the start of an infinte loop.')
       }
-      if (result && result.type) {
+      if (result.type) {
         return buildViz(result);
       }
-      result.renderableType = typeDefinition.name;
       return result;
     }
     throw new Error('Implementation must be a function for type: ' + spec.type);

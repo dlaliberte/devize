@@ -28,7 +28,7 @@ import './charts/lineChart';
 import './charts/scatterPlot';
 import './charts/pieChart';
 import './charts/surfaceGraph';
-import './components/axis';
+import './components/axes/axis';
 import './components/legend';
 import { colorScaleDefinition, createColorScale } from './components/scales/colorScale';
 

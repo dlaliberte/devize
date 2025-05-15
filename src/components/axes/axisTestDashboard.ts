@@ -6,14 +6,14 @@
  * Creation Date: 2023-11-15
  */
 
-import { buildViz } from '../core/builder';
+import { buildViz } from '../../core/builder';
 import { createAxis } from './axis';
-import { createScale } from './scales/scale';
-import { Scale } from './scales/scale-interface';
+import { createScale } from '../scales/scale';
+import { Scale } from '../scales/scale-interface';
 
 // Import UI control components
-import '../components/controls';
-import { registerAllControlComponents } from '../components/controls';
+import '../controls';
+import { registerAllControlComponents } from '../controls';
 
 // Ensure all control components are registered
 registerAllControlComponents();

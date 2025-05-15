@@ -28,7 +28,7 @@ registerDefineType();
 import '../primitives/rectangle';
 import '../primitives/text';
 import '../primitives/group';
-import '../components/axis';
+import '../components/axes/axis';
 import '../components/legend';
 import '../components/scales/linearScale';
 import '../components/scales/bandScale';

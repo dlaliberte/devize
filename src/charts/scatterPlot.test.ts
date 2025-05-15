@@ -12,12 +12,12 @@ import { registerLinePrimitive } from '../primitives/line';
 import { registerTextPrimitive } from '../primitives/text';
 import { registerShapePrimitive } from '../primitives/shape';
 import { registerGroupPrimitive } from '../primitives/group';
-import { registerAxisComponent } from '../components/axis';
+import { registerAxisComponent } from '../components/axes/axis';
 import { registerLegendComponent } from '../components/legend';
 import { registerLinearScaleComponent } from '../components/scales/linearScale';
 import { registerBandScaleComponent } from '../components/scales/bandScale';
 
-import '../components/axis';
+import '../components/axes/axis';
 import '../components/legend';
 import '../components/scales/linearScale';
 import '../components/scales/bandScale';
