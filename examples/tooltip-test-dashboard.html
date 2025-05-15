@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tooltip Test Dashboard - Devize</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    #dashboard-container {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      gap: 20px;
+    }
+
+    .control-panel {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .control-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .control-group h3 {
+      margin: 0;
+      font-size: 16px;
+      color: #333;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    label {
+      font-size: 14px;
+      min-width: 100px;
+    }
+
+    select, input, button, textarea {
+      padding: 8px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    input[type="number"] {
+      width: 80px;
+    }
+
+    input[type="color"] {
+      width: 40px;
+      height: 30px;
+      padding: 0;
+      border: none;
+    }
+
+    input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 80px;
+      resize: vertical;
+    }
+
+    button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      padding: 10px 15px;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    .visualization-container {
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      overflow: hidden;
+      height: 600px;
+      position: relative;
+    }
+
+    .test-element {
+      position: absolute;
+    }
+    </style>
+    </head>
+    <body>
+
+
+              <div class="test-item" data-behavior="hover">Hover</div>
+        <div class="test-item" data-behavior="click">Click</div>
+        <div class="test-item" data-behavior="fixed">Fixed</div>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h2>Tooltip Styles</h2>
+      <p>Test different tooltip styles.</p>
+
+      <div class="controls">
+        <div class="control-group">
+          <label for="background-color">Background:</label>
+          <input type="color" id="background-color" value="#ffffff">
+        </div>
+
+        <div class="control-group">
+          <label for="border-color">Border:</label>
+          <input type="color" id="border-color" value="#cccccc">
+        </div>
+
+        <div class="control-group">
+          <label for="text-color">Text:</label>
+          <input type="color" id="text-color" value="#333333">
+        </div>
+
+        <div class="control-group">
+          <label for="border-radius">Border Radius:</label>
+          <input type="range" id="border-radius" min="0" max="20" value="4">
+          <span id="border-radius-value">4px</span>
+        </div>
+
+        <div class="control-group">
+          <label for="pointer-size">Pointer Size:</label>
+          <input type="range" id="pointer-size" min="0" max="20" value="6">
+          <span id="pointer-size-value">6px</span>
+        </div>
+
+        <div class="control-group">
+          <label for="padding">Padding:</label>
+          <input type="range" id="padding" min="0" max="20" value="8">
+          <span id="padding-value">8px</span>
+        </div>
+
+        <button id="apply-style">Apply Style</button>
+      </div>
+
+      <div class="test-area">
+        <div class="test-item" data-style="default">Default</div>
+        <div class="test-item" data-style="custom">Custom</div>
+        <div class="test-item" data-style="dark">Dark</div>
+        <div class="test-item" data-style="light">Light</div>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h2>Tooltip Content</h2>
+      <p>Test different types of tooltip content.</p>
+
+      <div class="controls">
+        <div class="control-group">
+          <label for="content-type">Content Type:</label>
+          <select id="content-type">
+            <option value="text">Text</option>
+            <option value="html">HTML</option>
+            <option value="viz">Visualization</option>
+          </select>
+        </div>
+
+        <div class="control-group">
+          <label for="content-text">Content:</label>
+          <textarea id="content-text">This is a tooltip with custom content.</textarea>
+        </div>
+
+        <button id="apply-content">Apply Content</button>
+      </div>
+
+      <div class="test-area">
+        <div class="test-item" data-content="text">Text</div>
+        <div class="test-item" data-content="html">HTML</div>
+        <div class="test-item" data-content="viz">Visualization</div>
+      </div>
+    </div>
+
+    <div class="test-section">
+      <h2>Interactive Visualization</h2>
+      <p>Move your mouse over the visualization to see tooltips.</p>
+
+      <div class="visualization-container" id="interactive-viz">
+        <!-- Points will be added here dynamically -->
+      </div>
+    </div>
+  </div>
+
+    <script type="module">
+    // Import Devize library
+    import { buildViz, renderViz, updateViz } from '/src/core/devize.ts';
+
+    // Initialize the Devize tooltip components
+    import { createTooltip } from '/src/components/tooltip/tooltip.ts';
+    import { TooltipManager } from '/src/components/tooltip/tooltipManager.ts';
+
+    // Create tooltip managers for each test section
+    const positionManager = new TooltipManager(document.querySelector('.test-section:nth-child(1) .test-area'));
+    const behaviorManager = new TooltipManager(document.querySelector('.test-section:nth-child(2) .test-area'));
+    const styleManager = new TooltipManager(document.querySelector('.test-section:nth-child(3) .test-area'));
+    const contentManager = new TooltipManager(document.querySelector('.test-section:nth-child(4) .test-area'));
+    const vizManager = new TooltipManager(document.getElementById('interactive-viz'));
+
+    // Set up position tooltips
+    document.querySelectorAll('.test-section:nth-child(1) .test-item').forEach(item => {
+      const position = item.dataset.position;
+
+      positionManager.addTooltipTrigger(item, `This is a tooltip at the ${position} position`, {
+        position: position,
+        behavior: 'hover'
+      });
+    });
+
+    // Set up behavior tooltips
+    document.querySelectorAll('.test-section:nth-child(2) .test-item').forEach(item => {
+      const behavior = item.dataset.behavior;
+
+      behaviorManager.addTooltipTrigger(item, `This tooltip has ${behavior} behavior`, {
+        position: 'top',
+        behavior: behavior
+      });
+    });
+
+    // Set up style tooltips
+    document.querySelectorAll('.test-section:nth-child(3) .test-item').forEach(item => {
+      const styleType = item.dataset.style;
+      let style = {};
+
+      if (styleType === 'dark') {
+        style = {
+          backgroundColor: '#333333',
+          borderColor: '#555555',
+          textColor: '#ffffff',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.4)'
+        };
+      } else if (styleType === 'light') {
+        style = {
+          backgroundColor: '#ffffff',
+          borderColor: '#eeeeee',
+          textColor: '#333333',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+        };
+      } else if (styleType === 'custom') {
+        // This will be updated by the controls
+        style = {
+          backgroundColor: document.getElementById('background-color').value,
+          borderColor: document.getElementById('border-color').value,
+          textColor: document.getElementById('text-color').value,
+          borderRadius: parseInt(document.getElementById('border-radius').value),
+          pointerSize: parseInt(document.getElementById('pointer-size').value),
+          padding: parseInt(document.getElementById('padding').value)
+        };
+      }
+
+      styleManager.addTooltipTrigger(item, `${styleType.charAt(0).toUpperCase() + styleType.slice(1)} style tooltip`, {
+        position: 'top',
+        behavior: 'hover',
+        style: style,
+        id: `style-${styleType}`
+      });
+    });
+
+    // Set up content tooltips
+    document.querySelectorAll('.test-section:nth-child(4) .test-item').forEach(item => {
+      const contentType = item.dataset.content;
+      let content;
+
+      if (contentType === 'text') {
+        content = 'Simple text tooltip';
+      } else if (contentType === 'html') {
+        content = '<strong>HTML</strong> content with <span style="color: red;">styling</span>';
+      } else if (contentType === 'viz') {
+        content = {
+          type: 'group',
+          children: [
+            {
+              type: 'rect',
+              x: 0,
+              y: 0,
+              width: 100,
+              height: 50,
+              fill: 'steelblue'
+            },
+            {
+              type: 'text',
+              x: 50,
+              y: 25,
+              text: 'Viz Content',
+              fill: 'white',
+              textAnchor: 'middle',
+              dominantBaseline: 'middle'
+            }
+          ]
+        };
+      }
+
+      contentManager.addTooltipTrigger(item, content, {
+        position: 'top',
+        behavior: 'hover',
+        id: `content-${contentType}`
+      });
+    });
+
+    // Set up interactive visualization
+    function setupInteractiveViz() {
+      const container = document.getElementById('interactive-viz');
+      const width = container.clientWidth;
+      const height = container.clientHeight;
+
+      // Create random points
+      const pointCount = 20;
+      const points = [];
+
+      for (let i = 0; i < pointCount; i++) {
+        const x = Math.random() * width;
+        const y = Math.random() * height;
+        const value = Math.round(Math.random() * 100);
+
+        points.push({ x, y, value });
+
+        const point = document.createElement('div');
+        point.className = 'point';
+        point.style.left = `${x}px`;
+        point.style.top = `${y}px`;
+        container.appendChild(point);
+
+        // Add tooltip to point
+        vizManager.addTooltipTrigger(point, `Value: ${value}`, {
+          position: 'top',
+          behavior: 'hover'
+        });
+      }
+
+      // Add mousemove handler for dynamic tooltip
+      container.addEventListener('mousemove', (event) => {
+        const rect = container.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+
+        // Find the closest point
+        let closestPoint = null;
+        let closestDistance = Infinity;
+
+        points.forEach(point => {
+          const distance = Math.sqrt(Math.pow(point.x - x, 2) + Math.pow(point.y - y, 2));
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestPoint = point;
+          }
+        });
+
+        // Show tooltip for closest point if within range
+        if (closestPoint && closestDistance < 50) {
+          vizManager.showTooltip('hover-tooltip', `Closest point: ${closestPoint.value}`, x, y, {
+            position: 'top',
+            behavior: 'hover'
+          });
+        } else {
+          vizManager.hideTooltip('hover-tooltip');
+        }
+      });
+
+      // Hide tooltip when mouse leaves container
+      container.addEventListener('mouseleave', () => {
+        vizManager.hideTooltip('hover-tooltip');
+      });
+    }
+
+    // Set up event listeners for controls
+    document.getElementById('border-radius').addEventListener('input', (event) => {
+      const value = event.target.value;
+      document.getElementById('border-radius-value').textContent = `${value}px`;
+    });
+
+    document.getElementById('pointer-size').addEventListener('input', (event) => {
+      const value = event.target.value;
+      document.getElementById('pointer-size-value').textContent = `${value}px`;
+    });
+
+    document.getElementById('padding').addEventListener('input', (event) => {
+      const value = event.target.value;
+      document.getElementById('padding-value').textContent = `${value}px`;
+    });
+
+    document.getElementById('apply-style').addEventListener('click', () => {
+      const style = {
+        backgroundColor: document.getElementById('background-color').value,
+        borderColor: document.getElementById('border-color').value,
+        textColor: document.getElementById('text-color').value,
+        borderRadius: parseInt(document.getElementById('border-radius').value),
+        pointerSize: parseInt(document.getElementById('pointer-size').value),
+        padding: parseInt(document.getElementById('padding').value)
+      };
+
+      // Update the custom style tooltip
+      styleManager.showTooltip('style-custom', 'Custom style tooltip', 0, 0, {
+        position: 'top',
+        behavior: 'hover',
+        style: style
+      });
+
+      // Trigger the tooltip to show
+      const customStyleItem = document.querySelector('[data-style="custom"]');
+      const event = new MouseEvent('mouseenter', {
+        bubbles: true,
+        cancelable: true
+      });
+      customStyleItem.dispatchEvent(event);
+    });
+
+    document.getElementById('apply-content').addEventListener('click', () => {
+      const contentType = document.getElementById('content-type').value;
+      const contentText = document.getElementById('content-text').value;
+      let content;
+
+      if (contentType === 'text') {
+        content = contentText;
+      } else if (contentType === 'html') {
+        content = contentText; // In a real implementation, this would be HTML
+      } else if (contentType === 'viz') {
+        // Simple visualization based on the text
+        content = {
+          type: 'group',
+          children: [
+            {
+              type: 'rect',
+              x: 0,
+              y: 0,
+              width: 100,
+              height: 50,
+              fill: 'steelblue'
+            },
+            {
+              type: 'text',
+              x: 50,
+              y: 25,
+              text: contentText,
+              fill: 'white',
+              textAnchor: 'middle',
+              dominantBaseline: 'middle',
+              fontSize: 12
+            }
+          ]
+        };
+      }
+
+      // Update all content tooltips
+      document.querySelectorAll('.test-section:nth-child(4) .test-item').forEach(item => {
+        const contentType = item.dataset.content;
+        contentManager.showTooltip(`content-${contentType}`, content, 0, 0, {
+          position: 'top',
+          behavior: 'hover'
+        });
+      });
+    });
+
+    // Initialize the interactive visualization
+    document.addEventListener('DOMContentLoaded', () => {
+      setupInteractiveViz();
+    });
+  </script>
+</body>
+</html>

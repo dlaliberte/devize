@@ -1,108 +1,385 @@
 /**
  * 3D Axis Component
  *
- * Purpose: Renders 3D axes with ticks, labels, and grid lines
+ * Purpose: Renders a 3D axis with ticks and labels using Three.js
  * Author: Devize Team
- * Creation Date: 2023-12-22
+ * Creation Date: 2023-12-28
  */
 
 import * as THREE from 'three';
 import { buildViz } from '../../core/builder';
 import { registerDefineType } from '../../core/define';
-import { createRenderableVisualization } from '../../core/componentUtils';
-import { Scale } from '../scales/scale';
+import { createRenderableVisualizationEnhanced } from '../../core/componentUtils';
 import { Cartesian3DCoordinateSystem } from '../coordinates/cartesian3DCoordinateSystem';
 
-// Interface for axis options
-export interface Axis3DOptions {
-  // Coordinate system
-  coordinateSystem: Cartesian3DCoordinateSystem;
-
-  // Axis type
-  axisType: 'x' | 'y' | 'z';
-
-  // Visual options
-  color?: string;
-  tickSize?: number;
-  tickCount?: number;
-  showGrid?: boolean;
-  gridColor?: string;
-
-  // Label options
-  label?: string;
-  labelSize?: number;
-  labelColor?: string;
-
-  // Tick label options
-  tickLabelSize?: number;
-  tickLabelColor?: string;
-  tickFormat?: (value: number) => string;
-}
+// Make sure define type is registered
+registerDefineType();
 
 // Define the axis3D component
 export const axis3DDefinition = {
   type: "define",
   name: "axis3D",
   properties: {
+    axisType: { required: true }, // 'x', 'y', or 'z'
     coordinateSystem: { required: true },
-    axisType: { required: true },
-    color: { default: null },
-    tickSize: { default: 5 },
+    color: { default: '#000000' },
     tickCount: { default: 5 },
+    tickSize: { default: 5 },
+    tickFormat: { default: null },
     showGrid: { default: false },
     gridColor: { default: '#cccccc' },
-    label: { default: null },
-    labelSize: { default: 12 },
-    labelColor: { default: '#000000' },
-    tickLabelSize: { default: 10 },
-    tickLabelColor: { default: '#000000' },
-    tickFormat: { default: null }
+    label: { default: '' },
+    labelOffset: { default: 10 },
+    fontSize: { default: 12 },
+    fontFamily: { default: 'Arial, sans-serif' }
   },
   implementation: function(props: any) {
-    // Create a 3D axis object
-    const axis3D = createAxis3D(props);
+    const {
+      axisType,
+      coordinateSystem,
+      color,
+      tickCount,
+      tickSize,
+      tickFormat,
+      showGrid,
+      gridColor,
+      label,
+      labelOffset,
+      fontSize,
+      fontFamily
+    } = props;
 
-    // Create and return a renderable visualization
-    return createRenderableVisualization(
+    // Validate axis type
+    if (!['x', 'y', 'z'].includes(axisType)) {
+      throw new Error(`Invalid axis type: ${axisType}. Must be 'x', 'y', or 'z'.`);
+    }
+
+    // Validate coordinate system
+    if (!coordinateSystem || coordinateSystem.getDimensionality() !== 3) {
+      throw new Error('A valid 3D coordinate system is required for axis3D.');
+    }
+
+    // Create a renderable visualization that will use Three.js
+    return createRenderableVisualizationEnhanced(
       'axis3D',
       props,
-      // SVG rendering function - not used for Three.js visualizations
-      (container: SVGElement): SVGElement => {
-        // Create a placeholder with a message
-        const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
-        foreignObject.setAttribute('width', '100%');
-        foreignObject.setAttribute('height', '100%');
-
-        const div = document.createElement('div');
-        div.style.width = '100%';
-        div.style.height = '100%';
-        div.style.display = 'flex';
-        div.style.alignItems = 'center';
-        div.style.justifyContent = 'center';
-        div.style.backgroundColor = '#f0f0f0';
-        div.textContent = '3D Axis requires Three.js rendering';
-
-        foreignObject.appendChild(div);
-        container.appendChild(foreignObject);
-
-        return container;
-      },
-      // Canvas rendering function - not used for Three.js visualizations
-      (ctx: CanvasRenderingContext2D): boolean => {
-        // Display a message in the canvas
-        ctx.fillStyle = '#f0f0f0';
-        ctx.fillRect(0, 0, 100, 100);
-        ctx.fillStyle = '#333333';
-        ctx.font = '14px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        ctx.fillText('3D Axis requires Three.js rendering', 50, 50);
-
-        return true;
-      },
-      // Additional properties
       {
-        getObject3D: () => axis3D
+        renderToSvg: (container: SVGElement): SVGElement => {
+          // Create a placeholder with a message
+          const foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+          foreignObject.setAttribute('width', '100%');
+          foreignObject.setAttribute('height', '100%');
+
+          const div = document.createElement('div');
+          div.style.width = '100%';
+          div.style.height = '100%';
+          div.style.display = 'flex';
+          div.style.alignItems = 'center';
+          div.style.justifyContent = 'center';
+          div.style.backgroundColor = '#f0f0f0';
+          div.textContent = '3D Axis requires Three.js rendering';
+
+          foreignObject.appendChild(div);
+          container.appendChild(foreignObject);
+
+          return container;
+        },
+        renderToCanvas: (ctx: CanvasRenderingContext2D): boolean => {
+          // Display a message in the canvas
+          const width = ctx.canvas.width;
+          const height = ctx.canvas.height;
+
+          ctx.fillStyle = '#f0f0f0';
+          ctx.fillRect(0, 0, width, height);
+          ctx.fillStyle = '#333333';
+          ctx.font = '14px Arial';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText('3D Axis requires Three.js rendering', width / 2, height / 2);
+
+          return true;
+        },
+        renderToThreeJS: (container: HTMLElement): any => {
+          // Get dimensions from the container
+          const width = container.clientWidth;
+          const height = container.clientHeight;
+
+          // Create Three.js renderer
+          const renderer = new THREE.WebGLRenderer({ antialias: true });
+          renderer.setSize(width, height);
+          renderer.setClearColor(0xf0f0f0);
+          container.appendChild(renderer.domElement);
+
+          // Create scene
+          const scene = new THREE.Scene();
+
+          // Create camera
+          const camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+          camera.position.set(100, 100, 100);
+          camera.lookAt(0, 0, 0);
+
+          // Create controls
+          const controls = new THREE.OrbitControls(camera, renderer.domElement);
+          controls.enableDamping = true;
+          controls.dampingFactor = 0.25;
+
+          // Get scales from coordinate system
+          const xScale = coordinateSystem.getXScale();
+          const yScale = coordinateSystem.getYScale();
+          const zScale = coordinateSystem.getZScale();
+
+          // Get domains
+          const xDomain = xScale.domain;
+          const yDomain = yScale.domain;
+          const zDomain = zScale.domain;
+
+          // Calculate axis length based on the domain
+          const dimensions = coordinateSystem.getDimensions();
+          const axisLength = {
+            x: dimensions.width,
+            y: dimensions.height,
+            z: dimensions.depth
+          };
+
+          // Create axis line
+          const axisGeometry = new THREE.BufferGeometry();
+          const axisMaterial = new THREE.LineBasicMaterial({ color: color });
+
+          let axisLine;
+
+          if (axisType === 'x') {
+            axisGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+              0, 0, 0,
+              axisLength.x, 0, 0
+            ], 3));
+            axisLine = new THREE.Line(axisGeometry, axisMaterial);
+          } else if (axisType === 'y') {
+            axisGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+              0, 0, 0,
+              0, axisLength.y, 0
+            ], 3));
+            axisLine = new THREE.Line(axisGeometry, axisMaterial);
+          } else { // z
+            axisGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+              0, 0, 0,
+              0, 0, axisLength.z
+            ], 3));
+            axisLine = new THREE.Line(axisGeometry, axisMaterial);
+          }
+
+          scene.add(axisLine);
+
+          // Create ticks
+          const ticks = new THREE.Group();
+
+          // Get tick values
+          const scale = axisType === 'x' ? xScale : axisType === 'y' ? yScale : zScale;
+          const domain = axisType === 'x' ? xDomain : axisType === 'y' ? yDomain : zDomain;
+          const tickValues = scale.ticks ? scale.ticks(tickCount) :
+            Array.from({ length: tickCount }, (_, i) => domain[0] + (domain[1] - domain[0]) * i / (tickCount - 1));
+
+          // Create tick formatter
+          const formatTick = tickFormat || ((d: number) => d.toString());
+
+          // Add ticks
+          tickValues.forEach(value => {
+            // Skip the first tick (at origin)
+            if (value === domain[0]) return;
+
+            const position = scale.scale(value);
+            const tickGeometry = new THREE.BufferGeometry();
+            const tickMaterial = new THREE.LineBasicMaterial({ color: color });
+
+            if (axisType === 'x') {
+              tickGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+                position, 0, 0,
+                position, -tickSize, 0
+              ], 3));
+            } else if (axisType === 'y') {
+              tickGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+                0, position, 0,
+                -tickSize, position, 0
+              ], 3));
+            } else { // z
+              tickGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+                0, 0, position,
+                0, -tickSize, position
+              ], 3));
+            }
+
+            const tick = new THREE.Line(tickGeometry, tickMaterial);
+            ticks.add(tick);
+
+            // Add tick label
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 32;
+            const ctx = canvas.getContext('2d');
+
+            if (ctx) {
+              ctx.fillStyle = 'white';
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+              ctx.fillStyle = 'black';
+              ctx.font = `${fontSize}px ${fontFamily}`;
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText(formatTick(value), canvas.width / 2, canvas.height / 2);
+
+              const texture = new THREE.CanvasTexture(canvas);
+              const material = new THREE.MeshBasicMaterial({
+                map: texture,
+                transparent: true,
+                side: THREE.DoubleSide
+              });
+
+              const geometry = new THREE.PlaneGeometry(4, 2);
+              const mesh = new THREE.Mesh(geometry, material);
+
+              if (axisType === 'x') {
+                mesh.position.set(position, -tickSize - 2, 0);
+                mesh.rotation.x = -Math.PI / 2;
+              } else if (axisType === 'y') {
+                mesh.position.set(-tickSize - 2, position, 0);
+                mesh.rotation.y = Math.PI / 2;
+              } else { // z
+                mesh.position.set(0, -tickSize - 2, position);
+                mesh.rotation.x = -Math.PI / 2;
+              }
+
+              ticks.add(mesh);
+            }
+          });
+
+          scene.add(ticks);
+
+          // Add axis label
+          if (label) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 128;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+
+            if (ctx) {
+              ctx.fillStyle = 'white';
+              ctx.fillRect(0, 0, canvas.width, canvas.height);
+              ctx.fillStyle = 'black';
+              ctx.font = `bold ${fontSize * 1.2}px ${fontFamily}`;
+              ctx.textAlign = 'center';
+              ctx.textBaseline = 'middle';
+              ctx.fillText(label, canvas.width / 2, canvas.height / 2);
+
+              const texture = new THREE.CanvasTexture(canvas);
+              const material = new THREE.MeshBasicMaterial({
+                map: texture,
+                transparent: true,
+                side: THREE.DoubleSide
+              });
+
+              const geometry = new THREE.PlaneGeometry(8, 4);
+              const mesh = new THREE.Mesh(geometry, material);
+
+              if (axisType === 'x') {
+                mesh.position.set(axisLength.x + labelOffset, 0, 0);
+                mesh.lookAt(camera.position);
+              } else if (axisType === 'y') {
+                mesh.position.set(0, axisLength.y + labelOffset, 0);
+                mesh.lookAt(camera.position);
+              } else { // z
+                mesh.position.set(0, 0, axisLength.z + labelOffset);
+                mesh.lookAt(camera.position);
+              }
+
+              scene.add(mesh);
+            }
+          }
+
+          // Add grid if enabled
+          if (showGrid) {
+            const gridMaterial = new THREE.LineBasicMaterial({ color: gridColor, transparent: true, opacity: 0.5 });
+
+            if (axisType === 'x') {
+              // Create grid lines parallel to X axis
+              const gridGroup = new THREE.Group();
+
+              tickValues.forEach(value => {
+                if (value === domain[0]) return;
+
+                const position = scale.scale(value);
+                const gridGeometry = new THREE.BufferGeometry();
+
+                gridGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+                  position, 0, 0,
+                  position, axisLength.y, 0,
+                  position, axisLength.y, axisLength.z,
+                  position, 0, axisLength.z,
+                  position, 0, 0
+                ], 3));
+
+                const grid = new THREE.Line(gridGeometry, gridMaterial);
+                gridGroup.add(grid);
+              });
+
+              scene.add(gridGroup);
+            } else if (axisType === 'y') {
+              // Create grid lines parallel to Y axis
+              const gridGroup = new THREE.Group();
+
+              tickValues.forEach(value => {
+                if (value === domain[0]) return;
+
+                const position = scale.scale(value);
+                const gridGeometry = new THREE.BufferGeometry();
+
+                gridGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+                  0, position, 0,
+                  axisLength.x, position, 0,
+                  axisLength.x, position, axisLength.z,
+                  0, position, axisLength.z,
+                  0, position, 0
+                ], 3));
+
+                const grid = new THREE.Line(gridGeometry, gridMaterial);
+                gridGroup.add(grid);
+              });
+
+              scene.add(gridGroup);
+            } else { // z
+              // Create grid lines parallel to Z axis
+              const gridGroup = new THREE.Group();
+
+              tickValues.forEach(value => {
+                if (value === domain[0]) return;
+
+                const position = scale.scale(value);
+                const gridGeometry = new THREE.BufferGeometry();
+
+                gridGeometry.setAttribute('position', new THREE.Float32BufferAttribute([
+                  0, 0, position,
+                  axisLength.x, 0, position,
+                  axisLength.x, axisLength.y, position,
+                  0, axisLength.y, position,
+                  0, 0, position
+                ], 3));
+
+                const grid = new THREE.Line(gridGeometry, gridMaterial);
+                gridGroup.add(grid);
+              });
+
+              scene.add(gridGroup);
+            }
+          }
+
+          // Render loop
+          const animate = function () {
+            requestAnimationFrame(animate);
+
+            controls.update();
+
+            renderer.render(scene, camera);
+          };
+
+          animate();
+        }
       }
     );
   }

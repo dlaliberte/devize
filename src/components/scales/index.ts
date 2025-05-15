@@ -6,8 +6,8 @@
 
 // Import all scale components
 import './linearScale';
-import './logScale';
-import './timeScale';
+// import './logScale';
+// import './timeScale';
 import './bandScale';
 import './ordinalScale';
 import './colorScale';
@@ -15,8 +15,8 @@ import './colorScale';
 // Re-export specific items that should be available from this module
 export * from './scale';
 export * from './linearScale';
-export * from './logScale';
-export * from './timeScale';
+// export * from './logScale';
+// export * from './timeScale';
 export * from './bandScale';
 export * from './ordinalScale';
 export * from './colorScale';

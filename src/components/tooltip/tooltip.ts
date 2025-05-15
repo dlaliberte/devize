@@ -15,7 +15,7 @@ registerDefineType();
 
 // Import required primitives
 import '../../primitives/group';
-import '../../primitives/rect';
+import '../../primitives/rectangle';
 import '../../primitives/path';
 import '../../primitives/text';
 

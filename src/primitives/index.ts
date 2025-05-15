@@ -6,24 +6,24 @@
 
 // Import all primitive components
 import './circle';
-import './ellipse';
+//import './ellipse';
 import './group';
-import './group3D';
+//import './group3D';
 import './line';
 import './path';
 import './polygon';
-import './polyline';
-import './rect';
+//import './polyline';
+import './rectangle';
 import './text';
 
 // Re-export specific items that should be available from this module
 export * from './circle';
-export * from './ellipse';
+// export * from './ellipse';
 export * from './group';
-export * from './group3D';
+// export * from './group3D';
 export * from './line';
 export * from './path';
 export * from './polygon';
-export * from './polyline';
-export * from './rect';
+// export * from './polyline';
+export * from './rectangle';
 export * from './text';
