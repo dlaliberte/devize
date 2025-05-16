@@ -60,6 +60,8 @@ const barChartTemplate = buildVizTemplate({
 });
 ```
 
+TODO: Add examples of extending templates for specific use cases.
+
 ### Rendering Templates with Different Data
 
 Once you have a template, you can render it with different data sources:
