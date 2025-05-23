@@ -93,38 +93,42 @@ export const mandalaChartDefinition = {
       ? (parseFloat(centralRadius) / 100) * chartRadius
       : centralRadius;
 
-    // Function to create a mandala at a specific level
+    // Recursive function to create a mandala of a specific level
     function createMandala(level, cx, cy, containerRadius, rotationOffset = 0) {
-      const elements = [];
-
-      // For nested levels, we calculate the central radius based on the container radius
-      // and the same proportions as the top level
-      const topLevelCentralRatio = 2 * baseCentralRadius / chartRadius;
-      const scaledCentralRadius = containerRadius * topLevelCentralRatio;
-
-      // Add the central circle
-      elements.push({
-        type: 'circle',
-        cx: cx,
-        cy: cy,
-        r: scaledCentralRadius,
-        fill: centralColor,
-        stroke: centralStroke,
-        strokeWidth: strokeWidth
-      });
-
-      // If this is level 0, we're done - just the center circle
+      // Base case: level 0 just draws the central circle
       if (level === 0) {
-        return elements;
-      }
+        return {
+          centralCircle: {
+            type: 'circle',
+            cx: cx,
+            cy: cy,
+            r: containerRadius * (baseCentralRadius / chartRadius), // Scale proportionally
+            fill: centralColor,
+            stroke: centralStroke,
+            strokeWidth: strokeWidth
+          },
+          rings: [{containerCircle: {
+            type: 'circle',
+            cx: cx,
+            cy: cy,
+            r: containerRadius * (baseCentralRadius / chartRadius), // Scale proportionally
+            fill: centralColor,
+            stroke: centralStroke,
+            strokeWidth: strokeWidth
+          }}],
+          nestedMandalas: []
+        };
+      } else {
+        // For levels > 0, first create the lower level mandala
+        const lowerLevel = createMandala(level - 1, cx, cy, containerRadius, rotationOffset);
 
-      // For levels > 0, we need to add rings of small circles
-      // Each level adds one more ring
+        // Get the radius of the central circle of the lower level
+        // This will be the inner boundary for our ring
+        // const [innerCircle, outerCircle] = lowerLevel.rings;
+        // Get the last element of the rings array
+        const outerCircle = lowerLevel.rings[lowerLevel.rings.length - 1];
+        const innerRingRadius = outerCircle.containerCircle.r; // lowerLevel.centralCircle.r;
 
-      // Start with the central radius as the inner boundary of the first ring
-      let innerRingRadius = scaledCentralRadius;
-
-      for (let ring = 1; ring <= level; ring++) {
         // Calculate the angular width of each wedge/slice
         const wedgeAngle = (2 * Math.PI) / numPositions;
 
@@ -134,18 +138,28 @@ export const mandalaChartDefinition = {
         const smallCircleRadius = orbitRadius * sinHalfWedge;
         const outerRingRadius = orbitRadius + smallCircleRadius;
 
-        // Add the container circle for this ring
-        elements.push({
-          type: 'circle',
-          cx: cx,
-          cy: cy,
-          r: outerRingRadius,
-          fill: containerCircleColor,
-          stroke: containerCircleStroke,
-          strokeWidth: containerStrokeWidth
-        });
+        // if (level == 2) {
+        //   //debugging hack
+        //   cx += 50;
+        //   cy += 50;
+        // }
+        // Create the ring for this level
+        const ring = {
+          containerCircle: {
+            type: 'circle',
+            cx: cx,
+            cy: cy,
+            r: outerRingRadius,
+            fill: containerCircleColor,
+            stroke: containerCircleStroke,
+            strokeWidth: containerStrokeWidth
+          },
+          smallCircles: []
+        };
 
         // Create the small circles for this ring
+        const nestedMandalas = [];
+
         for (let i = 0; i < numPositions; i++) {
           // Skip the 0th position if hideZeroPosition is true
           if (hideZeroPosition && i === 0) {
@@ -154,7 +168,7 @@ export const mandalaChartDefinition = {
 
           // Calculate angle for this position (in radians)
           // We're going clockwise starting from the bottom (π/2)
-          // Apply the rotation offset to align with parent
+          // Apply the rotation offset
           const angle = (wedgeAngle * i) + (Math.PI / 2) + rotationOffset;
 
           // Calculate position
@@ -162,10 +176,10 @@ export const mandalaChartDefinition = {
           const y = cy + orbitRadius * Math.sin(angle);
 
           // Get color for this circle
-          const color = smallCircleColors[(i) % smallCircleColors.length];
+          const color = smallCircleColors[i % smallCircleColors.length];
 
           // Create the small circle
-          elements.push({
+          ring.smallCircles.push({
             type: 'circle',
             cx: x,
             cy: y,
@@ -175,41 +189,77 @@ export const mandalaChartDefinition = {
             strokeWidth: strokeWidth
           });
 
-          // Add a nested mandala inside this small circle if we're not at the lowest level
-          if (level > 1) {
-            // Calculate the rotation offset for the nested mandala
-            // This makes the 0th position of the nested mandala align with the position of this circle
-            const nestedRotationOffset = angle - (Math.PI / 2);
+          // Create a nested mandala inside this small circle
+          // The nested mandala should be the entire lower level (level-1)
+          // Calculate the rotation offset for the nested mandala
+          const nestedRotationOffset = angle - (Math.PI / 2);
 
-            // Create a nested mandala with level-1 recursion
-            // The container radius is the small circle radius
-            // This ensures the nested mandala's outer container circle aligns perfectly with the small circle
-            const nestedElements = createMandala(
-              level - 1,
-              x,
-              y,
-              smallCircleRadius,
-              nestedRotationOffset
-            );
-            elements.push(...nestedElements);
-          }
+          // Recursively create the nested mandala
+          const nestedMandala = createMandala(level - 1, x, y, smallCircleRadius, nestedRotationOffset);
+          nestedMandalas.push(nestedMandala);
         }
 
-        // Update the inner ring radius for the next iteration
-        // Add a small gap between rings
-        innerRingRadius = outerRingRadius; // * (1 + ringGap); not needed, and not enough
-      }
+        // Add this ring to the rings array
+        lowerLevel.rings.push(ring);
 
-      return elements;
+        // Add the nested mandalas
+        lowerLevel.nestedMandalas.push(...nestedMandalas);
+
+        return lowerLevel;
+      }
     }
 
-    // Create the top-level mandala
-    const mandalaElements = createMandala(
+    // Create the mandala starting from the specified recursion level
+    const mandala = createMandala(
       recursionLevels,
       dimensions.chartWidth / 2,
       dimensions.chartHeight / 2,
       chartRadius
     );
+
+    // Flatten the mandala structure into an array of elements in the correct order
+    const mandalaElements = [];
+
+    // First add all container circles from innermost to outermost
+    mandalaElements.push(mandala.centralCircle);
+
+    // Add rings from innermost to outermost
+    for (let i = 0; i < mandala.rings.length; i++) {
+      const ring = mandala.rings[i];
+      mandalaElements.push(ring.containerCircle);
+      if (ring.smallCircles) {
+        mandalaElements.push(...ring.smallCircles);
+      }
+    }
+
+    // Now add all nested mandalas
+    // We need to flatten the nested structure
+    function flattenNestedMandalas(mandala) {
+      const elements = [];
+
+      // Add central circle
+      elements.push(mandala.centralCircle);
+
+      // Add rings
+      for (const ring of mandala.rings) {
+        elements.push(ring.containerCircle);
+        if (ring.smallCircles) {
+          elements.push(...ring.smallCircles);
+        }
+      }
+
+      // Recursively add nested mandalas
+      for (const nested of mandala.nestedMandalas) {
+        elements.push(...flattenNestedMandalas(nested));
+      }
+
+      return elements;
+    }
+
+    // Add all nested mandalas
+    for (const nestedMandala of mandala.nestedMandalas) {
+      mandalaElements.push(...flattenNestedMandalas(nestedMandala));
+    }
 
     // Create chart title
     const chartTitle = createChartTitleElement(title, dimensions);
