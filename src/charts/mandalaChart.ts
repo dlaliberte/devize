@@ -102,41 +102,40 @@ export const mandalaChartDefinition = {
             type: 'circle',
             cx: cx,
             cy: cy,
-            r: containerRadius * (baseCentralRadius / chartRadius), // Scale proportionally
-            fill: centralColor,
+            r: containerRadius, // * (baseCentralRadius / chartRadius), // Scale proportionally
+            // fill: centralColor,
             stroke: centralStroke,
             strokeWidth: strokeWidth
           },
-          rings: [{containerCircle: {
-            type: 'circle',
-            cx: cx,
-            cy: cy,
-            r: containerRadius * (baseCentralRadius / chartRadius), // Scale proportionally
-            fill: centralColor,
-            stroke: centralStroke,
-            strokeWidth: strokeWidth
-          }}],
+          rings: [],
           nestedMandalas: []
         };
       } else {
-        // For levels > 0, first create the lower level mandala
-        const lowerLevel = createMandala(level - 1, cx, cy, containerRadius, rotationOffset);
 
-        // Get the radius of the central circle of the lower level
+        // Get the radius of the outer circle of the lower level
         // This will be the inner boundary for our ring
         // const [innerCircle, outerCircle] = lowerLevel.rings;
         // Get the last element of the rings array
-        const outerCircle = lowerLevel.rings[lowerLevel.rings.length - 1];
-        const innerRingRadius = outerCircle.containerCircle.r; // lowerLevel.centralCircle.r;
+        // const lowerLevelOuterCircle = lowerLevel.rings[lowerLevel.rings.length - 1];
 
-        // Calculate the angular width of each wedge/slice
+        // const innerRingRadius = containerRadius;  // outerCircle.containerCircle.r; // lowerLevel.centralCircle.r;
+
+        // // Calculate the angular width of each wedge/slice
+        // const wedgeAngle = (2 * Math.PI) / numPositions;
+
+        // // Calculate the radius of the small circles in this ring
+        // const sinHalfWedge = Math.sin(wedgeAngle / 2);
+        // const orbitRadius = innerRingRadius / (1 - sinHalfWedge);
+        // const smallCircleRadius = orbitRadius * sinHalfWedge;
+        // const outerRingRadius = orbitRadius + smallCircleRadius;
+
+        const outerRingRadius = containerRadius;
+
         const wedgeAngle = (2 * Math.PI) / numPositions;
-
-        // Calculate the radius of the small circles in this ring
         const sinHalfWedge = Math.sin(wedgeAngle / 2);
-        const orbitRadius = innerRingRadius / (1 - sinHalfWedge);
+        const orbitRadius = outerRingRadius / (1 + sinHalfWedge);
         const smallCircleRadius = orbitRadius * sinHalfWedge;
-        const outerRingRadius = orbitRadius + smallCircleRadius;
+        const innerRingRadius = orbitRadius - smallCircleRadius;
 
         // if (level == 2) {
         //   //debugging hack
@@ -199,6 +198,9 @@ export const mandalaChartDefinition = {
           nestedMandalas.push(nestedMandala);
         }
 
+        // For levels > 0, recursively create the lower level mandala
+        const lowerLevel = createMandala(level - 1, cx, cy, innerRingRadius, rotationOffset);
+
         // Add this ring to the rings array
         lowerLevel.rings.push(ring);
 
@@ -237,8 +239,10 @@ export const mandalaChartDefinition = {
     function flattenNestedMandalas(mandala) {
       const elements = [];
 
-      // Add central circle
-      elements.push(mandala.centralCircle);
+      // Recursively add nested mandalas
+      for (const nested of mandala.nestedMandalas) {
+        elements.push(...flattenNestedMandalas(nested));
+      }
 
       // Add rings
       for (const ring of mandala.rings) {
@@ -248,10 +252,8 @@ export const mandalaChartDefinition = {
         }
       }
 
-      // Recursively add nested mandalas
-      for (const nested of mandala.nestedMandalas) {
-        elements.push(...flattenNestedMandalas(nested));
-      }
+      // Add central circle
+      elements.push(mandala.centralCircle);
 
       return elements;
     }
