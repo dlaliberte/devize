@@ -43,10 +43,11 @@ export const mandalaChartDefinition = {
     containerCircleStroke: { default: '#999' },
     strokeWidth: { default: 1 },
     containerStrokeWidth: { default: 1 },
-    numPositions: { default: 8 },
+    numPositions: { default: 10 },
     recursionLevels: { default: 1 },
     innerPadding: { default: 0.1 }, // Padding inside small circles (as a percentage of radius)
-    ringGap: { default: 0.05 }      // Gap between rings as a fraction of the chart radius
+    ringGap: { default: 0.05 },     // Gap between rings as a fraction of the chart radius
+    hideZeroPosition: { default: true } // Whether to hide the 0th position
   },
   validate: function(props: any) {
     // Validate common chart properties
@@ -76,7 +77,8 @@ export const mandalaChartDefinition = {
       centralColor, smallCircleColors, containerCircleColor,
       centralStroke, smallCircleStroke, containerCircleStroke,
       strokeWidth, containerStrokeWidth,
-      numPositions, recursionLevels, innerPadding, ringGap
+      numPositions, recursionLevels, innerPadding, ringGap,
+      hideZeroPosition
     } = props;
 
     // Calculate dimensions
@@ -92,16 +94,13 @@ export const mandalaChartDefinition = {
       : centralRadius;
 
     // Function to create a mandala at a specific level
-    function createMandala(level, cx, cy, containerRadius) {
+    function createMandala(level, cx, cy, containerRadius, rotationOffset = 0) {
       const elements = [];
 
-      // For the top level, we use the provided central radius
       // For nested levels, we calculate the central radius based on the container radius
       // and the same proportions as the top level
-      const topLevelCentralRatio = baseCentralRadius / chartRadius;
-      const scaledCentralRadius = level === recursionLevels
-        ? baseCentralRadius
-        : containerRadius * topLevelCentralRatio;
+      const topLevelCentralRatio = 2 * baseCentralRadius / chartRadius;
+      const scaledCentralRadius = containerRadius * topLevelCentralRatio;
 
       // Add the central circle
       elements.push({
@@ -130,26 +129,6 @@ export const mandalaChartDefinition = {
         const wedgeAngle = (2 * Math.PI) / numPositions;
 
         // Calculate the radius of the small circles in this ring
-        // For circles to touch each other at their orbit radius:
-        // r = orbit_radius * sin(wedgeAngle/2)
-
-        // First, we need to determine the orbit radius and outer ring radius
-        // such that the small circles touch both the inner and outer ring
-
-        // Let's call:
-        // R1 = inner ring radius
-        // R2 = orbit radius (where circle centers are placed)
-        // R3 = outer ring radius
-        // r = small circle radius
-
-        // For circles to touch each other: r = R2 * sin(wedgeAngle/2)
-        // For circles to touch inner ring: R2 - r = R1
-        // For circles to touch outer ring: R2 + r = R3
-
-        // From these equations:
-        // R2 - R2 * sin(wedgeAngle/2) = R1
-        // R2 = R1 / (1 - sin(wedgeAngle/2))
-
         const sinHalfWedge = Math.sin(wedgeAngle / 2);
         const orbitRadius = innerRingRadius / (1 - sinHalfWedge);
         const smallCircleRadius = orbitRadius * sinHalfWedge;
@@ -168,16 +147,22 @@ export const mandalaChartDefinition = {
 
         // Create the small circles for this ring
         for (let i = 0; i < numPositions; i++) {
+          // Skip the 0th position if hideZeroPosition is true
+          if (hideZeroPosition && i === 0) {
+            continue;
+          }
+
           // Calculate angle for this position (in radians)
-          // We're going clockwise starting from the top (3π/2)
-          const angle = (wedgeAngle * i) + (3 * Math.PI / 2);
+          // We're going clockwise starting from the bottom (π/2)
+          // Apply the rotation offset to align with parent
+          const angle = (wedgeAngle * i) + (Math.PI / 2) + rotationOffset;
 
           // Calculate position
           const x = cx + orbitRadius * Math.cos(angle);
           const y = cy + orbitRadius * Math.sin(angle);
 
           // Get color for this circle
-          const color = smallCircleColors[(i + (ring - 1) * numPositions) % smallCircleColors.length];
+          const color = smallCircleColors[(i) % smallCircleColors.length];
 
           // Create the small circle
           elements.push({
@@ -192,17 +177,27 @@ export const mandalaChartDefinition = {
 
           // Add a nested mandala inside this small circle if we're not at the lowest level
           if (level > 1) {
+            // Calculate the rotation offset for the nested mandala
+            // This makes the 0th position of the nested mandala align with the position of this circle
+            const nestedRotationOffset = angle - (Math.PI / 2);
+
             // Create a nested mandala with level-1 recursion
             // The container radius is the small circle radius
             // This ensures the nested mandala's outer container circle aligns perfectly with the small circle
-            const nestedElements = createMandala(level - 1, x, y, smallCircleRadius);
+            const nestedElements = createMandala(
+              level - 1,
+              x,
+              y,
+              smallCircleRadius,
+              nestedRotationOffset
+            );
             elements.push(...nestedElements);
           }
         }
 
         // Update the inner ring radius for the next iteration
         // Add a small gap between rings
-        innerRingRadius = outerRingRadius * (1 + ringGap);
+        innerRingRadius = outerRingRadius; // * (1 + ringGap); not needed, and not enough
       }
 
       return elements;
@@ -266,7 +261,8 @@ export function createMandalaChart(options: {
   numPositions?: number,
   recursionLevels?: number,
   innerPadding?: number,
-  ringGap?: number
+  ringGap?: number,
+  hideZeroPosition?: boolean
 }) {
   return buildViz({
     type: 'mandalaChart',
