@@ -98,16 +98,24 @@ export const mandalaChartDefinition = {
       // Base case: level 0 just draws the central circle
       if (level === 0) {
         return {
-          centralCircle: {
+          containerCircle: {
             type: 'circle',
             cx: cx,
             cy: cy,
-            r: containerRadius, // * (baseCentralRadius / chartRadius), // Scale proportionally
-            // fill: centralColor,
+            r: containerRadius / 2, // * (baseCentralRadius / chartRadius), // Scale proportionally
+            fill: centralColor,
             stroke: centralStroke,
             strokeWidth: strokeWidth
           },
-          rings: [],
+          rings: [{
+            type: 'circle',
+            cx: cx,
+            cy: cy,
+            r: containerRadius / 2, // * (baseCentralRadius / chartRadius), // Scale proportionally
+            fill: centralColor,
+            stroke: centralStroke,
+            strokeWidth: strokeWidth
+          }],
           nestedMandalas: []
         };
       } else {
@@ -193,7 +201,7 @@ export const mandalaChartDefinition = {
           // Calculate the rotation offset for the nested mandala
           const nestedRotationOffset = angle - (Math.PI / 2);
 
-          // Recursively create the nested mandala
+          // Recursively create the nested mandala within this small circle
           const nestedMandala = createMandala(level - 1, x, y, smallCircleRadius, nestedRotationOffset);
           nestedMandalas.push(nestedMandala);
         }
@@ -223,7 +231,7 @@ export const mandalaChartDefinition = {
     const mandalaElements = [];
 
     // First add all container circles from innermost to outermost
-    mandalaElements.push(mandala.centralCircle);
+    mandalaElements.push(mandala.containerCircle);
 
     // Add rings from innermost to outermost
     for (let i = 0; i < mandala.rings.length; i++) {
@@ -239,11 +247,6 @@ export const mandalaChartDefinition = {
     function flattenNestedMandalas(mandala) {
       const elements = [];
 
-      // Recursively add nested mandalas
-      for (const nested of mandala.nestedMandalas) {
-        elements.push(...flattenNestedMandalas(nested));
-      }
-
       // Add rings
       for (const ring of mandala.rings) {
         elements.push(ring.containerCircle);
@@ -253,7 +256,12 @@ export const mandalaChartDefinition = {
       }
 
       // Add central circle
-      elements.push(mandala.centralCircle);
+      elements.push(mandala.containerCircle);
+
+      // Recursively add nested mandalas
+      for (const nested of mandala.nestedMandalas) {
+        elements.push(...flattenNestedMandalas(nested));
+      }
 
       return elements;
     }
