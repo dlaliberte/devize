@@ -95,10 +95,13 @@ export const mandalaChartDefinition = {
     function createMandala(level, cx, cy, containerRadius) {
       const elements = [];
 
-      // Calculate the central circle radius for this mandala
+      // For the top level, we use the provided central radius
+      // For nested levels, we calculate the central radius based on the container radius
+      // and the same proportions as the top level
+      const topLevelCentralRatio = baseCentralRadius / chartRadius;
       const scaledCentralRadius = level === recursionLevels
         ? baseCentralRadius
-        : containerRadius * (1 - innerPadding) / 3; // Make central circle 1/3 of container
+        : containerRadius * topLevelCentralRatio;
 
       // Add the central circle
       elements.push({
@@ -187,10 +190,12 @@ export const mandalaChartDefinition = {
             strokeWidth: strokeWidth
           });
 
-          // Add a nested mandala inside this small circle
-          // The nested mandala should be level (ring - 1)
-          if (ring > 0) {
-            const nestedElements = createMandala(ring - 1, x, y, smallCircleRadius);
+          // Add a nested mandala inside this small circle if we're not at the lowest level
+          if (level > 1) {
+            // Create a nested mandala with level-1 recursion
+            // The container radius is the small circle radius
+            // This ensures the nested mandala's outer container circle aligns perfectly with the small circle
+            const nestedElements = createMandala(level - 1, x, y, smallCircleRadius);
             elements.push(...nestedElements);
           }
         }
