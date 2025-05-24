@@ -27,6 +27,8 @@ buildViz({
 });
 ```
 
+TODO: Add examples of scatter plots with trend lines and clustering.
+
 ## Properties
 
 | Property | Type | Description | Default |
