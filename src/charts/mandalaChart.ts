@@ -120,36 +120,15 @@ export const mandalaChartDefinition = {
         };
       } else {
 
-        // Get the radius of the outer circle of the lower level
-        // This will be the inner boundary for our ring
-        // const [innerCircle, outerCircle] = lowerLevel.rings;
-        // Get the last element of the rings array
-        // const lowerLevelOuterCircle = lowerLevel.rings[lowerLevel.rings.length - 1];
-
-        // const innerRingRadius = containerRadius;  // outerCircle.containerCircle.r; // lowerLevel.centralCircle.r;
-
-        // // Calculate the angular width of each wedge/slice
-        // const wedgeAngle = (2 * Math.PI) / numPositions;
-
-        // // Calculate the radius of the small circles in this ring
-        // const sinHalfWedge = Math.sin(wedgeAngle / 2);
-        // const orbitRadius = innerRingRadius / (1 - sinHalfWedge);
-        // const smallCircleRadius = orbitRadius * sinHalfWedge;
-        // const outerRingRadius = orbitRadius + smallCircleRadius;
-
         const outerRingRadius = containerRadius;
 
+        // Compute the inner ring radius so the small circles fit tangentially.
         const wedgeAngle = (2 * Math.PI) / numPositions;
         const sinHalfWedge = Math.sin(wedgeAngle / 2);
         const orbitRadius = outerRingRadius / (1 + sinHalfWedge);
         const smallCircleRadius = orbitRadius * sinHalfWedge;
         const innerRingRadius = orbitRadius - smallCircleRadius;
 
-        // if (level == 2) {
-        //   //debugging hack
-        //   cx += 50;
-        //   cy += 50;
-        // }
         // Create the ring for this level
         const ring = {
           containerCircle: {
