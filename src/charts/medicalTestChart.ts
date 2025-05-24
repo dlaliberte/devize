@@ -30,9 +30,10 @@ export const medicalTestChartDefinition = {
   type: "define",
   name: "medicalTestChart",
   properties: {
-      ...commonChartProperties,
-      value: { required: false, default: [] },
-      range: {
+    ...commonChartProperties,
+    data: { required: false, data: [] },
+    value: { required: false, default: [] },
+    range: {
       required: true,
       validate: (range: { low: number; high: number }) => {
         if (!range.low || !range.high) {
@@ -43,6 +44,9 @@ export const medicalTestChartDefinition = {
         }
       }
     },
+    // Add min and max properties to define the full scale range
+    min: { required: false, default: null },
+    max: { required: false, default: null },
     colors: {
       default: {
         normal: '#4CAF50',   // Green
@@ -60,7 +64,7 @@ export const medicalTestChartDefinition = {
     validateCommonChartProps(props);
 
     // Validate value field
-    if (typeof props.value !== 'number' && (!props.value.field || !props.value.value)) {
+    if (typeof props.value !== 'number' && (!props.value.field && !props.value.value)) {
       throw new Error('Value must be a number or an object with field or value property');
     }
 
@@ -68,11 +72,29 @@ export const medicalTestChartDefinition = {
     if (!props.range || typeof props.range.low !== 'number' || typeof props.range.high !== 'number') {
       throw new Error('Range must include numeric low and high values');
     }
+
+    // Validate min and max if provided
+    if (props.min !== null && typeof props.min !== 'number') {
+      throw new Error('Min value must be a number');
+    }
+    if (props.max !== null && typeof props.max !== 'number') {
+      throw new Error('Max value must be a number');
+    }
+
+    // Ensure min is less than range.low if provided
+    if (props.min !== null && props.min >= props.range.low) {
+      throw new Error('Min value must be less than range.low');
+    }
+
+    // Ensure max is greater than range.high if provided
+    if (props.max !== null && props.max <= props.range.high) {
+      throw new Error('Max value must be greater than range.high');
+    }
   },
   implementation: function(props: any) {
     // Extract properties from props
     const {
-      data, value, range, colors, margin, title, width, height,
+      data, value, range, min, max, colors, margin, title, width, height,
       units, barHeight, indicatorSize
     } = props;
 
@@ -98,14 +120,18 @@ export const medicalTestChartDefinition = {
     const barWidth = chartWidth - (padding * 2);
     const barY = chartHeight * 0.5;
 
+    // Determine the actual min and max values for the scale
+    const scaleMin = min !== null ? min : range.low - (range.high - range.low) * 0.3;
+    const scaleMax = max !== null ? max : range.high + (range.high - range.low) * 0.3;
+
     // Map value to position
     const valueToPosition = (val: number) => {
       // Handle edge cases
-      if (val <= range.low) return padding;
-      if (val >= range.high) return padding + barWidth;
+      if (val <= scaleMin) return padding;
+      if (val >= scaleMax) return padding + barWidth;
 
       // Linear mapping from value range to position range
-      const ratio = (val - range.low) / (range.high - range.low);
+      const ratio = (val - scaleMin) / (scaleMax - scaleMin);
       return padding + (ratio * barWidth);
     };
 
@@ -123,10 +149,10 @@ export const medicalTestChartDefinition = {
 
     // 1. Draw caution areas (yellow)
     elements.push({
-      type: 'rect',
+      type: 'rectangle',
       x: padding,
       y: barY,
-      width: lowX - padding,
+      width: Math.max(10, lowX - padding),
       height: barHeight,
       fill: colors.caution,
       stroke: '#000',
@@ -134,10 +160,10 @@ export const medicalTestChartDefinition = {
     });
 
     elements.push({
-      type: 'rect',
+      type: 'rectangle',
       x: highX,
       y: barY,
-      width: padding + barWidth - highX,
+      width: Math.max(10, padding + barWidth - highX),
       height: barHeight,
       fill: colors.caution,
       stroke: '#000',
@@ -146,7 +172,7 @@ export const medicalTestChartDefinition = {
 
     // 2. Draw normal range (green)
     elements.push({
-      type: 'rect',
+      type: 'rectangle',
       x: lowX,
       y: barY,
       width: highX - lowX,
@@ -179,14 +205,41 @@ export const medicalTestChartDefinition = {
       textAnchor: 'middle'
     });
 
-    // 4. Draw result indicator (box with triangle pointer)
+    // 4. Draw min and max labels if they're different from range values
+    if (min !== null) {
+      elements.push({
+        type: 'text',
+        x: padding,
+        y: barY + barHeight + 20,
+        text: min.toString(),
+        fontSize: 12,
+        fontWeight: 'normal',
+        fill: colors.text,
+        textAnchor: 'start'
+      });
+    }
+
+    if (max !== null) {
+      elements.push({
+        type: 'text',
+        x: padding + barWidth,
+        y: barY + barHeight + 20,
+        text: max.toString(),
+        fontSize: 12,
+        fontWeight: 'normal',
+        fill: colors.text,
+        textAnchor: 'end'
+      });
+    }
+
+    // 5. Draw result indicator (box with triangle pointer)
     const boxWidth = indicatorSize.width;
     const boxHeight = indicatorSize.height;
     const triangleHeight = 10;
 
     // Box
     elements.push({
-      type: 'rect',
+      type: 'rectangle',
       x: valueX - boxWidth/2,
       y: barY - boxHeight - triangleHeight,
       width: boxWidth,
@@ -254,6 +307,8 @@ export function createMedicalTestChart(options: {
   data?: any[],
   value: number | { field: string, value?: number },
   range: { low: number, high: number },
+  min?: number,
+  max?: number,
   colors?: {
     normal?: string,
     caution?: string,

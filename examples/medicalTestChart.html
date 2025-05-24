@@ -37,9 +37,9 @@
             margin-bottom: 15px;
             font-size: 14px;
         }
-        #glucose-chart, #cholesterol-chart, #blood-pressure-chart, #hba1c-chart {
+        #glucose-chart, #cholesterol-chart, #blood-pressure-chart, #hba1c-chart, #custom-range-chart {
             width: 100%;
-            height: 120px;
+            height: 260px;
         }
     </style>
 </head>
@@ -69,6 +69,12 @@
             <h2>HbA1c</h2>
             <p class="description">Normal range: 4.0-5.7%. This example uses data binding to display the value.</p>
             <div id="hba1c-chart"></div>
+        </div>
+
+        <div class="chart-wrapper">
+            <h2>Custom Scale Range</h2>
+            <p class="description">Normal range: 70-140, but with explicit min (0) and max (300) values to control the scale.</p>
+            <div id="custom-range-chart"></div>
         </div>
     </div>
 
@@ -152,6 +158,25 @@
         // Render the HbA1c chart
         const hba1cContainer = document.getElementById('hba1c-chart');
         hba1cTest.render(hba1cContainer);
+
+        // Example 5: Custom min and max values to control the scale
+        const customRangeChart = createMedicalTestChart({
+            value: 125,
+            range: {
+                low: 70,
+                high: 140
+            },
+            // Explicitly set min and max values for the scale
+            min: 0,
+            max: 300,
+            title: "Custom Scale Range",
+            units: "mg/dL",
+            margin: { top: 20, right: 20, bottom: 30, left: 20 }
+        });
+
+        // Render the custom range chart
+        const customRangeContainer = document.getElementById('custom-range-chart');
+        customRangeChart.render(customRangeContainer);
     </script>
 </body>
 </html>

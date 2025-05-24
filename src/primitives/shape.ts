@@ -70,7 +70,7 @@ export const shapeDefinition = {
     } else if (shape === 'rect') {
       // For rectangle, use width and height directly
       element = {
-        type: 'rect',
+        type: 'rectangle',
         x: x - width / 2,
         y: y - height / 2,
         width,

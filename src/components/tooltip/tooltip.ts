@@ -195,7 +195,7 @@ export const tooltipDefinition = {
       children: [
         // Tooltip box
         {
-          type: 'rect',
+          type: 'rectangle',
           x: 0,
           y: 0,
           width: boxWidth,

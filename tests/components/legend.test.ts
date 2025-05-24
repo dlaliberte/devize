@@ -51,7 +51,7 @@ describe('Legend Component', () => {
               fill: item.color
             }
           : {
-              type: 'rect',
+              type: 'rectangle',
               x: 2,
               y: 2,
               width: 16,

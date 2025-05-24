@@ -23,6 +23,7 @@ export function ensureSvg(container: HTMLElement): SVGElement {
     svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
     svg.setAttribute('width', '100%');
     svg.setAttribute('height', '100%');
+    // svg.setAttribute('viewBox', "0 0 600 260")
     container.appendChild(svg);
   }
 
@@ -285,7 +286,8 @@ function prepareDefaultContainer(container) {
   // Create an SVG element
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
   svg.setAttribute('width', '100%');
-  svg.setAttribute('height', '100%');
+  // svg.setAttribute('height', '100%');
+  svg.setAttribute('viewBox', "0 0 600 260")
 
   // Append it to the container
   container.appendChild(svg);

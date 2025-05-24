@@ -13,7 +13,7 @@ import { createChartTitle } from '../utils/axisChartUtils';
 
 // Common chart properties that apply to all chart types
 export const commonChartProperties = {
-  data: { required: true },
+  data: { required: false },
   title: { default: '' },
   margin: { default: { top: 40, right: 30, bottom: 40, left: 30 } },
   tooltip: { default: false },
@@ -31,9 +31,9 @@ export const commonChartProperties = {
 // Common validation logic for all charts
 export function validateCommonChartProps(props: any) {
   // Validate data is an array
-  if (!Array.isArray(props.data)) {
-    throw new Error('Data must be an array');
-  }
+  // if (!Array.isArray(props.data)) {
+  //   throw new Error('Data must be an array');
+  // }
 
   // Validate dimensions
   if (props.width <= 0 || props.height <= 0) {
