@@ -14,6 +14,9 @@ import './core/builder';
 import './primitives';
 import './components';
 import './charts';
+export { buildViz } from './core/builder';
+export { registerType, getType, hasType, getAllTypes, getRegisteredTypes } from './core/registry';
+export { renderViz, updateViz, ensureSvg } from './core/renderer';
 
 // Re-export core functionality
 export * from './core/define';
@@ -25,3 +28,15 @@ export * from './core/componentUtils';
 export * from './primitives';
 export * from './components';
 export * from './charts';
+
+// const Devize = {
+//     registerType,
+//     getType,
+//     hasType,
+//     getAllTypes,
+//     getRegisteredTypes,
+//     buildViz,
+//     renderViz,
+//     updateViz,
+//     ensureSvg
+//     };

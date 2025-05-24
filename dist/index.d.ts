@@ -6,6 +6,7 @@ export * from './primitives/containers';
 export * from './charts/barChart';
 export * from './charts/scatterPlot';
 export * from './charts/surfaceGraph';
+export * from './charts/scatterPlot3D';
 
 // export * from './charts/lineChart';
 // export * from './charts/areaChart';

@@ -119,7 +119,7 @@ export function createAxisTestDashboard(container: HTMLElement) {
                     range: [chartAreaBox.clientHeight, 0]
                 });
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error creating scale:', error);
             const errorMsg = document.createElement('div');
             errorMsg.textContent = `Error creating scale: ${error.message}`;
@@ -165,7 +165,7 @@ export function createAxisTestDashboard(container: HTMLElement) {
             } else {
                 throw new Error('Failed to create renderable axis');
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error rendering axis:', error);
             const errorMsg = document.createElement('div');
             errorMsg.textContent = `Error rendering axis: ${error.message}`;

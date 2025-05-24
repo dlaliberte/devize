@@ -199,7 +199,7 @@ const customChart = Devize.buildViz({
 
   <script type="module">
     // Import Devize library
-    import { buildViz, renderViz, updateViz, registerData } from '/src/index.ts';
+    import { buildViz, renderViz, updateViz } from '/src/index.ts';
 
     // Sample data
     const marketShareData = [
@@ -211,7 +211,7 @@ const customChart = Devize.buildViz({
     ];
 
     // Register data for potential reuse
-    registerData('marketShareData', marketShareData);
+    // registerData('marketShareData', marketShareData);
 
     // Create and render the basic pie chart
     const basicPieChart = buildViz({

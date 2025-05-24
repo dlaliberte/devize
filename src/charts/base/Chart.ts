@@ -88,7 +88,9 @@ export function createChartVisualization(
 }
 
 // Calculate dimensions based on margins and container size
-export function calculateChartDimensions(width: number, height: number, margin: any) {
+export function calculateChartDimensions(width: number, height: number, margin: any):
+  { chartWidth: number, chartHeight: number; }
+{
   return {
     chartWidth: width - margin.left - margin.right,
     chartHeight: height - margin.top - margin.bottom

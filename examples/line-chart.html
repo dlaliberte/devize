@@ -126,7 +126,7 @@ Devize.renderViz(lineChart, document.getElementById("visualization-container"));
 
   <script type="module">
     // Import Devize library
-    import { buildViz, renderViz, updateViz, registerData } from '/src/index.ts';
+    import { buildViz, renderViz, updateViz } from '/src/index.ts';
 
     // Sample data
     const timeSeriesData = [
@@ -145,7 +145,7 @@ Devize.renderViz(lineChart, document.getElementById("visualization-container"));
     ];
 
     // Register data for potential reuse
-    registerData('timeSeriesData', timeSeriesData);
+    // registerData('timeSeriesData', timeSeriesData);
 
     // Default chart options
     let chartOptions = {

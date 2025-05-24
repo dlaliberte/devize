@@ -113,7 +113,7 @@ Devize.renderViz(barChart, document.getElementById("visualization-container"));<
 
   <script type="module">
     // Import Devize library
-    import { buildViz, renderViz, updateViz, registerData } from '/src/index.ts';
+    import { buildViz, renderViz, updateViz } from '/src/index.ts';
 
     // Sample data
     const salesData = [
@@ -125,7 +125,7 @@ Devize.renderViz(barChart, document.getElementById("visualization-container"));<
     ];
 
     // Register data for potential reuse
-    registerData('salesData', salesData);
+    // registerData('salesData', salesData);
 
     // Function to create the visualization
     function createVisualization(data) {

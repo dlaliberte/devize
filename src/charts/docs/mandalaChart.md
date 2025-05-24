@@ -68,7 +68,7 @@ For a ring with `n` small circles:
 
 1. The angular width of each wedge/slice is `θ = 2π/n`
 2. The small circles are positioned at angles `θ_i = (i * θ) + π/2 + rotationOffset`
-3. The orbit radius (distance from center to small circle centers) is calculated based on the inner ring radius
+3. The orbit radius (distance from center to small circle centers) is calculated based on the container radius
 
 ```mermaid
 graph TD
@@ -76,28 +76,104 @@ graph TD
     B --> C[Calculate Orbit Radius]
     C --> D[Calculate Small Circle Radius]
     D --> E[Position Small Circles]
-    E --> F[Calculate Outer Ring Radius]
+    E --> F[Calculate Inner Ring Radius]
 ```
 
 ### Tangent Circle Calculations
 
-For a ring with inner radius `r_outer`, the key calculations are:
+For a ring with container radius `r_container`, the key calculations are:
 
 1. The wedge angle: `θ = 2π/n`
 2. The sine of half the wedge angle: `sin(θ/2)`
-3. The orbit radius: `r_orbit = r_outer / (1 + sin(θ/2))`
+3. The orbit radius: `r_orbit = r_container / (1 + sin(θ/2))`
 4. The small circle radius: `r_small = r_orbit * sin(θ/2)`
 5. The inner ring radius: `r_inner = r_orbit - r_small`
 
-This ensures that:
+### Mathematical Proof
 
-- Small circles are tangent to each other (touching but not overlapping)
-- Small circles are tangent to the inner circle
-- Small circles are tangent to the outer circle
+To prove this works, we need to show that the small circles are tangent to each other and to both the inner and outer circles.
+
+#### Tangent to Container Circle (Outer Circle)
+
+For a small circle to be tangent to the container circle, the distance between their centers must equal the sum of their radii:
+
+```
+|center_container - center_small| = r_container + r_small
+```
+
+Since the container circle is centered at the origin and the small circle is at distance `r_orbit` from the origin:
+
+```
+r_orbit + r_small = r_container
+```
+
+Substituting our formula for `r_orbit`:
+
+```
+r_container / (1 + sin(θ/2)) + r_small = r_container
+```
+
+And for `r_small`:
+
+```
+r_container / (1 + sin(θ/2)) + (r_container / (1 + sin(θ/2))) * sin(θ/2) = r_container
+```
+
+Simplifying:
+
+```
+r_container / (1 + sin(θ/2)) * (1 + sin(θ/2)) = r_container
+```
+
+Which equals `r_container`, proving the small circles are tangent to the container circle.
+
+#### Tangent to Each Other
+
+For two adjacent small circles to be tangent, the distance between their centers must equal the sum of their radii:
+
+```
+|center_small1 - center_small2| = 2 * r_small
+```
+
+The centers of adjacent small circles are at angle `θ` apart on a circle of radius `r_orbit`. The distance between them is:
+
+```
+2 * r_orbit * sin(θ/2)
+```
+
+Since `r_small = r_orbit * sin(θ/2)`, we have:
+
+```
+2 * r_orbit * sin(θ/2) = 2 * r_small
+```
+
+Which proves the small circles are tangent to each other.
+
+#### Tangent to Inner Circle
+
+For a small circle to be tangent to the inner circle, the distance between their centers minus their radii must equal the inner circle radius:
+
+```
+|center_inner - center_small| - r_small = r_inner
+```
+
+Since both circles are centered on the same axis:
+
+```
+r_orbit - r_small = r_inner
+```
+
+Substituting our formula for `r_inner`:
+
+```
+r_orbit - r_small = r_orbit - r_small
+```
+
+Which is trivially true, proving the small circles are tangent to the inner circle.
 
 ```mermaid
 graph LR
-    A[Outer Circle] --> B[Small Circles]
+    A[Container Circle] --> B[Small Circles]
     B --> C[Inner Circle]
 
     A -.tangent.- B
@@ -116,22 +192,57 @@ The implementation uses a bottom-up recursive approach:
    - Add a ring of small circles around the previous level
    - For each small circle, recursively create a nested mandala of the previous level
 
+### Direct Radius Specification
+
+Unlike previous versions that used proportional scaling, the current implementation:
+
+1. Directly uses the container radius provided to the recursive function
+2. Calculates all other radii based on this container radius
+3. This approach ensures more precise control over the sizing of each level
+
 ### Drawing Order
 
 The drawing order is critical to ensure proper layering:
 
-1. Draw the central circle first
-2. Draw container circles for each ring from innermost to outermost
-3. Draw small circles for each ring
+1. Draw container circles from innermost to outermost
+2. Draw small circles for each ring
+3. Draw the central circle
 4. Draw nested mandalas inside small circles
 
-### Scaling for Nested Mandalas
+This specific order ensures that elements are properly layered and visible.
 
-For nested mandalas inside small circles:
+## Performance Optimizations
 
-1. The container radius is the small circle radius
-2. The central circle radius is scaled proportionally to maintain the same ratio as the top-level chart
-3. A rotation offset is applied to align the nested mandala with its parent circle's position
+### SVG Caching
+
+For higher recursion levels, the number of elements grows exponentially. To optimize performance:
+
+1. The nested mandala for a given level can be cached as an SVG template
+2. This template can be reused for all small circles at the same level
+3. SVG transformations (scaling, rotation, translation) can be applied to position each instance
+
+```mermaid
+graph TD
+    A[Generate Level N-1 Mandala] --> B[Cache as SVG Template]
+    B --> C[Reuse for All Small Circles]
+    C --> D[Apply Transformations]
+    D --> E[Scale to Fit Small Circle]
+    D --> F[Rotate to Align with Parent]
+    D --> G[Translate to Small Circle Position]
+```
+
+This approach significantly reduces the number of unique elements that need to be generated:
+
+- Without caching: O(n^r) elements where r is recursion level
+- With caching: O(n*r) elements
+
+### SVG vs. Canvas Rendering
+
+For very high recursion levels:
+
+1. SVG rendering may become slow due to the DOM size
+2. Canvas rendering can be more efficient for large numbers of elements
+3. A hybrid approach could use SVG for lower levels and canvas for higher levels
 
 ## Configuration Options
 
@@ -201,11 +312,16 @@ The recursive nature of the Mandala Chart can lead to a large number of elements
 - Level 2 with 10 positions: 11 elements + 9 nested mandalas with 11 elements each = 110 elements
 - Level 3 with 10 positions: 110 elements + 9*9 nested mandalas with 11 elements each = 1,001 elements
 
+With SVG caching:
+- Level 3 with 10 positions: ~30 unique elements with ~100 instances
+- Level 4 with 10 positions: ~40 unique elements with ~1000 instances
+
 To maintain performance:
 
-1. Limit recursion levels for large charts
-2. Consider reducing the number of positions for higher recursion levels
-3. Use efficient rendering techniques (SVG or Canvas)
+1. Implement SVG caching for repeated structures
+2. Limit recursion levels for large charts
+3. Consider reducing the number of positions for higher recursion levels
+4. Use efficient rendering techniques (SVG or Canvas)
 
 ## Future Enhancements
 
@@ -217,3 +333,6 @@ Potential future enhancements for the Mandala Chart include:
 4. Text labels for circles
 5. Variable number of positions per level
 6. Support for different shapes beyond circles
+7. Implement SVG caching for higher recursion levels
+8. Add canvas rendering option for very complex mandalas
+9. Provide progressive loading for high recursion levels
