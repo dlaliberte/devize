@@ -9,7 +9,7 @@
 import * as THREE from 'three';
 import { buildViz } from '../../core/builder';
 import { registerDefineType } from '../../core/define';
-import { createRenderableVisualization } from '../../core/componentUtils';
+
 import { Cartesian3DCoordinateSystem } from '../coordinates/cartesian3DCoordinateSystem';
 import { createAxis3D } from './axis3D';
 

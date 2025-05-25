@@ -8,7 +8,7 @@
 
 import { buildViz } from '../core/builder';
 import { registerDefineType } from '../core/define';
-import { createRenderableVisualization } from '../core/componentUtils';
+import { createRenderableVisualizationEnhanced } from '../core/componentUtils';
 
 // Make sure define type is registered
 registerDefineType();
@@ -33,7 +33,7 @@ export const shapeDefinition = {
     data: { default: null },
     tooltip: { default: false }
   },
-  validate: function(props: any) {
+  validate: function (props: any) {
     // Validate shape type
     const validShapes: ShapeType[] = ['circle', 'square', 'triangle', 'diamond', 'cross', 'star', 'rect'];
     if (!validShapes.includes(props.shape)) {
@@ -45,7 +45,7 @@ export const shapeDefinition = {
       throw new Error('Width and height must be positive');
     }
   },
-  implementation: function(props: any) {
+  implementation: function (props: any) {
     const {
       shape, x, y, width, height, fill, stroke, strokeWidth, rotation, data, tooltip
     } = props;
@@ -100,23 +100,26 @@ export const shapeDefinition = {
     const renderableElement = buildViz(element);
 
     // Create and return a renderable visualization
-    return createRenderableVisualization(
+    return createRenderableVisualizationEnhanced(
       'shape',
-      props,
-      // SVG rendering function - delegates to the element's renderToSvg
-      (container: SVGElement): SVGElement => {
-        if (renderableElement && renderableElement.renderToSvg) {
-          return renderableElement.renderToSvg(container);
+      props, {
+      renderToSvg:
+        // SVG rendering function - delegates to the element's renderToSvg
+        (container: SVGElement): SVGElement => {
+          if (renderableElement && renderableElement.renderToSvg) {
+            return renderableElement.renderToSvg(container);
+          }
+          throw new Error('Failed to render SVG');
+        },
+      renderToCanvas:
+        // Canvas rendering function - delegates to the element's renderToCanvas
+        (ctx: CanvasRenderingContext2D): boolean => {
+          if (renderableElement && renderableElement.renderToCanvas) {
+            return renderableElement.renderToCanvas(ctx);
+          }
+          return false;
         }
-        throw new Error('Failed to render SVG');
-      },
-      // Canvas rendering function - delegates to the element's renderToCanvas
-      (ctx: CanvasRenderingContext2D): boolean => {
-        if (renderableElement && renderableElement.renderToCanvas) {
-          return renderableElement.renderToCanvas(ctx);
-        }
-        return false;
-      }
+    }
     );
   }
 };
@@ -158,7 +161,7 @@ export function getShapePath(shape: ShapeType, width: number, height: number): s
     case 'cross':
       const thirdWidth = halfWidth / 1.5;
       const thirdHeight = halfHeight / 1.5;
-      return `M${-thirdWidth},${-halfHeight}h${2*thirdWidth}v${halfHeight-thirdHeight}h${halfWidth-thirdWidth}v${2*thirdHeight}h${-halfWidth+thirdWidth}v${halfHeight-thirdHeight}h${-2*thirdWidth}v${-halfHeight+thirdHeight}h${-halfWidth+thirdWidth}v${-2*thirdHeight}h${halfWidth-thirdWidth}z`;
+      return `M${-thirdWidth},${-halfHeight}h${2 * thirdWidth}v${halfHeight - thirdHeight}h${halfWidth - thirdWidth}v${2 * thirdHeight}h${-halfWidth + thirdWidth}v${halfHeight - thirdHeight}h${-2 * thirdWidth}v${-halfHeight + thirdHeight}h${-halfWidth + thirdWidth}v${-2 * thirdHeight}h${halfWidth - thirdWidth}z`;
     case 'star':
       const outerRadiusX = halfWidth;
       const outerRadiusY = halfHeight;
@@ -206,7 +209,7 @@ export function createShape(options: {
   strokeWidth?: number,
   rotation?: number,
   data?: any,
-  tooltip?: boolean
+  tooltip?: boolean;
 }) {
   return buildViz({
     type: 'shape',

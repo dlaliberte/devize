@@ -9,9 +9,9 @@
 
 import { registerDefineType } from '../core/define';
 import { buildViz } from '../core/builder';
-import { createSVGElement, applyAttributes } from '../renderers/svgUtils';
-import { RenderableVisualization, VisualizationSpec } from '../core/types';
-import { createRenderableVisualization, createRenderableVisualizationEnhanced } from '../core/componentUtils';
+import { createSVGElement } from '../renderers/svgUtils';
+
+import { createRenderableVisualizationEnhanced } from '../core/componentUtils';
 
 // Rectangle type definition
 export const rectangleTypeDefinition = {

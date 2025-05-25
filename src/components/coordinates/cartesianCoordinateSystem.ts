@@ -11,7 +11,7 @@ import { Scale } from '../scales/scale';
 import { createScale } from '../scales/scale';
 import { buildViz } from '../../core/builder';
 import { registerDefineType } from '../../core/define';
-import { createRenderableVisualization } from '../../core/componentUtils';
+import { createRenderableVisualizationEnhanced } from '../../core/componentUtils';
 
 export interface CartesianCoordinateSystemOptions extends CoordinateSystemOptions {
   xScale: Scale | string;
@@ -56,29 +56,29 @@ export class CartesianCoordinateSystem implements CoordinateSystem {
   }
 
   // Convert data coordinates to container coordinates
-  toContainerCoords(point: { x: any, y: any }): Point {
+  toContainerCoords(point: { x: any, y: any; }): Point {
     const containerX = this.xScale.scale(point.x) + this.origin.x;
     const containerY = this.yScale.scale(point.y) + this.origin.y;
     return { x: containerX, y: containerY };
   }
 
   // Convert container coordinates to data coordinates
-  fromContainerCoords(point: Point): { x: any, y: any } {
+  fromContainerCoords(point: Point): { x: any, y: any; } {
     const dataX = this.xScale.invert(point.x - this.origin.x);
     const dataY = this.yScale.invert(point.y - this.origin.y);
     return { x: dataX, y: dataY };
   }
 
   // Keep the old method names for backward compatibility
-  toScreen(point: { x: any, y: any }): Point {
+  toScreen(point: { x: any, y: any; }): Point {
     return this.toContainerCoords(point);
   }
 
-  fromScreen(point: Point): { x: any, y: any } {
+  fromScreen(point: Point): { x: any, y: any; } {
     return this.fromContainerCoords(point);
   }
 
-  getDimensions(): { width: number, height: number } {
+  getDimensions(): { width: number, height: number; } {
     return { width: this.width, height: this.height };
   }
 
@@ -113,7 +113,7 @@ export const cartesianCoordinateSystemDefinition = {
     origin: { default: null },
     flipY: { default: true }
   },
-  implementation: function(props: any) {
+  implementation: function (props: any) {
     // Create the coordinate system
     const options: CartesianCoordinateSystemOptions = {
       width: props.width,
@@ -129,23 +129,23 @@ export const cartesianCoordinateSystemDefinition = {
     const coordSystem = new CartesianCoordinateSystem(options);
 
     // Create and return a renderable visualization
-    return createRenderableVisualization(
+    return createRenderableVisualizationEnhanced(
       'cartesianCoordinateSystem',
-      props,
-      // SVG rendering function - doesn't render anything directly
-      (container: SVGElement): SVGElement => {
-        // Just return the container, as coordinate systems don't render visually
-        return container;
-      },
-      // Canvas rendering function - doesn't render anything directly
-      (ctx: CanvasRenderingContext2D): boolean => {
-        // Coordinate systems don't render visually
-        return true;
-      },
-      // Additional properties
-      {
-        coordinateSystem: coordSystem
-      }
+      props, {
+      renderToSvg:
+        // SVG rendering function - doesn't render anything directly
+        (container: SVGElement): SVGElement => {
+          // Just return the container, as coordinate systems don't render visually
+          return container;
+        },
+      renderToCanvas:
+        // Canvas rendering function - doesn't render anything directly
+        (ctx: CanvasRenderingContext2D): boolean => {
+          // Coordinate systems don't render visually
+          return true;
+        }
+    }
+
     );
   }
 };

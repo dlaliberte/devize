@@ -10,7 +10,7 @@
 import { buildViz } from '../core/builder';
 import { registerDefineType } from '../core/define';
 import { createScale } from '../components/scales/scale';
-import { createRenderableVisualization } from '../core/componentUtils';
+import { createRenderableVisualizationEnhanced } from '../core/componentUtils';
 import {
   calculateLegendPosition,
   createColorMapping,
@@ -79,7 +79,7 @@ export const lineChartDefinition = {
       }
     }
   },
-  validate: function(props: any) {
+  validate: function (props: any) {
     // Validate data is an array
     if (!Array.isArray(props.data)) {
       throw new Error('Data must be an array');
@@ -105,7 +105,7 @@ export const lineChartDefinition = {
       throw new Error(`Curve must be one of: ${validCurves.join(', ')}`);
     }
   },
-  implementation: function(props: any) {
+  implementation: function (props: any) {
     // Extract properties from props
     const {
       data, x, y, color, margin, tooltip, title, width, height,
@@ -507,23 +507,25 @@ export const lineChartDefinition = {
     const renderableGroup = buildViz(groupSpec);
 
     // Create and return a renderable visualization
-    return createRenderableVisualization(
+    return createRenderableVisualizationEnhanced(
       'lineChart',
-      props,
-      // SVG rendering function - delegates to the group's renderToSvg
-      (container: SVGElement): SVGElement => {
-        if (renderableGroup && renderableGroup.renderToSvg) {
-          return renderableGroup.renderToSvg(container);
+      props, {
+        renderToSvg:
+          // SVG rendering function - delegates to the group's renderToSvg
+          (container: SVGElement): SVGElement => {
+            if (renderableGroup && renderableGroup.renderToSvg) {
+              return renderableGroup.renderToSvg(container);
+            }
+            throw new Error('Failed to render SVG');
+          }, renderToCanvas:
+        // Canvas rendering function - delegates to the group's renderToCanvas
+        (ctx: CanvasRenderingContext2D): boolean => {
+          if (renderableGroup && renderableGroup.renderToCanvas) {
+            return renderableGroup.renderToCanvas(ctx);
+          }
+          return false;
         }
-        throw new Error('Failed to render SVG');
-      },
-      // Canvas rendering function - delegates to the group's renderToCanvas
-      (ctx: CanvasRenderingContext2D): boolean => {
-        if (renderableGroup && renderableGroup.renderToCanvas) {
-          return renderableGroup.renderToCanvas(ctx);
-        }
-        return false;
-      }
+    }
     );
 
   }
@@ -540,10 +542,10 @@ buildViz(lineChartDefinition);
  */
 export function createLineChart(options: {
   data: any[],
-  x: { field: string, title?: string },
-  y: { field: string, title?: string },
-  color?: string | { field: string },
-  margin?: { top: number, right: number, bottom: number, left: number },
+  x: { field: string, title?: string; },
+  y: { field: string, title?: string; },
+  color?: string | { field: string; },
+  margin?: { top: number, right: number, bottom: number, left: number; },
   tooltip?: boolean,
   title?: string,
   grid?: boolean,
@@ -558,10 +560,10 @@ export function createLineChart(options: {
   fillOpacity?: number,
   legend?: {
     enabled?: boolean,
-    position?: string | { x: number, y: number },
-    orientation?: 'vertical' | 'horizontal'
+    position?: string | { x: number, y: number; },
+    orientation?: 'vertical' | 'horizontal';
   },
-  annotations?: Annotation[]
+  annotations?: Annotation[];
 }) {
   return buildViz({
     type: 'lineChart',

@@ -11,7 +11,7 @@ import { registerDefineType } from '../core/define';
 import { buildViz } from '../core/builder';
 import { createSVGElement } from '../renderers/svgUtils';
 import { RenderableVisualization, VisualizationSpec } from '../core/types';
-import { createRenderableVisualization } from '../core/componentUtils';
+import { createRenderableVisualizationEnhanced } from '../core/componentUtils';
 
 // Polygon type definition
 export const polygonTypeDefinition = {
@@ -115,11 +115,11 @@ export const polygonTypeDefinition = {
     };
 
     // Create and return a renderable visualization
-    return createRenderableVisualization(
+    return createRenderableVisualizationEnhanced(
       'polygon',
       props,
-      renderToSvg,
-      renderToCanvas
+     { renderToSvg,
+      renderToCanvas}
     );
   }
 };

@@ -52,6 +52,7 @@ function processSpecification(spec: VisualizationSpec, typeDefinition: TypeDefin
 
 /**
  * Create a renderable visualization from a processed specification
+ * TODO: Do we need this?
  */
 function createRenderableVisualization(spec: VisualizationSpec): RenderableVisualization {
   const type = spec.type;

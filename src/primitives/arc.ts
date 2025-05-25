@@ -9,7 +9,7 @@
 import { registerDefineType } from '../core/define';
 import { buildViz } from '../core/builder';
 import { createSVGElement, applyAttributes } from '../renderers/svgUtils';
-import { createRenderableVisualization } from '../core/componentUtils';
+import { createRenderableVisualizationEnhanced } from '../core/componentUtils';
 
 // Arc type definition
 export const arcTypeDefinition = {
@@ -28,7 +28,7 @@ export const arcTypeDefinition = {
     stroke: { default: "#fff" },
     strokeWidth: { default: 1 }
   },
-  implementation: function(props) {
+  implementation: function (props) {
     // Extract properties
     const {
       centerX, centerY, innerRadius, outerRadius,
@@ -103,11 +103,13 @@ export const arcTypeDefinition = {
     };
 
     // Create and return a renderable visualization
-    return createRenderableVisualization(
+    return createRenderableVisualizationEnhanced(
       'arc',
       props,
-      renderToSvg,
-      renderToCanvas
+      {
+        renderToSvg,
+        renderToCanvas
+      }
     );
   }
 };

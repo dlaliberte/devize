@@ -8,7 +8,7 @@
 
 import { buildViz } from '../core/builder';
 import { registerDefineType } from '../core/define';
-import { createRenderableVisualization } from '../core/componentUtils';
+
 import {
   commonChartProperties,
   validateCommonChartProps,

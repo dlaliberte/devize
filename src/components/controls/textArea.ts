@@ -8,7 +8,7 @@
 
 import { buildViz } from '../../core/builder';
 import { registerDefineType } from '../../core/define';
-import { createRenderableVisualization } from '../../core/componentUtils';
+
 
 // Make sure define type is registered
 registerDefineType();

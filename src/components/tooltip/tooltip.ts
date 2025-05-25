@@ -8,7 +8,7 @@
 
 import { buildViz } from '../../core/builder';
 import { registerDefineType } from '../../core/define';
-import { createRenderableVisualization } from '../../core/componentUtils';
+import { createRenderableVisualizationEnhanced } from '../../core/componentUtils';
 
 // Make sure define type is registered
 registerDefineType();
@@ -76,7 +76,7 @@ export const tooltipDefinition = {
       }
     }
   },
-  implementation: function(props: any) {
+  implementation: function (props: any) {
     const {
       content,
       position,
@@ -91,11 +91,14 @@ export const tooltipDefinition = {
 
     // Don't render if not visible and behavior is hover or click
     if (!visible && (behavior === 'hover' || behavior === 'click')) {
-      return createRenderableVisualization(
+      return createRenderableVisualizationEnhanced(
         'tooltip',
-        props,
-        (container: SVGElement) => container,
-        (ctx: CanvasRenderingContext2D) => true
+        props, {
+        renderToSvg:
+          (container: SVGElement) => container,
+        renderToCanvas:
+          (ctx: CanvasRenderingContext2D) => true
+      }
       );
     }
 
@@ -228,23 +231,26 @@ export const tooltipDefinition = {
     const renderableTooltip = buildViz(tooltipSpec);
 
     // Create and return a renderable visualization
-    return createRenderableVisualization(
+    return createRenderableVisualizationEnhanced(
       'tooltip',
-      props,
-      // SVG rendering function - delegates to the group's renderToSvg
-      (container: SVGElement): SVGElement => {
-        if (renderableTooltip && renderableTooltip.renderToSvg) {
-          return renderableTooltip.renderToSvg(container);
+      props, {
+      renderToSvg:
+        // SVG rendering function - delegates to the group's renderToSvg
+        (container: SVGElement): SVGElement => {
+          if (renderableTooltip && renderableTooltip.renderToSvg) {
+            return renderableTooltip.renderToSvg(container);
+          }
+          throw new Error('Failed to render SVG');
+        },
+      renderToCanvas:
+        // Canvas rendering function - delegates to the group's renderToCanvas
+        (ctx: CanvasRenderingContext2D): boolean => {
+          if (renderableTooltip && renderableTooltip.renderToCanvas) {
+            return renderableTooltip.renderToCanvas(ctx);
+          }
+          return false;
         }
-        throw new Error('Failed to render SVG');
-      },
-      // Canvas rendering function - delegates to the group's renderToCanvas
-      (ctx: CanvasRenderingContext2D): boolean => {
-        if (renderableTooltip && renderableTooltip.renderToCanvas) {
-          return renderableTooltip.renderToCanvas(ctx);
-        }
-        return false;
-      }
+    }
     );
   }
 };

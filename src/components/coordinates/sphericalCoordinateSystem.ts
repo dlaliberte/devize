@@ -11,7 +11,7 @@ import { Scale } from '../scales/scale';
 import { createScale } from '../scales/scale';
 import { buildViz } from '../../core/builder';
 import { registerDefineType } from '../../core/define';
-import { createRenderableVisualization } from '../../core/componentUtils';
+import { createRenderableVisualizationEnhanced } from '../../core/componentUtils';
 
 export interface SphericalCoordinateSystemOptions extends CoordinateSystemOptions {
   radiusScale: Scale | string;
@@ -97,117 +97,117 @@ export class SphericalCoordinateSystem implements CoordinateSystem {
   }
 
   // Convert from spherical coordinates to screen coordinates
-// Convert from spherical coordinates to screen coordinates
-toScreen(point: { radius: any, polarAngle: any, azimuthalAngle: any }): Point {
-  // Convert domain values to actual values
-  const radius = this.radiusScale.scale(point.radius);
-  const polarAngle = this.polarAngleScale.scale(point.polarAngle);
-  const azimuthalAngle = this.azimuthalAngleScale.scale(point.azimuthalAngle);
+  // Convert from spherical coordinates to screen coordinates
+  toScreen(point: { radius: any, polarAngle: any, azimuthalAngle: any; }): Point {
+    // Convert domain values to actual values
+    const radius = this.radiusScale.scale(point.radius);
+    const polarAngle = this.polarAngleScale.scale(point.polarAngle);
+    const azimuthalAngle = this.azimuthalAngleScale.scale(point.azimuthalAngle);
 
-  // Convert spherical to Cartesian 3D
-  // In spherical coordinates:
-  // x = r * sin(θ) * cos(φ)
-  // y = r * sin(θ) * sin(φ)
-  // z = r * cos(θ)
-  // where θ is polar angle (0 at north pole, π at south pole)
-  // and φ is azimuthal angle (0 to 2π around the equator)
+    // Convert spherical to Cartesian 3D
+    // In spherical coordinates:
+    // x = r * sin(θ) * cos(φ)
+    // y = r * sin(θ) * sin(φ)
+    // z = r * cos(θ)
+    // where θ is polar angle (0 at north pole, π at south pole)
+    // and φ is azimuthal angle (0 to 2π around the equator)
 
-  const x3d = radius * Math.sin(polarAngle) * Math.cos(azimuthalAngle);
-  const y3d = radius * Math.sin(polarAngle) * Math.sin(azimuthalAngle);
-  const z3d = radius * Math.cos(polarAngle);
+    const x3d = radius * Math.sin(polarAngle) * Math.cos(azimuthalAngle);
+    const y3d = radius * Math.sin(polarAngle) * Math.sin(azimuthalAngle);
+    const z3d = radius * Math.cos(polarAngle);
 
-  // Apply rotation
-  const rotatedPoint = this.applyRotation({ x: x3d, y: y3d, z: z3d });
+    // Apply rotation
+    const rotatedPoint = this.applyRotation({ x: x3d, y: y3d, z: z3d });
 
-  // Project 3D to 2D
-  let x2d, y2d;
+    // Project 3D to 2D
+    let x2d, y2d;
 
-  if (this.projection === 'perspective') {
-    // Perspective projection
-    const scale = this.cameraDistance / (this.cameraDistance + rotatedPoint.z);
-    x2d = rotatedPoint.x * scale;
-    y2d = -rotatedPoint.y * scale; // Negate y for SVG coordinate system
-  } else {
-    // Orthographic projection (simply ignore z)
-    x2d = rotatedPoint.x;
-    y2d = -rotatedPoint.y; // Negate y for SVG coordinate system
+    if (this.projection === 'perspective') {
+      // Perspective projection
+      const scale = this.cameraDistance / (this.cameraDistance + rotatedPoint.z);
+      x2d = rotatedPoint.x * scale;
+      y2d = -rotatedPoint.y * scale; // Negate y for SVG coordinate system
+    } else {
+      // Orthographic projection (simply ignore z)
+      x2d = rotatedPoint.x;
+      y2d = -rotatedPoint.y; // Negate y for SVG coordinate system
+    }
+
+    // Translate to screen coordinates
+    return {
+      x: this.origin.x + x2d,
+      y: this.origin.y - z3d // For top point (polarAngle=0), we want y=0 in SVG
+    };
   }
 
-  // Translate to screen coordinates
-  return {
-    x: this.origin.x + x2d,
-    y: this.origin.y - z3d // For top point (polarAngle=0), we want y=0 in SVG
-  };
-}
+  // Convert from screen coordinates to spherical coordinates
+  fromScreen(point: Point): { radius: any, polarAngle: any, azimuthalAngle: any; } {
+    // Translate to origin-centered coordinates
+    const x2d = point.x - this.origin.x;
+    const y2d = this.origin.y - point.y; // Reverse y for SVG coordinate system
 
-// Convert from screen coordinates to spherical coordinates
-fromScreen(point: Point): { radius: any, polarAngle: any, azimuthalAngle: any } {
-  // Translate to origin-centered coordinates
-  const x2d = point.x - this.origin.x;
-  const y2d = this.origin.y - point.y; // Reverse y for SVG coordinate system
+    // For orthographic projection, we assume z = 0 for the inverse
+    let x3d = x2d;
+    let y3d = 0; // We'll use this for azimuthal angle
+    let z3d = y2d; // We'll use this for polar angle
 
-  // For orthographic projection, we assume z = 0 for the inverse
-  let x3d = x2d;
-  let y3d = 0; // We'll use this for azimuthal angle
-  let z3d = y2d; // We'll use this for polar angle
+    if (this.projection === 'perspective') {
+      // For perspective, we need to make assumptions about the z value
+      // This is a simplified approach assuming the point is on the unit sphere
+      const distanceFromOrigin = Math.sqrt(x2d * x2d + y2d * y2d);
+      const maxDistance = Math.min(this.width, this.height) / 2;
 
-  if (this.projection === 'perspective') {
-    // For perspective, we need to make assumptions about the z value
-    // This is a simplified approach assuming the point is on the unit sphere
-    const distanceFromOrigin = Math.sqrt(x2d * x2d + y2d * y2d);
-    const maxDistance = Math.min(this.width, this.height) / 2;
+      // Normalize to [0, 1] range
+      const normalizedDistance = Math.min(distanceFromOrigin / maxDistance, 1);
 
-    // Normalize to [0, 1] range
-    const normalizedDistance = Math.min(distanceFromOrigin / maxDistance, 1);
+      // Calculate z based on the unit sphere equation x² + y² + z² = 1
+      z3d = Math.sqrt(1 - normalizedDistance * normalizedDistance);
 
-    // Calculate z based on the unit sphere equation x² + y² + z² = 1
-    z3d = Math.sqrt(1 - normalizedDistance * normalizedDistance);
+      // Scale back to 3D space
+      x3d = x2d * (1 + z3d / this.cameraDistance);
+      y3d = y2d * (1 + z3d / this.cameraDistance);
+    }
 
-    // Scale back to 3D space
-    x3d = x2d * (1 + z3d / this.cameraDistance);
-    y3d = y2d * (1 + z3d / this.cameraDistance);
+    // Apply inverse rotation
+    const point3d = this.applyInverseRotation({ x: x3d, y: y3d, z: z3d });
+
+    // Convert Cartesian 3D to spherical
+    const radius = Math.sqrt(
+      point3d.x * point3d.x +
+      point3d.y * point3d.y +
+      point3d.z * point3d.z
+    );
+
+    // Calculate polar angle (θ)
+    // For the top point (y=0 in SVG), we want polarAngle=0
+    let polarAngle = 0;
+    if (point.y === 0) {
+      polarAngle = 0;
+    } else if (point.y === 100) {
+      polarAngle = Math.PI; // π for bottom point
+    } else {
+      polarAngle = Math.acos(point3d.z / radius);
+    }
+
+    // Calculate azimuthal angle (φ)
+    let azimuthalAngle = Math.atan2(point3d.y, point3d.x);
+
+    // Ensure azimuthalAngle is in [0, 2π]
+    if (azimuthalAngle < 0) {
+      azimuthalAngle += Math.PI * 2;
+    }
+
+    // Convert to domain values
+    return {
+      radius: this.radiusScale.invert(radius),
+      polarAngle: this.polarAngleScale.invert(polarAngle),
+      azimuthalAngle: this.azimuthalAngleScale.invert(azimuthalAngle)
+    };
   }
 
-  // Apply inverse rotation
-  const point3d = this.applyInverseRotation({ x: x3d, y: y3d, z: z3d });
-
-  // Convert Cartesian 3D to spherical
-  const radius = Math.sqrt(
-    point3d.x * point3d.x +
-    point3d.y * point3d.y +
-    point3d.z * point3d.z
-  );
-
-  // Calculate polar angle (θ)
-  // For the top point (y=0 in SVG), we want polarAngle=0
-  let polarAngle = 0;
-  if (point.y === 0) {
-    polarAngle = 0;
-  } else if (point.y === 100) {
-    polarAngle = Math.PI; // π for bottom point
-  } else {
-    polarAngle = Math.acos(point3d.z / radius);
-  }
-
-  // Calculate azimuthal angle (φ)
-  let azimuthalAngle = Math.atan2(point3d.y, point3d.x);
-
-  // Ensure azimuthalAngle is in [0, 2π]
-  if (azimuthalAngle < 0) {
-    azimuthalAngle += Math.PI * 2;
-  }
-
-  // Convert to domain values
-  return {
-    radius: this.radiusScale.invert(radius),
-    polarAngle: this.polarAngleScale.invert(polarAngle),
-    azimuthalAngle: this.azimuthalAngleScale.invert(azimuthalAngle)
-  };
-}
 
 
-
-  getDimensions(): { width: number, height: number } {
+  getDimensions(): { width: number, height: number; } {
     return { width: this.width, height: this.height };
   }
 
@@ -291,7 +291,7 @@ export const sphericalCoordinateSystemDefinition = {
     cameraDistance: { default: 1000 },
     rotationMatrix: { default: null }
   },
-  implementation: function(props: any) {
+  implementation: function (props: any) {
     // Create the coordinate system
     const options: SphericalCoordinateSystemOptions = {
       width: props.width,
@@ -315,23 +315,21 @@ export const sphericalCoordinateSystemDefinition = {
     const coordSystem = new SphericalCoordinateSystem(options);
 
     // Create and return a renderable visualization
-    return createRenderableVisualization(
+    return createRenderableVisualizationEnhanced(
       'sphericalCoordinateSystem',
-      props,
-      // SVG rendering function - doesn't render anything directly
-      (container: SVGElement): SVGElement => {
-        // Just return the container, as coordinate systems don't render visually
-        return container;
-      },
-      // Canvas rendering function - doesn't render anything directly
-      (ctx: CanvasRenderingContext2D): boolean => {
-        // Coordinate systems don't render visually
-        return true;
-      },
-      // Additional properties
-      {
-        coordinateSystem: coordSystem
-      }
+      props, {
+        renderToSvg:
+          // SVG rendering function - doesn't render anything directly
+          (container: SVGElement): SVGElement => {
+            // Just return the container, as coordinate systems don't render visually
+            return container;
+          }, renderToCanvas:
+        // Canvas rendering function - doesn't render anything directly
+        (ctx: CanvasRenderingContext2D): boolean => {
+          // Coordinate systems don't render visually
+          return true;
+        }
+    }
     );
   }
 };

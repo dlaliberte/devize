@@ -18,7 +18,7 @@ import { Scale } from '../scales/scale';
 import { createScale } from '../scales/scale';
 import { buildViz } from '../../core/builder';
 import { registerDefineType } from '../../core/define';
-import { createRenderableVisualization } from '../../core/componentUtils';
+import { createRenderableVisualizationEnhanced } from '../../core/componentUtils';
 
 export interface Point3D {
   x: number;
@@ -110,7 +110,7 @@ export class Cartesian3DCoordinateSystem implements CoordinateSystem {
   }
 
   // Convert data coordinates to 3D space coordinates
-  toSpace(point: { x: any, y: any, z: any }): Point3D {
+  toSpace(point: { x: any, y: any, z: any; }): Point3D {
     return {
       x: this.xScale.scale(point.x),
       y: this.yScale.scale(point.y),
@@ -119,7 +119,7 @@ export class Cartesian3DCoordinateSystem implements CoordinateSystem {
   }
 
   // Convert 3D space coordinates to data coordinates
-  fromSpace(point: Point3D): { x: any, y: any, z: any } {
+  fromSpace(point: Point3D): { x: any, y: any, z: any; } {
     return {
       x: this.xScale.invert(point.x),
       y: this.yScale.invert(point.y),
@@ -204,29 +204,29 @@ export class Cartesian3DCoordinateSystem implements CoordinateSystem {
   }
 
   // Convert data coordinates directly to 2D container coordinates
-  toContainerCoords(point: { x: any, y: any, z: any }): Point2D {
+  toContainerCoords(point: { x: any, y: any, z: any; }): Point2D {
     const spacePoint = this.toSpace(point);
     return this.project(spacePoint);
   }
 
   // Convert 2D container coordinates to data coordinates (with estimated z)
-  fromContainerCoords(point: Point2D, estimatedZ: number = 0): { x: any, y: any, z: any } {
+  fromContainerCoords(point: Point2D, estimatedZ: number = 0): { x: any, y: any, z: any; } {
     const spacePoint = this.unproject(point, estimatedZ);
     return this.fromSpace(spacePoint);
   }
 
   // For compatibility with the CoordinateSystem interface
-  toScreen(point: { x: any, y: any, z: any }): Point2D {
+  toScreen(point: { x: any, y: any, z: any; }): Point2D {
     return this.toContainerCoords(point);
   }
 
   // For compatibility with the CoordinateSystem interface
-  fromScreen(point: Point2D): { x: any, y: any, z: any } {
+  fromScreen(point: Point2D): { x: any, y: any, z: any; } {
     return this.fromContainerCoords(point);
   }
 
   // Get the dimensions of the coordinate system
-  getDimensions(): { width: number, height: number, depth: number } {
+  getDimensions(): { width: number, height: number, depth: number; } {
     return { width: this.width, height: this.height, depth: this.depth };
   }
 
@@ -298,7 +298,7 @@ export const cartesian3DCoordinateSystemDefinition = {
     flipY: { default: true },
     projection: { default: null }
   },
-  implementation: function(props: any) {
+  implementation: function (props: any) {
     // Create the coordinate system
     const options: Cartesian3DCoordinateSystemOptions = {
       width: props.width,
@@ -318,23 +318,22 @@ export const cartesian3DCoordinateSystemDefinition = {
     const coordSystem = new Cartesian3DCoordinateSystem(options);
 
     // Create and return a renderable visualization
-    return createRenderableVisualization(
+    return createRenderableVisualizationEnhanced(
       'cartesian3DCoordinateSystem',
-      props,
-      // SVG rendering function - doesn't render anything directly
-      (container: SVGElement): SVGElement => {
-        // Just return the container, as coordinate systems don't render visually
-        return container;
-      },
-      // Canvas rendering function - doesn't render anything directly
-      (ctx: CanvasRenderingContext2D): boolean => {
-        // Coordinate systems don't render visually
-        return true;
-      },
-      // Additional properties
-      {
-        coordinateSystem: coordSystem
-      }
+      props, {
+      renderToSvg:
+        // SVG rendering function - doesn't render anything directly
+        (container: SVGElement): SVGElement => {
+          // Just return the container, as coordinate systems don't render visually
+          return container;
+        },
+      renderToCanvas:
+        // Canvas rendering function - doesn't render anything directly
+        (ctx: CanvasRenderingContext2D): boolean => {
+          // Coordinate systems don't render visually
+          return true;
+        }
+    }
     );
   }
 };

@@ -10,7 +10,7 @@
 import { buildViz } from '../core/builder';
 import { registerDefineType } from '../core/define';
 import { createScale } from '../components/scales/scale';
-import { createRenderableVisualization } from '../core/componentUtils';
+import { createRenderableVisualizationEnhanced } from '../core/componentUtils';
 import {
   calculateLegendPosition,
   createColorMapping,
@@ -100,7 +100,7 @@ export const scatterPlotDefinition = {
       }
     }
   },
-  validate: function(props: any) {
+  validate: function (props: any) {
     // Validate data is an array
     if (!Array.isArray(props.data)) {
       throw new Error('Data must be an array');
@@ -146,7 +146,7 @@ export const scatterPlotDefinition = {
       throw new Error('Size must be a number or an object with field and range properties');
     }
   },
-  implementation: function(props: any) {
+  implementation: function (props: any) {
     // Convert scatterPlot props to lineChart props
     const lineChartProps = {
       ...props,
@@ -486,72 +486,74 @@ export const scatterPlotDefinition = {
 
     // In the implementation function, after creating all points:
 
-// Combine all elements into a group specification
-const groupSpec = {
-  type: 'group',
-  transform: `translate(${margin.left}, ${margin.top})`,
-  children: [
-    // Grid lines (if enabled)
-    ...gridLines,
+    // Combine all elements into a group specification
+    const groupSpec = {
+      type: 'group',
+      transform: `translate(${margin.left}, ${margin.top})`,
+      children: [
+        // Grid lines (if enabled)
+        ...gridLines,
 
-    // X-axis
-    {
-      type: 'axis',
-      orientation: 'bottom',
-      scale: xScale,
-      length: dimensions.chartWidth,
-      transform: `translate(0, ${dimensions.chartHeight})`,
-      title: x.title || x.field,
-      values: xType === 'band' ? xValues : undefined
-    },
+        // X-axis
+        {
+          type: 'axis',
+          orientation: 'bottom',
+          scale: xScale,
+          length: dimensions.chartWidth,
+          transform: `translate(0, ${dimensions.chartHeight})`,
+          title: x.title || x.field,
+          values: xType === 'band' ? xValues : undefined
+        },
 
-    // Y-axis
-    {
-      type: 'axis',
-      orientation: 'left',
-      scale: yScale,
-      length: dimensions.chartHeight,
-      transform: 'translate(0, 0)',
-      title: y.title || y.field,
-      format: (value: number) => value.toLocaleString(),
-      values: yAxisValues
-    },
+        // Y-axis
+        {
+          type: 'axis',
+          orientation: 'left',
+          scale: yScale,
+          length: dimensions.chartHeight,
+          transform: 'translate(0, 0)',
+          title: y.title || y.field,
+          format: (value: number) => value.toLocaleString(),
+          values: yAxisValues
+        },
 
-    // Points
-    ...allPoints,
+        // Points
+        ...allPoints,
 
-    // Title
-    chartTitle,
+        // Title
+        chartTitle,
 
-    // Legends
-    colorLegend,
-    sizeLegend,
-    shapeLegend
-  ].filter(Boolean) // Remove null items
-};
+        // Legends
+        colorLegend,
+        sizeLegend,
+        shapeLegend
+      ].filter(Boolean) // Remove null items
+    };
 
 
     // Process the group specification to create a renderable visualization
     const renderableGroup = buildViz(groupSpec);
 
     // Create and return a renderable visualization
-    return createRenderableVisualization(
+    return createRenderableVisualizationEnhanced(
       'scatterPlot',
-      props,
-      // SVG rendering function - delegates to the group's renderToSvg
-      (container: SVGElement): SVGElement => {
-        if (renderableGroup && renderableGroup.renderToSvg) {
-          return renderableGroup.renderToSvg(container);
+      props, {
+        renderToSvg:
+          // SVG rendering function - delegates to the group's renderToSvg
+          (container: SVGElement): SVGElement => {
+            if (renderableGroup && renderableGroup.renderToSvg) {
+              return renderableGroup.renderToSvg(container);
+            }
+            throw new Error('Failed to render SVG');
+          }, renderToCanvas:
+        // Canvas rendering function - delegates to the group's renderToCanvas
+        (ctx: CanvasRenderingContext2D): boolean => {
+          if (renderableGroup && renderableGroup.renderToCanvas) {
+            return renderableGroup.renderToCanvas(ctx);
+          }
+          return false;
         }
-        throw new Error('Failed to render SVG');
-      },
-      // Canvas rendering function - delegates to the group's renderToCanvas
-      (ctx: CanvasRenderingContext2D): boolean => {
-        if (renderableGroup && renderableGroup.renderToCanvas) {
-          return renderableGroup.renderToCanvas(ctx);
-        }
-        return false;
-      }
+    }
     );
   }
 };
@@ -567,11 +569,11 @@ buildViz(scatterPlotDefinition);
  */
 export function createScatterPlot(options: {
   data: any[],
-  x: { field: string, title?: string },
-  y: { field: string, title?: string },
-  color?: string | { field: string },
-  size?: number | { field: string, range?: [number, number] },
-  margin?: { top: number, right: number, bottom: number, left: number },
+  x: { field: string, title?: string; },
+  y: { field: string, title?: string; },
+  color?: string | { field: string; },
+  size?: number | { field: string, range?: [number, number]; },
+  margin?: { top: number, right: number, bottom: number, left: number; },
   tooltip?: boolean,
   title?: string,
   grid?: boolean,
@@ -580,9 +582,9 @@ export function createScatterPlot(options: {
   pointStyle?: any,
   legend?: {
     enabled?: boolean,
-    position?: string | { x: number, y: number },
-    orientation?: 'vertical' | 'horizontal'
-  }
+    position?: string | { x: number, y: number; },
+    orientation?: 'vertical' | 'horizontal';
+  };
 }) {
   return buildViz({
     type: 'scatterPlot',
@@ -608,14 +610,14 @@ function getShapePath(shape, size) {
 
   switch (shape) {
     case 'square':
-      return `M${-halfSize},${-halfSize}h${2*halfSize}v${2*halfSize}h${-2*halfSize}z`;
+      return `M${-halfSize},${-halfSize}h${2 * halfSize}v${2 * halfSize}h${-2 * halfSize}z`;
     case 'triangle':
       return `M0,${-halfSize}L${halfSize},${halfSize}L${-halfSize},${halfSize}z`;
     case 'diamond':
       return `M0,${-halfSize}L${halfSize},0L0,${halfSize}L${-halfSize},0z`;
     case 'cross':
       const third = halfSize / 1.5;
-      return `M${-third},${-halfSize}h${2*third}v${third}h${third}v${2*third}h${-third}v${third}h${-2*third}v${-third}h${-third}v${-2*third}h${third}z`;
+      return `M${-third},${-halfSize}h${2 * third}v${third}h${third}v${2 * third}h${-third}v${third}h${-2 * third}v${-third}h${-third}v${-2 * third}h${third}z`;
     case 'star':
       const outerRadius = halfSize;
       const innerRadius = halfSize * 0.4;
@@ -667,9 +669,11 @@ function createMeasuresScatterPlot(measures = 'population') {
     series: series,
     x: { field: 'gdp', title: 'GDP (Billions USD)' },
     // Always provide a default y field, even when using series
-    y: { field: measures === 'lifeExpectancy' ? 'lifeExpectancy' : 'population',
-         title: measures === 'both' ? 'Value' :
-                (measures === 'lifeExpectancy' ? 'Life Expectancy (Years)' : 'Population (Millions)') },
+    y: {
+      field: measures === 'lifeExpectancy' ? 'lifeExpectancy' : 'population',
+      title: measures === 'both' ? 'Value' :
+        (measures === 'lifeExpectancy' ? 'Life Expectancy (Years)' : 'Population (Millions)')
+    },
     title: 'GDP vs Multiple Measures',
     tooltip: true,
     grid: true,
