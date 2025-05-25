@@ -149,8 +149,8 @@ export function renderAnnotations(
   const baseContext = {
     width: dimensions.chartWidth,
     height: dimensions.chartHeight,
-    xRange: coordSystem.xScale.domain()[1] - coordSystem.xScale.domain()[0],
-    yRange: coordSystem.yScale.domain()[1] - coordSystem.yScale.domain()[0]
+    xRange: coordSystem.getXScale().domain()[1] - coordSystem.getXScale().domain()[0],
+    yRange: coordSystem.getYScale().domain()[1] - coordSystem.getYScale().domain()[0]
   };
 
   // Process each annotation

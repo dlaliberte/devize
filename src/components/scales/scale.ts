@@ -24,6 +24,13 @@ import { createMinimalBandScale, registerBandScaleComponent } from './bandScale'
 import { createMinimalLinearScale, registerLinearScaleComponent } from './linearScale';
 import { createMinimalOrdinalScale, registerOrdinalScaleComponent } from './ordinalScale';
 
+// export class Scale
+// {
+//   domain: any;
+//   range: any;
+//   scale: any;
+// }
+
 
 /**
  * Create a scale factory function that can be used directly in code

@@ -176,7 +176,31 @@ Devize.renderViz(lineChart, document.getElementById("visualization-container"));
         curve: options.curve,
         grid: true,
         lineWidth: 2,
-        pointSize: 5
+        pointSize: 5,
+        annotations: [
+          {
+            type: 'text',
+            text: 'Trend: Increasing',
+            x: 'Jan',
+            y: 420,
+            color: 'green',
+            fontSize: 12,
+            fontWeight: 'bold',
+            textAlign: 'left',
+            textBaseline: 'top'
+          },
+          {
+            type: 'text',
+            text: 'Trend: Decreasing',
+            x: 'Feb',
+            y: 380,
+            color: 'red',
+            fontSize: 12,
+            fontWeight: 'bold',
+            textAlign: 'left',
+            textBaseline: 'top'
+          }
+        ]
       };
 
       // Build the visualization

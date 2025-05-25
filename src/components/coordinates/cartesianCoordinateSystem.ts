@@ -131,20 +131,21 @@ export const cartesianCoordinateSystemDefinition = {
     // Create and return a renderable visualization
     return createRenderableVisualizationEnhanced(
       'cartesianCoordinateSystem',
-      props, {
-      renderToSvg:
-        // SVG rendering function - doesn't render anything directly
-        (container: SVGElement): SVGElement => {
-          // Just return the container, as coordinate systems don't render visually
-          return container;
-        },
-      renderToCanvas:
-        // Canvas rendering function - doesn't render anything directly
-        (ctx: CanvasRenderingContext2D): boolean => {
-          // Coordinate systems don't render visually
-          return true;
-        }
-    }
+      props,
+      {
+        renderToSvg:
+          // SVG rendering function - doesn't render anything directly
+          (container: SVGElement): SVGElement => {
+            // Just return the container, as coordinate systems don't render visually
+            return container;
+          },
+        renderToCanvas:
+          // Canvas rendering function - doesn't render anything directly
+          (ctx: CanvasRenderingContext2D): boolean => {
+            // Coordinate systems don't render visually
+            return true;
+          }
+      }
 
     );
   }
