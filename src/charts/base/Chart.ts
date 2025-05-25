@@ -6,10 +6,10 @@
  * Creation Date: 2023-12-05
  */
 
-import { buildViz } from '../../core/builder';
+
 import { registerDefineType } from '../../core/define';
-import { createRenderableVisualization } from '../../core/componentUtils';
-import { createChartTitle } from '../utils/axisChartUtils';
+import { createRenderableVisualizationEnhanced } from '../../core/componentUtils';
+// import { createChartTitleElement } from '../utils/axisChartUtils';
 
 // Common chart properties that apply to all chart types
 export const commonChartProperties = {
@@ -67,22 +67,26 @@ export function createChartVisualization(
   props: any,
   renderableGroup: any
 ) {
-  return createRenderableVisualization(
+  return createRenderableVisualizationEnhanced(
     chartType,
     props,
-    // SVG rendering function - delegates to the group's renderToSvg
-    (container: SVGElement): SVGElement => {
-      if (renderableGroup && renderableGroup.renderToSvg) {
-        return renderableGroup.renderToSvg(container);
-      }
-      throw new Error(`Failed to render ${chartType} as SVG`);
-    },
-    // Canvas rendering function - delegates to the group's renderToCanvas
-    (ctx: CanvasRenderingContext2D): boolean => {
-      if (renderableGroup && renderableGroup.renderToCanvas) {
-        return renderableGroup.renderToCanvas(ctx);
-      }
-      return false;
+    {
+      renderToSvg:
+        // SVG rendering function - delegates to the group's renderToSvg
+        (container: SVGElement): SVGElement => {
+          if (renderableGroup && renderableGroup.renderToSvg) {
+            return renderableGroup.renderToSvg(container);
+          }
+          throw new Error(`Failed to render ${chartType} as SVG`);
+        },
+      renderToCanvas:
+        // Canvas rendering function - delegates to the group's renderToCanvas
+        (ctx: CanvasRenderingContext2D): boolean => {
+          if (renderableGroup && renderableGroup.renderToCanvas) {
+            return renderableGroup.renderToCanvas(ctx);
+          }
+          return false;
+        }
     }
   );
 }

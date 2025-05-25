@@ -10,7 +10,7 @@
 import { buildViz } from '../core/builder';
 import { registerDefineType } from '../core/define';
 import { createSVGElement } from '../renderers/svgUtils';
-import { createRenderableVisualization } from '../core/componentUtils';
+import { createRenderableVisualizationEnhanced } from '../core/componentUtils';
 
 // Path type definition
 export const pathTypeDefinition = {
@@ -122,11 +122,11 @@ export const pathTypeDefinition = {
     };
 
     // Create and return a renderable visualization
-    return createRenderableVisualization(
+    return createRenderableVisualizationEnhanced(
       'path',
       props,
-      renderToSvg,
-      renderToCanvas
+      {renderToSvg,
+      renderToCanvas}
     );
   }
 };

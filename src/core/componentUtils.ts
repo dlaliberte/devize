@@ -95,6 +95,7 @@ export function createRenderableVisualizationEnhanced(
   renderFunctions: {
     renderToSvg?: (container: SVGElement) => SVGElement;
     renderToCanvas?: (ctx: CanvasRenderingContext2D) => boolean;
+    renderToHtml?: (container: HTMLElement) => HTMLElement;
     renderToThreeJS?: (container: HTMLElement) => any;
     // Could add more render functions in the future (e.g., renderToWebGPU)
   },
@@ -149,25 +150,6 @@ export function createRenderableVisualizationEnhanced(
 
     // Render to a container
     render: function (container: HTMLElement) {
-// +   console.log('Render method called for', type);
-// +
-// +   // Check if we should use Three.js rendering
-// +   if (this.renderToThreeJS && container instanceof HTMLElement && !(container instanceof SVGElement)) {
-// +     console.log('Using Three.js rendering path');
-// +     const renderer = this.renderToThreeJS(container);
-// +     return {
-// +       element: container,
-// +       update: (newSpec: any) => {
-// +         const updatedViz = this.update(newSpec);
-// +         return updatedViz.render(container);
-// +       },
-// +       cleanup: () => {
-// +         if (renderer && renderer.dispose) {
-// +           renderer.dispose();
-// +         }
-// +       }
-// +     };
-// +   }
 
       // Create an SVG element if needed
       let svg = container.querySelector('svg');
@@ -238,23 +220,16 @@ export function createRenderableVisualizationEnhanced(
 export function createRenderableVisualization(
   type: string,
   props: any,
-  renderToSvgFn: (container: SVGElement) => SVGElement,
-  renderToCanvasFn: (ctx: CanvasRenderingContext2D) => boolean,
-  additionalProps: Record<string, any> = {}
+  renderToSvg: (svg: SVGElement) => SVGElement,
+  renderToCanvas: (ctx: CanvasRenderingContext2D) => boolean
 ): RenderableVisualization {
   return createRenderableVisualizationEnhanced(
     type,
     props,
     {
-      renderToSvg: renderToSvgFn,
-      renderToCanvas: renderToCanvasFn,
-      // If additionalProps contains renderToThreeJS, extract it
-      renderToThreeJS: additionalProps.renderToThreeJS
-    },
-    // Filter out renderToThreeJS from additionalProps to avoid duplication
-    Object.fromEntries(
-      Object.entries(additionalProps).filter(([key]) => key !== 'renderToThreeJS')
-    )
+      renderToSvg,
+      renderToCanvas
+    }
   );
 }
 

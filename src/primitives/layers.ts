@@ -24,7 +24,7 @@ export const layerTypeDefinition = {
   implementation: props => {
     // Create a group with the same properties
     const groupProps = { ...props };
-    delete groupProps.type;  // Avoid an infinte loop
+    delete groupProps.type;  // Avoid an infinite loop
     delete groupProps.zIndex; // Remove zIndex as it's not in group properties
 
     // Build the group visualization

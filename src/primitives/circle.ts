@@ -12,7 +12,7 @@ import { registerDefineType } from '../core/define';
 import { ensureSvg } from '../core/renderer';
 import { RenderableVisualization, VisualizationSpec } from '../core/types';
 import { createSVGElement, applyAttributes } from '../renderers/svgUtils';
-import { createRenderableVisualization } from '../core/componentUtils';
+import { createRenderableVisualizationEnhanced } from '../core/componentUtils';
 
 // Define the circle type definition
 export const circleTypeDefinition = {
@@ -88,7 +88,7 @@ export const circleTypeDefinition = {
     };
 
     // Create and return a renderable visualization using the utility function
-    return createRenderableVisualization('circle', props, renderToSvg, renderToCanvas);
+    return createRenderableVisualizationEnhanced('circle', props, {renderToSvg, renderToCanvas});
   }
 };
 

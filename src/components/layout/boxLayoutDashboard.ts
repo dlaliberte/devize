@@ -7,7 +7,8 @@
  */
 
 import { buildViz } from '../../core/builder';
-import { createHBox, createVBox } from './box';
+import { createBox } from './box';
+import { renderViz } from '../../core/renderer';
 
 export function createBoxLayoutDashboard(container: HTMLElement) {
   // Create dashboard container
@@ -57,13 +58,9 @@ export function createBoxLayoutDashboard(container: HTMLElement) {
 
   // State for box layout configuration
   const config = {
-    type: 'hbox', // 'hbox' or 'vbox'
+    class: 'horizontal', // Default to horizontal layout
     spacing: 10,
     padding: 20,
-    valign: 'start', // 'start', 'center', 'end', 'stretch'
-    halign: 'start', // 'start', 'center', 'end', 'space-between', 'space-around', 'space-evenly'
-    wrap: false,
-    reverse: false,
     items: [
       { width: 80, height: 80, color: '#ff5252' },
       { width: 80, height: 80, color: '#4caf50' },
@@ -141,73 +138,44 @@ export function createBoxLayoutDashboard(container: HTMLElement) {
     // Clear previous visualization
     previewArea.innerHTML = '';
 
-    // Create SVG container
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    svg.setAttribute('width', '100%');
-    svg.setAttribute('height', '100%');
-    svg.style.overflow = 'visible';
-    previewArea.appendChild(svg);
-
     // Add a visible container boundary
-    const containerRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-    containerRect.setAttribute('x', '20');
-    containerRect.setAttribute('y', '20');
-    containerRect.setAttribute('width', '400');
-    containerRect.setAttribute('height', '200');
-    containerRect.setAttribute('fill', 'none');
-    containerRect.setAttribute('stroke', '#999');
-    containerRect.setAttribute('stroke-dasharray', '5,5');
-    containerRect.setAttribute('rx', '4');
-    svg.appendChild(containerRect);
+    const containerBoundary = document.createElement('div');
+    containerBoundary.style.position = 'absolute';
+    containerBoundary.style.left = '20px';
+    containerBoundary.style.top = '20px';
+    containerBoundary.style.width = '400px';
+    containerBoundary.style.height = '200px';
+    containerBoundary.style.border = '1px dashed #999';
+    containerBoundary.style.borderRadius = '4px';
+    previewArea.appendChild(containerBoundary);
 
     // Create box items
     const boxItems = config.items.map(item => {
-        return {
+      return {
         type: 'rectangle',
         width: item.width,
         height: item.height,
         fill: item.color,
         stroke: '#000',
         strokeWidth: 1,
-        rx: 4,
-        ry: 4
-        };
+        cornerRadius: 4
+      };
     });
 
-    // Create box layout
+    // Create box layout with the unified box component
     try {
-        const boxLayout = config.type === 'hbox'
-        ? createHBox({
-            children: boxItems,
-            spacing: config.spacing,
-            padding: config.padding,
-            valign: config.valign,  // Changed from align
-            halign: config.halign,  // Changed from justify
-            wrap: config.wrap,
-            reverse: config.reverse,
-            width: 400,  // Set fixed width to match container
-            height: 200, // Set fixed height to match container
-            position: { x: 20, y: 20 }
-            })
-        : createVBox({
-            children: boxItems,
-            spacing: config.spacing,
-            padding: config.padding,
-            halign: config.halign,  // Changed from align
-            valign: config.valign,  // Changed from justify
-            wrap: config.wrap,
-            reverse: config.reverse,
-            width: 400,  // Set fixed width to match container
-            height: 200, // Set fixed height to match container
-            position: { x: 20, y: 20 }
-            });
+      const boxLayout = createBox({
+        children: boxItems,
+        class: config.class, // Use the class property for layout type and alignment
+        spacing: config.spacing,
+        padding: config.padding,
+        width: 400,  // Set fixed width to match container
+        height: 200, // Set fixed height to match container
+        position: { x: 20, y: 20 }
+      });
 
-        // Render box layout to SVG
-        if (boxLayout && boxLayout.renderToSvg) {
-        boxLayout.renderToSvg(svg);
-        } else {
-        throw new Error('Failed to create renderable box layout');
-        }
+      // Render box layout to the preview area
+      renderViz(boxLayout, previewArea);
     } catch (error) {
         console.error('Error rendering box layout:', error);
         const errorMsg = document.createElement('div');
@@ -228,7 +196,7 @@ export function createBoxLayoutDashboard(container: HTMLElement) {
     configDisplay.style.fontSize = '12px';
     configDisplay.style.maxHeight = '300px';
     configDisplay.style.overflow = 'auto';
-    vizContainer.appendChild(configDisplay);
+    previewArea.appendChild(configDisplay);
     }
 
 
@@ -406,10 +374,10 @@ function createAlignmentSection(config: any, onChange: () => void): HTMLElement 
   const explanationText = document.createElement('p');
   explanationText.style.margin = '0 0 10px 0';
   explanationText.innerHTML = `
-    <strong>For HBox:</strong><br>
+    <strong>For Horizontal layout:</strong><br>
     - <em>valign</em> controls vertical positioning (cross-axis)<br>
     - <em>halign</em> controls horizontal distribution (main-axis)<br><br>
-    <strong>For VBox:</strong><br>
+    <strong>For Vertical layout:</strong><br>
     - <em>halign</em> controls horizontal positioning (cross-axis)<br>
     - <em>valign</em> controls vertical distribution (main-axis)
   `;

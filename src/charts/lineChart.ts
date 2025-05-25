@@ -23,6 +23,7 @@ import { LineStyle } from '../components/styles/lineStyle';
 import { AreaStyle } from '../components/styles/areaStyle';
 import { PointStyle } from '../components/styles/pointStyle';
 import { CartesianCoordinateSystem, createCartesianCoordinateSystem } from '../components/coordinates/cartesianCoordinateSystem';
+import { Annotation, renderAnnotations } from '../core/annotations';
 
 // Make sure define type is registered
 registerDefineType();
@@ -67,6 +68,14 @@ export const lineChartDefinition = {
         enabled: true,
         position: 'top-right', // 'top-right', 'top-left', 'bottom-right', 'bottom-left', or {x, y}
         orientation: 'vertical'
+      }
+    },
+    annotations: {
+      default: [],
+      validate: (annotations: Annotation[]) => {
+        if (!Array.isArray(annotations)) {
+          throw new Error('Annotations must be an array');
+        }
       }
     }
   },
@@ -443,6 +452,11 @@ export const lineChartDefinition = {
     // Create grid lines if enabled
     const gridLines = props.grid ? createGridLines(dimensions, yAxisValues, xValues, xScale, yScale, xType) : [];
 
+    // Create rendered annotations
+    const renderedAnnotations = props.annotations && props.annotations.length > 0
+      ? renderAnnotations(props.annotations, coordSystem, dimensions)
+      : [];
+
     // Combine all elements into a group specification
     const groupSpec = {
       type: 'group',
@@ -477,6 +491,9 @@ export const lineChartDefinition = {
         // Chart elements (lines, areas, points)
         ...chartElements,
 
+        // Annotations
+        ...renderedAnnotations,
+
         // Title
         chartTitle,
 
@@ -484,6 +501,7 @@ export const lineChartDefinition = {
         legend
       ].filter(Boolean) // Remove null items
     };
+
 
     // Process the group specification to create a renderable visualization
     const renderableGroup = buildViz(groupSpec);
@@ -507,6 +525,7 @@ export const lineChartDefinition = {
         return false;
       }
     );
+
   }
 };
 
@@ -541,7 +560,8 @@ export function createLineChart(options: {
     enabled?: boolean,
     position?: string | { x: number, y: number },
     orientation?: 'vertical' | 'horizontal'
-  }
+  },
+  annotations?: Annotation[]
 }) {
   return buildViz({
     type: 'lineChart',
@@ -562,6 +582,7 @@ export function createLineChart(options: {
     lineWidth: options.lineWidth || 2,
     fillArea: options.fillArea || false,
     fillOpacity: options.fillOpacity || 0.2,
-    legend: options.legend
+    legend: options.legend,
+    annotations: options.annotations || []
   });
 }

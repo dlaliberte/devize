@@ -10,7 +10,7 @@
 import { buildViz } from '../core/builder';
 import { registerDefineType } from '../core/define';
 import { createSVGElement } from '../renderers/svgUtils';
-import { createRenderableVisualization } from '../core/componentUtils';
+import { createRenderableVisualizationEnhanced } from '../core/componentUtils';
 
 // Line type definition
 export const lineTypeDefinition = {
@@ -88,11 +88,11 @@ export const lineTypeDefinition = {
     };
 
     // Create and return a renderable visualization
-    return createRenderableVisualization(
+    return createRenderableVisualizationEnhanced(
       'line',
       props,
-      renderToSvg,
-      renderToCanvas
+      {renderToSvg,
+      renderToCanvas}
     );
   }
 };

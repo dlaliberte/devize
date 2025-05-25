@@ -10,8 +10,8 @@
 import { registerDefineType } from '../core/define';
 import { buildViz } from '../core/builder';
 import { createSVGElement, applyAttributes } from '../renderers/svgUtils';
-import { RenderableVisualization, VisualizationSpec } from '../core/types';
-import { createRenderableVisualization } from '../core/componentUtils';
+
+import { createRenderableVisualizationEnhanced } from '../core/componentUtils';
 
 // Text type definition
 export const textTypeDefinition = {
@@ -179,7 +179,7 @@ export const textTypeDefinition = {
     };
 
     // Create and return a renderable visualization with the update method
-    return createRenderableVisualization('text', props, renderToSvg, renderToCanvas, update);
+    return createRenderableVisualizationEnhanced('text', props, { renderToSvg, renderToCanvas });
   }
 };
 

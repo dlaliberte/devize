@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Gauge Chart Examples</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .example {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        h2 {
+            color: #555;
+            margin-top: 0;
+        }
+        .description {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        .gauge-container {
+            width: 100%;
+            height: 120px;
+        }
+        .back-link {
+            display: block;
+            margin-top: 30px;
+            text-align: center;
+            color: #0066cc;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Linear Gauge Chart Examples</h1>
+
+    <div class="container">
+        <div class="example">
+            <h2>Basic Performance Gauge</h2>
+            <p class="description">A simple gauge showing performance level with discrete color regions.</p>
+            <div id="performance-gauge" class="gauge-container"></div>
+        </div>
+
+        <div class="example">
+            <h2>Temperature Gauge with Gradient</h2>
+            <p class="description">A temperature gauge with smooth color transitions.</p>
+            <div id="temperature-gauge" class="gauge-container"></div>
+        </div>
+
+        <div class="example">
+            <h2>Rating Scale with Categories</h2>
+            <p class="description">A rating scale with labeled categories.</p>
+            <div id="rating-gauge" class="gauge-container"></div>
+        </div>
+
+        <div class="example">
+            <h2>Progress Indicator</h2>
+            <p class="description">A progress gauge showing completion percentage.</p>
+            <div id="progress-gauge" class="gauge-container"></div>
+        </div>
+
+        <div class="example">
+            <h2>Custom Indicator Types</h2>
+            <p class="description">Different indicator styles: needle, arrow, and dot.</p>
+            <div id="custom-indicators" class="gauge-container"></div>
+        </div>
+    </div>
+
+    <a href="/examples/" class="back-link">← Back to Examples</a>
+
+    <script type="module">
+        // Import the Devize library
+        import { buildViz } from '/src/index.ts';
+
+        // Import the LinearGaugeChart component
+        import { createLinearGaugeChart } from '/src/charts/linearGaugeChart.ts';
+
+        // Example 1: Basic Performance Gauge
+        const performanceGauge = createLinearGaugeChart({
+            value: 65,
+            scale: {
+                min: 0,
+                max: 100
+            },
+            regions: [
+                { value: 0, color: "#FF5252", label: "Low" },
+                { value: 40, color: "#FFC107", label: "Medium" },
+                { value: 70, color: "#4CAF50", label: "High" },
+                { value: 100, color: "#2196F3", label: "Excellent" }
+            ],
+            colorMode: "discrete",
+            title: "Performance Score",
+            units: "%",
+            width: 700,
+            height: 100
+        });
+
+        // Render the performance gauge
+        const performanceContainer = document.getElementById('performance-gauge');
+        performanceGauge.render(performanceContainer);
+
+        // Example 2: Temperature Gauge with Gradient
+        const temperatureGauge = createLinearGaugeChart({
+            value: 22.5,
+            scale: {
+                min: -20,
+                max: 40
+            },
+            regions: [
+                { value: -20, color: "#0022FF" },
+                { value: 0, color: "#88CCFF" },
+                { value: 15, color: "#FFEB3B" },
+                { value: 25, color: "#FF9800" },
+                { value: 40, color: "#FF0000" }
+            ],
+            colorMode: "gradient",
+            title: "Temperature",
+            units: "°C",
+            width: 700,
+            height: 100
+        });
+
+        // Render the temperature gauge
+        const temperatureContainer = document.getElementById('temperature-gauge');
+        temperatureGauge.render(temperatureContainer);
+
+        // Example 3: Rating Scale with Categories
+        const ratingGauge = createLinearGaugeChart({
+            value: 3.8,
+            scale: {
+                min: 1,
+                max: 5
+            },
+            categories: [
+                { min: 1, max: 2, color: "#FF5252", label: "Poor" },
+                { min: 2, max: 3, color: "#FFC107", label: "Fair" },
+                { min: 3, max: 4, color: "#4CAF50", label: "Good" },
+                { min: 4, max: 5, color: "#2196F3", label: "Excellent" }
+            ],
+            showCategoryLabels: true,
+            title: "Customer Rating",
+            width: 700,
+            height: 100
+        });
+
+        // Render the rating gauge
+        const ratingContainer = document.getElementById('rating-gauge');
+        ratingGauge.render(ratingContainer);
+
+        // Example 4: Progress Indicator
+        const progressGauge = createLinearGaugeChart({
+            value: 75,
+            scale: {
+                min: 0,
+                max: 100
+            },
+            regions: [
+                { value: 0, color: "#E0E0E0" },
+                { value: 100, color: "#4CAF50" }
+            ],
+            colorMode: "gradient",
+            title: "Project Completion",
+            units: "%",
+            width: 700,
+            height: 100,
+            indicatorType: "arrow"
+        });
+
+        // Render the progress gauge
+        const progressContainer = document.getElementById('progress-gauge');
+        progressGauge.render(progressContainer);
+
+        // Example 5: Custom Indicator Types
+        // We'll create three gauges with different indicator types
+        const customIndicators = buildViz({
+            type: "group",
+            children: [
+                {
+                    type: "linearGaugeChart",
+                    value: 60,
+                    scale: { min: 0, max: 100 },
+                    regions: [
+                        { value: 0, color: "#FF5252" },
+                        { value: 50, color: "#FFC107" },
+                        { value: 100, color: "#4CAF50" }
+                    ],
+                    colorMode: "gradient",
+                    indicatorType: "needle",
+                    width: 700,
+                    height: 30,
+                    margin: { top: 5, right: 20, bottom: 5, left: 20 }
+                },
+                {
+                    type: "linearGaugeChart",
+                    value: 60,
+                    scale: { min: 0, max: 100 },
+                    regions: [
+                        { value: 0, color: "#FF5252" },
+                        { value: 50, color: "#FFC107" },
+                        { value: 100, color: "#4CAF50" }
+                    ],
+                    colorMode: "gradient",
+                    indicatorType: "arrow",
+                    width: 700,
+                    height: 30,
+                    margin: { top: 40, right: 20, bottom: 5, left: 20 }
+                },
+                {
+                    type: "linearGaugeChart",
+                    value: 60,
+                    scale: { min: 0, max: 100 },
+                    regions: [
+                        { value: 0, color: "#FF5252" },
+                        { value: 50, color: "#FFC107" },
+                        { value: 100, color: "#4CAF50" }
+                    ],
+                    colorMode: "gradient",
+                    indicatorType: "dot",
+                    width: 700,
+                    height: 30,
+                    margin: { top: 75, right: 20, bottom: 5, left: 20 }
+                }
+            ]
+        });
+
+        // Render the custom indicators
+        const customIndicatorsContainer = document.getElementById('custom-indicators');
+        customIndicators.render(customIndicatorsContainer);
+    </script>
+</body>
+</html>

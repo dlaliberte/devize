@@ -209,7 +209,7 @@ export function buildViz(spec: VisualizationSpec | RenderableVisualization): Ren
       // calling the implementation function or using the implementation object.
       // For now, prohibit direct recursive types.
       if (result.type && result.type == spec.type) {
-        throw new Error('This is the start of an infinte loop.')
+        throw new Error('This is the start of an infinite loop.')
       }
       if (result.type) {
         return buildViz(result);

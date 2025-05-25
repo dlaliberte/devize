@@ -11,7 +11,7 @@ import { registerDefineType } from '../core/define';
 import { buildViz } from '../core/builder';
 import { createSVGElement, applyAttributes } from '../renderers/svgUtils';
 import { RenderableVisualization, VisualizationSpec } from '../core/types';
-import { createRenderableVisualization } from '../core/componentUtils';
+import { createRenderableVisualization, createRenderableVisualizationEnhanced } from '../core/componentUtils';
 
 // Rectangle type definition
 export const rectangleTypeDefinition = {
@@ -112,8 +112,39 @@ export const rectangleTypeDefinition = {
       return true; // Indicate successful rendering
     };
 
+    // HTML rendering function
+    const renderToHtml = (container?: HTMLElement) => {
+      // Create a div element for the rectangle
+      const rectElement = document.createElement('div');
+
+      // Apply styles to make it look like a rectangle
+      rectElement.style.position = 'absolute';
+      rectElement.style.left = `${attributes.x}px`;
+      rectElement.style.top = `${attributes.y}px`;
+      rectElement.style.width = `${attributes.width}px`;
+      rectElement.style.height = `${attributes.height}px`;
+      rectElement.style.backgroundColor = attributes.fill !== 'none' ? attributes.fill : 'transparent';
+
+      // Apply border (stroke)
+      if (attributes.stroke !== 'none') {
+        rectElement.style.border = `${attributes['stroke-width']}px solid ${attributes.stroke}`;
+      }
+
+      // Apply corner radius
+      if (attributes.rx > 0) {
+        rectElement.style.borderRadius = `${attributes.rx}px`;
+      }
+
+      // Add to container if provided
+      if (container) {
+        container.appendChild(rectElement);
+      }
+
+      return rectElement;
+    };
+
     // Create and return a renderable visualization using the utility function
-    return createRenderableVisualization('rectangle', props, renderToSvg, renderToCanvas);
+    return createRenderableVisualizationEnhanced('rectangle', props, { renderToSvg, renderToCanvas, renderToHtml });
   }
 };
 

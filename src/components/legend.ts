@@ -9,7 +9,7 @@
 
 import { buildViz } from '../core/builder';
 import { registerDefineType } from '../core/define';
-import { createRenderableVisualization } from '../core/componentUtils';
+import { createRenderableVisualizationEnhanced } from '../core/componentUtils';
 
 // Import required primitives
 import '../primitives/rectangle';
@@ -289,27 +289,30 @@ export const legendDefinition = {
     const renderableGroup = buildViz(groupSpec);
 
     // Create and return a renderable visualization
-    return createRenderableVisualization(
+    return createRenderableVisualizationEnhanced(
       'legend',
       props,
-      // SVG rendering function - delegates to the group's renderToSvg
-      (container) => {
-        if (renderableGroup && renderableGroup.renderToSvg) {
-          const element = renderableGroup.renderToSvg(container);
-          // Ensure the class is set on the SVG element
-          if (element && !element.classList.contains('legend')) {
-            element.classList.add('legend');
+      {
+        renderToSvg:
+          // SVG rendering function - delegates to the group's renderToSvg
+          (container) => {
+            if (renderableGroup && renderableGroup.renderToSvg) {
+              const element = renderableGroup.renderToSvg(container);
+              // Ensure the class is set on the SVG element
+              if (element && !element.classList.contains('legend')) {
+                element.classList.add('legend');
+              }
+              return element;
+            }
+            return null;
+          },
+        // Canvas rendering function - delegates to the group's renderToCanvas
+        renderToCanvas: (ctx) => {
+          if (renderableGroup && renderableGroup.renderToCanvas) {
+            return renderableGroup.renderToCanvas(ctx);
           }
-          return element;
+          return false;
         }
-        return null;
-      },
-      // Canvas rendering function - delegates to the group's renderToCanvas
-      (ctx) => {
-        if (renderableGroup && renderableGroup.renderToCanvas) {
-          return renderableGroup.renderToCanvas(ctx);
-        }
-        return false;
       }
     );
   }

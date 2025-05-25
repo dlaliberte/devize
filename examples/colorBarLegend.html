@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Bar Legend Examples</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .example {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        h2 {
+            color: #555;
+            margin-top: 0;
+        }
+        .description {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        .legend-container {
+            width: 100%;
+            height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Color Bar Legend Examples</h1>
+
+    <div class="container">
+        <div class="example">
+            <h2>Basic Regions with Discrete Colors</h2>
+            <p class="description">A color bar with discrete color regions.</p>
+            <div id="basic-regions" class="legend-container"></div>
+        </div>
+
+        <div class="example">
+            <h2>Gradient Colors</h2>
+            <p class="description">A color bar with smooth gradient transitions between colors.</p>
+            <div id="gradient-colors" class="legend-container"></div>
+        </div>
+
+        <div class="example">
+            <h2>Categories with Labels</h2>
+            <p class="description">A color bar using categories with visible labels.</p>
+            <div id="categories-with-labels" class="legend-container"></div>
+        </div>
+
+        <div class="example">
+            <h2>Temperature Scale</h2>
+            <p class="description">A color bar representing temperature ranges.</p>
+            <div id="temperature-scale" class="legend-container"></div>
+        </div>
+
+        <div class="example">
+            <h2>Performance Indicator</h2>
+            <p class="description">A color bar for performance evaluation.</p>
+            <div id="performance-indicator" class="legend-container"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import the Devize library
+        import { buildViz } from '/src/index.ts';
+
+        // Import the ColorBarLegend component
+        import { createColorBarLegend } from '/src/components/colorBarLegend.ts';
+
+        // Import the linearGradient primitive
+        import '/src/primitives/linearGradient.ts';
+
+        // Example 1: Basic Regions with Discrete Colors
+        const basicRegions = createColorBarLegend({
+            scale: {
+                min: 0,
+                max: 100
+            },
+            regions: [
+                { value: 0, color: "#FF5252", label: "Low" },
+                { value: 40, color: "#FFC107", label: "Medium" },
+                { value: 70, color: "#4CAF50", label: "High" },
+                { value: 100, color: "#2196F3", label: "Excellent" }
+            ],
+            colorMode: "discrete",
+            width: 700,
+            height: 80,
+            barHeight: 30
+        });
+
+        // Render the basic regions legend
+        const basicRegionsContainer = document.getElementById('basic-regions');
+        basicRegions.render(basicRegionsContainer);
+
+        // Example 2: Gradient Colors
+        const gradientColors = createColorBarLegend({
+            scale: {
+                min: 0,
+                max: 100
+            },
+            regions: [
+                { value: 0, color: "#FF5252" },
+                { value: 50, color: "#FFC107" },
+                { value: 100, color: "#4CAF50" }
+            ],
+            colorMode: "gradient",
+            width: 700,
+            height: 80,
+            barHeight: 30
+        });
+
+        // Render the gradient colors legend
+        const gradientColorsContainer = document.getElementById('gradient-colors');
+        gradientColors.render(gradientColorsContainer);
+
+        // Example 3: Categories with Labels
+        const categoriesWithLabels = createColorBarLegend({
+            scale: {
+                min: 1,
+                max: 5
+            },
+            categories: [
+                { min: 1, max: 2, color: "#FF5252", label: "Poor" },
+                { min: 2, max: 3, color: "#FFC107", label: "Fair" },
+                { min: 3, max: 4, color: "#4CAF50", label: "Good" },
+                { min: 4, max: 5, color: "#2196F3", label: "Excellent" }
+            ],
+            showCategoryLabels: true,
+            width: 700,
+            height: 80,
+            barHeight: 30
+        });
+
+        // Render the categories with labels legend
+        const categoriesWithLabelsContainer = document.getElementById('categories-with-labels');
+        categoriesWithLabels.render(categoriesWithLabelsContainer);
+
+        // Example 4: Temperature Scale
+        const temperatureScale = createColorBarLegend({
+            scale: {
+                min: -20,
+                max: 40
+            },
+            regions: [
+                { value: -20, color: "#0022FF", label: "Very Cold" },
+                { value: 0, color: "#88CCFF", label: "Cold" },
+                { value: 15, color: "#FFEB3B", label: "Mild" },
+                { value: 25, color: "#FF9800", label: "Warm" },
+                { value: 40, color: "#FF0000", label: "Hot" }
+            ],
+            colorMode: "gradient",
+            width: 700,
+            height: 80,
+            barHeight: 30
+        });
+
+        // Render the temperature scale legend
+        const temperatureScaleContainer = document.getElementById('temperature-scale');
+        temperatureScale.render(temperatureScaleContainer);
+
+        // Example 5: Performance Indicator
+        const performanceIndicator = createColorBarLegend({
+            scale: {
+                min: 0,
+                max: 10
+            },
+            categories: [
+                { min: 0, max: 3, color: "#FF5252", label: "Needs Improvement" },
+                { min: 3, max: 7, color: "#FFC107", label: "Satisfactory" },
+                { min: 7, max: 9, color: "#4CAF50", label: "Good" },
+                { min: 9, max: 10, color: "#2196F3", label: "Outstanding" }
+            ],
+            showCategoryLabels: true,
+            width: 700,
+            height: 80,
+            barHeight: 30
+        });
+
+        // Render the performance indicator legend
+        const performanceIndicatorContainer = document.getElementById('performance-indicator');
+        performanceIndicator.render(performanceIndicatorContainer);
+    </script>
+</body>
+</html>

@@ -13,14 +13,10 @@ import {
   commonChartProperties,
   validateCommonChartProps,
   calculateChartDimensions,
-  createChartTitleElement,
   createChartVisualization
 } from './base/Chart';
 
-import '../primitives/group';
-import '../primitives/rectangle';
-import '../primitives/text';
-import '../primitives/path';
+import { createLinearGaugeChart } from './linearGaugeChart';
 
 // Make sure define type is registered
 registerDefineType();
@@ -31,8 +27,8 @@ export const medicalTestChartDefinition = {
   name: "medicalTestChart",
   properties: {
     ...commonChartProperties,
-    data: { required: false, data: [] },
-    value: { required: false, default: [] },
+    data: { required: false, default: [] },
+    value: { required: true },
     range: {
       required: true,
       validate: (range: { low: number; high: number }) => {
@@ -98,199 +94,40 @@ export const medicalTestChartDefinition = {
       units, barHeight, indicatorSize
     } = props;
 
-    // Calculate dimensions
-    const dimensions = calculateChartDimensions(width, height, margin);
-    const chartWidth = dimensions.chartWidth;
-    const chartHeight = dimensions.chartHeight;
-
-    // Get the actual test value
-    let testValue;
-    if (typeof value === 'number') {
-      testValue = value;
-    } else if (value.value !== undefined) {
-      testValue = value.value;
-    } else if (value.field && data && data.length > 0) {
-      testValue = data[0][value.field];
-    } else {
-      throw new Error('Could not determine test value');
-    }
-
-    // Calculate positions
-    const padding = chartWidth * 0.05;
-    const barWidth = chartWidth - (padding * 2);
-    const barY = chartHeight * 0.5;
-
     // Determine the actual min and max values for the scale
     const scaleMin = min !== null ? min : range.low - (range.high - range.low) * 0.3;
     const scaleMax = max !== null ? max : range.high + (range.high - range.low) * 0.3;
 
-    // Map value to position
-    const valueToPosition = (val: number) => {
-      // Handle edge cases
-      if (val <= scaleMin) return padding;
-      if (val >= scaleMax) return padding + barWidth;
+    // Create regions for the linear gauge
+    const regions = [
+      { value: scaleMin, color: colors.caution, label: "Low" },
+      { value: range.low, color: colors.normal, label: "Normal" },
+      { value: range.high, color: colors.caution, label: "High" },
+      { value: scaleMax, color: colors.caution }
+    ];
 
-      // Linear mapping from value range to position range
-      const ratio = (val - scaleMin) / (scaleMax - scaleMin);
-      return padding + (ratio * barWidth);
-    };
-
-    const lowX = valueToPosition(range.low);
-    const highX = valueToPosition(range.high);
-    const valueX = valueToPosition(testValue);
-
-    // Determine result color based on where it falls
-    const resultColor = (testValue < range.low || testValue > range.high)
-      ? colors.caution
-      : colors.normal;
-
-    // Create chart elements
-    const elements = [];
-
-    // 1. Draw caution areas (yellow)
-    elements.push({
-      type: 'rectangle',
-      x: padding,
-      y: barY,
-      width: Math.max(10, lowX - padding),
-      height: barHeight,
-      fill: colors.caution,
-      stroke: '#000',
-      strokeWidth: 1
+    // Create a linear gauge chart with the appropriate configuration
+    const linearGauge = createLinearGaugeChart({
+      data,
+      value,
+      scale: { min: scaleMin, max: scaleMax },
+      regions,
+      colorMode: 'discrete',
+      showCategoryLabels: false,
+      showScaleLabels: true,
+      showRegionBoundaries: true,
+      margin,
+      title,
+      width,
+      height,
+      units,
+      barHeight,
+      indicatorSize,
+      indicatorType: 'box'
     });
-
-    elements.push({
-      type: 'rectangle',
-      x: highX,
-      y: barY,
-      width: Math.max(10, padding + barWidth - highX),
-      height: barHeight,
-      fill: colors.caution,
-      stroke: '#000',
-      strokeWidth: 1
-    });
-
-    // 2. Draw normal range (green)
-    elements.push({
-      type: 'rectangle',
-      x: lowX,
-      y: barY,
-      width: highX - lowX,
-      height: barHeight,
-      fill: colors.normal,
-      stroke: '#000',
-      strokeWidth: 1
-    });
-
-    // 3. Draw range labels
-    elements.push({
-      type: 'text',
-      x: lowX,
-      y: barY + barHeight + 20,
-      text: range.low.toString(),
-      fontSize: 12,
-      fontWeight: 'normal',
-      fill: colors.text,
-      textAnchor: 'middle'
-    });
-
-    elements.push({
-      type: 'text',
-      x: highX,
-      y: barY + barHeight + 20,
-      text: range.high.toString(),
-      fontSize: 12,
-      fontWeight: 'normal',
-      fill: colors.text,
-      textAnchor: 'middle'
-    });
-
-    // 4. Draw min and max labels if they're different from range values
-    if (min !== null) {
-      elements.push({
-        type: 'text',
-        x: padding,
-        y: barY + barHeight + 20,
-        text: min.toString(),
-        fontSize: 12,
-        fontWeight: 'normal',
-        fill: colors.text,
-        textAnchor: 'start'
-      });
-    }
-
-    if (max !== null) {
-      elements.push({
-        type: 'text',
-        x: padding + barWidth,
-        y: barY + barHeight + 20,
-        text: max.toString(),
-        fontSize: 12,
-        fontWeight: 'normal',
-        fill: colors.text,
-        textAnchor: 'end'
-      });
-    }
-
-    // 5. Draw result indicator (box with triangle pointer)
-    const boxWidth = indicatorSize.width;
-    const boxHeight = indicatorSize.height;
-    const triangleHeight = 10;
-
-    // Box
-    elements.push({
-      type: 'rectangle',
-      x: valueX - boxWidth/2,
-      y: barY - boxHeight - triangleHeight,
-      width: boxWidth,
-      height: boxHeight,
-      fill: resultColor,
-      stroke: '#000',
-      strokeWidth: 1,
-      rx: 4,
-      ry: 4
-    });
-
-    // Triangle pointer
-    elements.push({
-      type: 'path',
-      d: `M ${valueX} ${barY} L ${valueX - 8} ${barY - triangleHeight} L ${valueX + 8} ${barY - triangleHeight} Z`,
-      fill: resultColor,
-      stroke: '#000',
-      strokeWidth: 1
-    });
-
-    // Value text
-    const valueText = units ? `${testValue} ${units}` : testValue.toString();
-    elements.push({
-      type: 'text',
-      x: valueX,
-      y: barY - boxHeight/2 - triangleHeight + 5,
-      text: valueText,
-      fontSize: 14,
-      fontWeight: 'bold',
-      fill: '#FFFFFF',
-      textAnchor: 'middle'
-    });
-
-    // Create chart title
-    const chartTitle = createChartTitleElement(title, dimensions);
-    if (chartTitle) {
-      elements.push(chartTitle);
-    }
-
-    // Combine all elements into a group specification
-    const groupSpec = {
-      type: 'group',
-      transform: `translate(${margin.left}, ${margin.top})`,
-      children: elements
-    };
-
-    // Process the group specification to create a renderable visualization
-    const renderableGroup = buildViz(groupSpec);
 
     // Create and return a renderable visualization
-    return createChartVisualization('medicalTestChart', props, renderableGroup);
+    return createChartVisualization('medicalTestChart', props, linearGauge);
   }
 };
 

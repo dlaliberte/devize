@@ -52,8 +52,9 @@ function isRenderableVisualization(obj: any): boolean {
          typeof obj === 'object' &&
          typeof obj.renderableType === 'string' &&
          typeof obj.render === 'function' &&
-         typeof obj.renderToSvg === 'function' &&
-         typeof obj.renderToCanvas === 'function';
+         (typeof obj.renderToSvg === 'function' ||
+          typeof obj.renderToCanvas === 'function' ||
+          typeof obj.renderToHtml === 'function');
 }
 
 /**
@@ -107,6 +108,54 @@ export function renderViz(
         // Clear container
         while (container.firstChild) {
           container.removeChild(container.firstChild);
+        }
+      }
+    };
+  }
+
+  // Check if HTML rendering is available and we're not in an SVG or Canvas container
+  if (renderable.renderToHtml && !isSVGContainer(container) && !isCanvasContainer(container)) {
+    console.log('Rendering with HTML');
+
+    // Clear existing content
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
+
+    // Render using HTML
+    const element = renderable.renderToHtml(container);
+    console.log('Rendered HTML element:', element);
+
+    return {
+      element,
+      update: (newSpec: VisualizationSpec) => {
+        // Merge the new spec with the original spec
+        const originalSpec = {};
+        for (const key in renderable.spec) {
+          if (key !== 'type') {
+            originalSpec[key] = renderable.getProperty(key);
+          }
+        }
+
+        const type = renderable.getProperty('type');
+        const mergedSpec = {
+          type,
+          ...originalSpec,
+          ...newSpec
+        };
+
+        const updatedViz = renderable.update(mergedSpec);
+
+        // Clear existing content before re-rendering
+        while (container.firstChild) {
+          container.removeChild(container.firstChild);
+        }
+
+        return renderViz(updatedViz, container);
+      },
+      cleanup: () => {
+        if (element && element.parentNode) {
+          element.parentNode.removeChild(element);
         }
       }
     };

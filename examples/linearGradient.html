@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linear Gradient Examples</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        .example {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        h2 {
+            color: #555;
+            margin-top: 0;
+        }
+        .description {
+            color: #666;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        .gradient-container {
+            width: 100%;
+            height: 350px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .gradient-box {
+            width: 100%;
+            height: 80px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+        }
+        pre {
+            background-color: #f8f8f8;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 14px;
+        }
+        .back-link {
+            display: block;
+            margin-top: 30px;
+            text-align: center;
+            color: #0066cc;
+            text-decoration: none;
+        }
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <h1>Linear Gradient Examples</h1>
+
+    <div class="container">
+        <div class="example">
+            <h2>Basic Horizontal Gradient</h2>
+            <p class="description">A simple left-to-right linear gradient with two colors.</p>
+            <div class="gradient-container">
+                <div id="basic-horizontal" class="gradient-box"></div>
+                <pre>
+{
+  type: "linearGradient",
+  id: "basic-horizontal-gradient",
+  x1: "0%",
+  y1: "0%",
+  x2: "100%",
+  y2: "0%",
+  stops: [
+    { offset: "0%", color: "#3498db" },
+    { offset: "100%", color: "#9b59b6" }
+  ]
+}
+                </pre>
+            </div>
+        </div>
+
+        <div class="example">
+            <h2>Vertical Gradient</h2>
+            <p class="description">A top-to-bottom linear gradient.</p>
+            <div class="gradient-container">
+                <div id="vertical" class="gradient-box"></div>
+                <pre>
+{
+  type: "linearGradient",
+  id: "vertical-gradient",
+  x1: "0%",
+  y1: "0%",
+  x2: "0%",
+  y2: "100%",
+  stops: [
+    { offset: "0%", color: "#2ecc71" },
+    { offset: "100%", color: "#f1c40f" }
+  ]
+}
+                </pre>
+            </div>
+        </div>
+
+        <div class="example">
+            <h2>Diagonal Gradient</h2>
+            <p class="description">A diagonal linear gradient from top-left to bottom-right.</p>
+            <div class="gradient-container">
+                <div id="diagonal" class="gradient-box"></div>
+                <pre>
+{
+  type: "linearGradient",
+  id: "diagonal-gradient",
+  x1: "0%",
+  y1: "0%",
+  x2: "100%",
+  y2: "100%",
+  stops: [
+    { offset: "0%", color: "#e74c3c" },
+    { offset: "100%", color: "#3498db" }
+  ]
+}
+                </pre>
+            </div>
+        </div>
+
+        <div class="example">
+            <h2>Multi-Stop Gradient</h2>
+            <p class="description">A gradient with multiple color stops.</p>
+            <div class="gradient-container">
+                <div id="multi-stop" class="gradient-box"></div>
+                <pre>
+{
+  type: "linearGradient",
+  id: "multi-stop-gradient",
+  x1: "0%",
+  y1: "0%",
+  x2: "100%",
+  y2: "0%",
+  stops: [
+    { offset: "0%", color: "#1abc9c" },
+    { offset: "25%", color: "#3498db" },
+    { offset: "50%", color: "#9b59b6" },
+    { offset: "75%", color: "#e74c3c" },
+    { offset: "100%", color: "#f1c40f" }
+  ]
+}
+                </pre>
+            </div>
+        </div>
+
+        <div class="example">
+            <h2>Gradient with Opacity</h2>
+            <p class="description">A gradient with varying opacity levels.</p>
+            <div class="gradient-container">
+                <div id="opacity" class="gradient-box" style="background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAALEgAACxIB0t1+/AAAABZ0RVh0Q3JlYXRpb24gVGltZQAxMC8yOS8xMiKqq3kAAAAcdEVYdFNvZnR3YXJlAEFkb2JlIEZpcmV3b3JrcyBDUzVxteM2AAABHklEQVQ4jZWTvU7DMBSFPxMJIVHEYGaAgQHY+rIMSHkFHoGJmQfgIZgZmLrxBqhiYGBADAwgJCS2xJDYsa8HJ05tEkB8Uuyr63OO/XttlFKYUCnVAC4BrXyqgK4x5nPJZ4iIXnwDLKdIY8CdMWYYx0QA2iqgk3OqgWulVCuOiQC+gHbOqQ3cWMijCHgHDnNObWPMXQTsA9c5pyawZ2EdANbaJ+AYmOScHrXWFxYyB5RSLeA559QFTmKtHQE9YD/j9AK0rbUfFvIQkSmlVBs4yzg9AOfGmF8L6YrIOdDJOPWBS2PMwEJeReQQOMk4DYBrY8zIQoYicgKcZpzGwJ0xZmQhIxE5Ay4yTlPgwRgztpAfEekCRxmnGfBojJmkYn8Br5+LE8AV1SIAAAAASUVORK5CYII=');"></div>
+                <pre>
+{
+  type: "linearGradient",
+  id: "opacity-gradient",
+  x1: "0%",
+  y1: "0%",
+  x2: "100%",
+  y2: "0%",
+  stops: [
+    { offset: "0%", color: "#e74c3c", opacity: 1 },
+    { offset: "50%", color: "#e74c3c", opacity: 0.5 },
+    { offset: "100%", color: "#e74c3c", opacity: 0 }
+  ]
+}
+                </pre>
+            </div>
+        </div>
+
+        <div class="example">
+            <h2>Gradient with Spread Method</h2>
+            <p class="description">A gradient with repeat spread method.</p>
+            <div class="gradient-container">
+                <div id="spread-method" class="gradient-box"></div>
+                <pre>
+{
+  type: "linearGradient",
+  id: "spread-method-gradient",
+  x1: "0%",
+  y1: "0%",
+  x2: "25%",
+  y2: "0%",
+  spreadMethod: "repeat",
+  stops: [
+    { offset: "0%", color: "#3498db" },
+    { offset: "100%", color: "#2ecc71" }
+  ]
+}
+                </pre>
+            </div>
+        </div>
+    </div>
+
+    <a href="/examples/" class="back-link">← Back to Examples</a>
+
+    <script type="module">
+        // Import the Devize library
+        import { buildViz } from '/src/index.ts';
+
+        // Import the linearGradient primitive
+        import { createLinearGradient } from '/src/primitives/linearGradient.ts';
+        import '../src/primitives/rectangle.ts';
+        import '../src/primitives/group.ts';
+
+        // Example 1: Basic Horizontal Gradient
+        const basicHorizontal = buildViz({
+            type: 'group',
+            children: [
+                {
+                    type: 'linearGradient',
+                    id: 'basic-horizontal-gradient',
+                    x1: '0%',
+                    y1: '0%',
+                    x2: '100%',
+                    y2: '0%',
+                    stops: [
+                        { offset: '0%', color: '#3498db' },
+                        { offset: '100%', color: '#9b59b6' }
+                    ]
+                },
+                {
+                    type: 'rectangle',
+                    x: 0,
+                    y: 0,
+                    width: '100%',
+                    height: '100%',
+                    fill: 'url(#basic-horizontal-gradient)',
+                    stroke: 'none'
+                }
+            ]
+        });
+
+        // Render the basic horizontal gradient
+        const basicHorizontalContainer = document.getElementById('basic-horizontal');
+        basicHorizontal.render(basicHorizontalContainer);
+
+        // Example 2: Vertical Gradient
+        const vertical = buildViz({
+            type: 'group',
+            children: [
+                {
+                    type: 'linearGradient',
+                    id: 'vertical-gradient',
+                    x1: '0%',
+                    y1: '0%',
+                    x2: '0%',
+                    y2: '100%',
+                    stops: [
+                        { offset: '0%', color: '#2ecc71' },
+                        { offset: '100%', color: '#f1c40f' }
+                    ]
+                },
+                {
+                    type: 'rectangle',
+                    x: 0,
+                    y: 0,
+                    width: '100%',
+                    height: '100%',
+                    fill: 'url(#vertical-gradient)',
+                    stroke: 'none'
+                }
+            ]
+        });
+
+        // Render the vertical gradient
+        const verticalContainer = document.getElementById('vertical');
+        vertical.render(verticalContainer);
+
+        // Example 3: Diagonal Gradient
+        const diagonal = buildViz({
+            type: 'group',
+            children: [
+                {
+                    type: 'linearGradient',
+                    id: 'diagonal-gradient',
+                    x1: '0%',
+                    y1: '0%',
+                    x2: '100%',
+                    y2: '100%',
+                    stops: [
+                        { offset: '0%', color: '#e74c3c' },
+                        { offset: '100%', color: '#3498db' }
+                    ]
+                },
+                {
+                    type: 'rectangle',
+                    x: 0,
+                    y: 0,
+                    width: '100%',
+                    height: '100%',
+                    fill: 'url(#diagonal-gradient)',
+                    stroke: 'none'
+                }
+            ]
+        });
+
+        // Render the diagonal gradient
+        const diagonalContainer = document.getElementById('diagonal');
+        diagonal.render(diagonalContainer);
+
+        // Example 4: Multi-Stop Gradient
+        const multiStop = buildViz({
+            type: 'group',
+            children: [
+                {
+                    type: 'linearGradient',
+                    id: 'multi-stop-gradient',
+                    x1: '0%',
+                    y1: '0%',
+                    x2: '100%',
+                    y2: '0%',
+                    stops: [
+                        { offset: '0%', color: '#1abc9c' },
+                        { offset: '25%', color: '#3498db' },
+                        { offset: '50%', color: '#9b59b6' },
+                        { offset: '75%', color: '#e74c3c' },
+                        { offset: '100%', color: '#f1c40f' }
+                    ]
+                },
+                {
+                    type: 'rectangle',
+                    x: 0,
+                    y: 0,
+                    width: '100%',
+                    height: '100%',
+                    fill: 'url(#multi-stop-gradient)',
+                    stroke: 'none'
+                }
+            ]
+        });
+
+        // Render the multi-stop gradient
+        const multiStopContainer = document.getElementById('multi-stop');
+        multiStop.render(multiStopContainer);
+
+        // Example 5: Gradient with Opacity
+        const opacity = buildViz({
+            type: 'group',
+            children: [
+                {
+                    type: 'linearGradient',
+                    id: 'opacity-gradient',
+                    x1: '0%',
+                    y1: '0%',
+                    x2: '100%',
+                    y2: '0%',
+                    stops: [
+                        { offset: '0%', color: '#e74c3c', opacity: 1 },
+                        { offset: '50%', color: '#e74c3c', opacity: 0.5 },
+                        { offset: '100%', color: '#e74c3c', opacity: 0 }
+                    ]
+                },
+                {
+                    type: 'rectangle',
+                    x: 0,
+                    y: 0,
+                    width: '100%',
+                    height: '100%',
+                    fill: 'url(#opacity-gradient)',
+                    stroke: 'none'
+                }
+            ]
+        });
+
+        // Render the opacity gradient
+        const opacityContainer = document.getElementById('opacity');
+        opacity.render(opacityContainer);
+
+        // Example 6: Gradient with Spread Method
+        const spreadMethod = buildViz({
+            type: 'group',
+            children: [
+                {
+                    type: 'linearGradient',
+                    id: 'spread-method-gradient',
+                    x1: '0%',
+                    y1: '0%',
+                    x2: '25%',
+                    y2: '0%',
+                    spreadMethod: 'repeat',
+                    stops: [
+                        { offset: '0%', color: '#3498db' },
+                        { offset: '100%', color: '#2ecc71' }
+                    ]
+                },
+                {
+                    type: 'rectangle',
+                    x: 0,
+                    y: 0,
+                    width: '100%',
+                    height: '100%',
+                    fill: 'url(#spread-method-gradient)',
+                    stroke: 'none'
+                }
+            ]
+        });
+
+        // Render the spread method gradient
+        const spreadMethodContainer = document.getElementById('spread-method');
+        spreadMethod.render(spreadMethodContainer);
+    </script>
+</body>
+</html>

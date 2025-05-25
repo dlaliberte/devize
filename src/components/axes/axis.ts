@@ -12,7 +12,7 @@ import { registerDefineType } from '../../core/define';
 import { createScale } from '../scales/scale';
 import { Scale } from '../scales/scale-interface';
 
-import { createRenderableVisualization } from '../../core/componentUtils';
+import { createRenderableVisualizationEnhanced } from '../../core/componentUtils';
 
 // Import required primitives
 import '../../primitives/group';
@@ -289,7 +289,10 @@ export const axisDefinition = {
     };
 
     // Create and return a renderable visualization using the utility function
-    return createRenderableVisualization('axis', props, renderable.renderToSvg, renderable.renderToCanvas);
+    return createRenderableVisualizationEnhanced('axis', props, {
+      renderToSvg: renderable.renderToSvg,
+      renderToCanvas: renderable.renderToCanvas
+    });
   }
 };
 
