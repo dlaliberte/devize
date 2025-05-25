@@ -23,7 +23,7 @@ import { LineStyle } from '../components/styles/lineStyle';
 import { AreaStyle } from '../components/styles/areaStyle';
 import { PointStyle } from '../components/styles/pointStyle';
 import { CartesianCoordinateSystem, createCartesianCoordinateSystem } from '../components/coordinates/cartesianCoordinateSystem';
-import { Annotation, renderAnnotations } from '../core/annotations';
+// import { Annotation, renderAnnotations } from '../core/annotations';
 
 // Make sure define type is registered
 registerDefineType();
@@ -452,10 +452,19 @@ export const lineChartDefinition = {
     // Create grid lines if enabled
     const gridLines = props.grid ? createGridLines(dimensions, yAxisValues, xValues, xScale, yScale, xType) : [];
 
+
+    const renderAnnotationsGroup = (annotationsGroup: any) => {
+      let x = xScale.scale(annotationsGroup.x);
+      let y = yScale.scale(annotationsGroup.y);
+      return {
+        type: 'group',
+        x, y,
+        children: annotationsGroup.children.map(buildViz)
+      };
+    };
+
     // Create rendered annotations
-    const renderedAnnotations = props.annotations && props.annotations.length > 0
-      ? renderAnnotations(props.annotations, coordSystem, dimensions)
-      : [];
+    const renderedAnnotations = props.annotations ? props.annotations.map(renderAnnotationsGroup) : [];
 
     // Combine all elements into a group specification
     const groupSpec = {

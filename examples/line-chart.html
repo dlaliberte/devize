@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -12,7 +13,8 @@
       line-height: 1.6;
     }
 
-    h1, h2 {
+    h1,
+    h2 {
       color: #333;
     }
 
@@ -69,10 +71,12 @@
     }
   </style>
 </head>
+
 <body>
   <div class="container">
     <h1>Line Chart Example</h1>
-    <p>This example demonstrates a line chart with options for area fill and different curve types.</p>
+    <p>This example demonstrates a line chart with options for area fill and different curve types.
+    </p>
 
     <div id="visualization-container" class="viz-container"
       style="width: 800px; height: 500px; border: 1px solid #ccc;"></div>
@@ -177,29 +181,35 @@ Devize.renderViz(lineChart, document.getElementById("visualization-container"));
         grid: true,
         lineWidth: 2,
         pointSize: 5,
-        annotations: [
-          {
-            type: 'text',
-            text: 'Trend: Increasing',
-            x: 'Jan',
-            y: 420,
-            color: 'green',
-            fontSize: 12,
-            fontWeight: 'bold',
-            textAlign: 'left',
-            textBaseline: 'top'
-          },
-          {
+        annotations: [{
+          x: 'Jan',
+          y: 420,
+          children: [
+            {
+              type: 'text',
+              text: 'Trend: Increasing',
+
+              color: 'green',
+              fontSize: 12,
+              fontWeight: 'bold',
+              textAlign: 'left',
+              textBaseline: 'top'
+            }]
+        },
+        {
+          x: 'Feb',
+          y: 380,
+          children: [{
             type: 'text',
             text: 'Trend: Decreasing',
-            x: 'Feb',
-            y: 380,
+
             color: 'red',
             fontSize: 12,
             fontWeight: 'bold',
             textAlign: 'left',
             textBaseline: 'top'
-          }
+          }]
+        }
         ]
       };
 
@@ -252,4 +262,5 @@ Devize.renderViz(lineChart, document.getElementById("visualization-container"));
     });
   </script>
 </body>
+
 </html>
