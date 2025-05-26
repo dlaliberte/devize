@@ -106,14 +106,47 @@ export function createMinimalBandScale(options: {
   align?: number;
 }): Scale {
   const {
-    domain, range, padding = 0.1, paddingInner = padding, paddingOuter = padding, align = 0.5
+    domain, range, padding = 0.1, align = 0.5
   } = options;
+
+  let { paddingInner, paddingOuter } = options;
+  paddingInner = paddingInner != null ? paddingInner : padding;
+  paddingOuter = paddingOuter != null ? paddingOuter : padding;
 
   const [r0, r1] = range;
   const n = domain.length;
-  const step = n ? (r1 - r0) / (n - paddingInner + paddingOuter * 2) : 0;
-  const bandWidth = step * (1 - paddingInner);
-  const start = r0 + (r1 - r0 - step * (n - paddingInner)) * align;
+
+  if (n === 0) {
+    const scale: Scale = {
+      domain,
+      range,
+      scale: () => NaN,
+      bandwidth: () => 0,
+      ticks: () => domain
+    };
+    return scale;
+  }
+
+  const reverse = r1 < r0;
+  const [start, stop] = reverse ? [r1, r0] : [r0, r1];
+  const rangeWidth = stop - start;
+
+  // Calculate step and bandwidth
+  const step = rangeWidth / Math.max(1, n - paddingInner + paddingOuter * 2);
+  const bandwidth = step * (1 - paddingInner);
+
+  // Calculate the space needed for all bands and inner padding
+  const bandsWidth = n * bandwidth + (n - 1) * step * paddingInner;
+
+  // Calculate how much space is left for outer padding
+  const totalOuterPadding = rangeWidth - bandsWidth;
+
+  // Distribute outer padding based on alignment
+  // align=0: all outer padding on the right
+  // align=0.5: equal padding on both sides
+  // align=1: all outer padding on the left
+  const leftOuterPadding = align * totalOuterPadding;
+  const offset = start + leftOuterPadding;
 
   const scale: Scale = {
     domain,
@@ -121,9 +154,10 @@ export function createMinimalBandScale(options: {
     scale: (value) => {
       const index = domain.indexOf(value);
       if (index === -1) return NaN;
-      return start + paddingOuter * step + index * step;
+      const pos = offset + index * (bandwidth + step * paddingInner);
+      return reverse ? stop - (pos - start) - bandwidth : pos;
     },
-    bandwidth: () => bandWidth,
+    bandwidth: () => bandwidth,
     ticks: () => domain
   };
 

@@ -16,6 +16,8 @@ export const verticalLineDefinition = {
   name: "verticalLine",
   properties: {
     x: { required: true },
+    y1: { default: 0 },
+    y2: { default: 100 },
     height: { default: '100%' },
     stroke: { default: '#000000' },
     strokeWidth: { default: 1 },
@@ -28,12 +30,13 @@ export const verticalLineDefinition = {
     }
   },
   implementation: function(props: any) {
-    const { x, height, stroke, strokeWidth, strokeDasharray, opacity } = props;
+    const { x, y1, y2, height, stroke, strokeWidth, strokeDasharray, opacity } = props;
 
     // Create a line element
     return buildViz({
-      type: 'path',
-      d: `M ${x} 0 V ${height === '100%' ? '100%' : height}`,
+      type: 'line',
+      x1: x, x2: x,
+      y1, y2,
       stroke,
       strokeWidth,
       strokeDasharray,

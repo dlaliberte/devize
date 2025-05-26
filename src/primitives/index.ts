@@ -16,6 +16,8 @@ import './polygon';
 import './rectangle';
 import './text';
 
+export * from './verticalLine';
+
 // Re-export specific items that should be available from this module
 export * from './circle';
 // export * from './ellipse';

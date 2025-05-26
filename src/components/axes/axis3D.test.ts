@@ -8,18 +8,18 @@
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as THREE from 'three';
-import { registry, hasType, getType } from '../../../core/registry';
-import { buildViz } from '../../../core/builder';
-import { registerDefineType } from '../../../core/define';
+import { registry, hasType, getType } from '../../core/registry';
+import { buildViz } from '../../core/builder';
+import { registerDefineType } from '../../core/define';
 
 // Import the axis3D definition
-import { axis3DDefinition, registerAxis3DComponent } from '../axis3D';
+import { axis3DDefinition, registerAxis3DComponent } from './axis3D';
 
 // Import coordinate system
-import { Cartesian3DCoordinateSystem, createCartesian3DCoordinateSystem } from '../../coordinates/cartesian3DCoordinateSystem';
+import { Cartesian3DCoordinateSystem, createCartesian3DCoordinateSystem } from '../coordinates/cartesian3DCoordinateSystem';
 
 // Import scale definitions
-import { linearScaleDefinition } from '../../scales/linearScale';
+import { linearScaleDefinition } from '../scales/linearScale';
 
 describe('Axis3D Component', () => {
   // Reset registry before each test

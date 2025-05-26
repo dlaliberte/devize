@@ -8,25 +8,25 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach, vi } from 'vitest';
-import { registry, hasType, getType } from '../../../core/registry';
-import { buildViz } from '../../../core/builder';
-import { registerDefineType } from '../../../core/define';
+import { registry, hasType, getType } from '../../core/registry';
+import { buildViz } from '../../core/builder';
+import { registerDefineType } from '../../core/define';
 
 // Import the axis definition
-import { axisDefinition } from '../axis';
+import { axisDefinition } from './axis';
 
 // Import primitive registration functions
-import { registerLinePrimitive } from '../../../primitives/line';
-import { registerTextPrimitive } from '../../../primitives/text';
-import { registerGroupPrimitive } from '../../../primitives/group';
+import { registerLinePrimitive } from '../../primitives/line';
+import { registerTextPrimitive } from '../../primitives/text';
+import { registerGroupPrimitive } from '../../primitives/group';
 
 // Import scale definitions
-import { linearScaleDefinition } from '../../scales/linearScale';
-import { bandScaleDefinition } from '../../scales/bandScale';
+import { linearScaleDefinition } from '../scales/linearScale';
+import { bandScaleDefinition } from '../scales/bandScale';
 
-import { initializeTestEnvironment, ensurePrimitivesRegistered } from '../../../test/testSetup';
-import { createScale } from '../../scales/scale';
-import { testVisualizationRendering, createTestContainer } from '../../../test/testUtils';
+import { initializeTestEnvironment, ensurePrimitivesRegistered } from '../../test/testSetup';
+import { createScale } from '../scales/scale';
+import { testVisualizationRendering, createTestContainer } from '../../test/testUtils';
 
 describe('Axis Component', () => {
   let container: HTMLElement;
