@@ -19,11 +19,9 @@ buildViz({
   data: salesData,
   x: { field: "month" },
   y: { field: "sales" },
-  color: "#3366CC",
-  title: "Monthly Sales",
-  container: document.getElementById("viz-container")
-});
 ```
+
+TODO: Include examples of multi-line charts and annotations.
 
 ## Properties
 
