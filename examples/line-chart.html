@@ -118,7 +118,37 @@ const lineChartSpec = {
   showLine: true,
   showPoints: true,
   curve: "linear",
-  grid: true
+  grid: true,
+  annotations: [{
+          x: 'Jun',
+          y: 520,
+          children: [
+            {
+              type: 'text',
+              text: 'Trend: Decreasing',
+
+              color: 'green',
+              fontSize: 12,
+              fontWeight: 'bold',
+              textAlign: 'left',
+              textBaseline: 'top'
+            }]
+        },
+        {
+          x: 'May',
+          y: 480,
+          children: [{
+            type: 'text',
+            text: 'Trend: Increasing',
+
+            color: 'red',
+            fontSize: 12,
+            fontWeight: 'bold',
+            textAlign: 'left',
+            textBaseline: 'top'
+          }]
+        }
+        ]
 };
 
 // Build and render the visualization
@@ -182,28 +212,35 @@ Devize.renderViz(lineChart, document.getElementById("visualization-container"));
         lineWidth: 2,
         pointSize: 5,
         annotations: [{
-          x: 'Jan',
-          y: 420,
+          x: 'Jun',
+          y: 520,
           children: [
             {
               type: 'text',
-              text: 'Trend: Increasing',
-
-              color: 'green',
+              text: 'Trend: Decreasing',
+              x: 10,
+              y: -10,
+              color: 'red',
               fontSize: 12,
               fontWeight: 'bold',
               textAlign: 'left',
               textBaseline: 'top'
-            }]
+            },
+            {
+              type: 'line',
+              x1: 0, y1: 0,
+              x2: 10, y2: -10
+            }
+          ]
         },
         {
-          x: 'Feb',
-          y: 380,
+          x: 'May',
+          y: 480,
           children: [{
             type: 'text',
-            text: 'Trend: Decreasing',
+            text: 'Trend: Increasing',
 
-            color: 'red',
+            color: 'green',
             fontSize: 12,
             fontWeight: 'bold',
             textAlign: 'left',

@@ -10,7 +10,6 @@
 import { buildViz } from '../../core/builder';
 import { registerDefineType } from '../../core/define';
 import { Scale } from './scale-interface';
-import { AdditiveBlending } from 'three';
 
 // Make sure define type is registered
 registerDefineType();
@@ -27,7 +26,7 @@ export const bandScaleDefinition = {
     paddingOuter: { default: null },
     align: { default: 0.5 }
   },
-  implementation: props => {
+  implementation: (props: any) => {
     let { domain, range, padding, align, paddingInner, paddingOuter } = props;
     const [rangeMin, rangeMax] = range;
     const n = domain.length;
@@ -50,7 +49,7 @@ export const bandScaleDefinition = {
     const start = rangeMin + (align * remainingSpace);
 
     // Create the scale function
-    const scaleFunc = (value) => {
+    const scaleFunc = (value: any) => {
       const index = domain.indexOf(value);
       if (index === -1) return NaN;
       return start + (paddingOuter * step) + (index * step);
